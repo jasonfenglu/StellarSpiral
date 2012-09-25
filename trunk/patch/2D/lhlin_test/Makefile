@@ -6,7 +6,7 @@
 NDIM=2
 Rie_type=ExactRie
 Gravity=
-PATCH=/hpchome/ccfeng/antares_v0.58/patch/2D/lhlin_test
+PATCH=/hpchome/ccfeng/trunk/patch/2D/lhlin_test/
 EXEC=antares
 #################################
 ###### LAM/MPI
@@ -19,8 +19,7 @@ F90=mpif77
 MPIHOME=$(MPI_HOME)
 FFTWHOME=$(FFTW_HOME)
 HDF5HOME=$(HDF5_HOME)
-AntaresHOME=/home/ccfeng/antares_v0.58
-
+AntaresHOME=/hpchome/ccfeng/trunk
 #MPIHOME=/home/hhwang/program/lam-7.1.4
 #FFTWHOME=/home/hhwang/program/fftw-2.1.5
 #HDF5HOME=/home/hhwang/program/HDF5_lam
