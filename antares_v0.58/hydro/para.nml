@@ -1,0 +1,15 @@
+comment...comment....
+eos=1 => energy equation
+eos=2 => isothermal
+eos=3 => polytropic
+
+&run_params
+ncell=256,256
+xrange=-20.,20.
+yrange=-20.,20.
+tend=3.0
+CFL=0.4
+dtout=0.25
+snd=1.0
+solver_type=1
+/
