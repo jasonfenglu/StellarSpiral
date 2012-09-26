@@ -4,7 +4,7 @@ implicit none
 include 'mpif.h'
 include 'fftw_f77.i'
 
-character(len=8)::infile='para.nml' ! filename of namelist
+character(len=20)::infile='patch/para.nml' ! filename of namelist
 character(len=8)::flnm
 character(len=20)::dsetname
 integer::ierr ! error flag for MPI
