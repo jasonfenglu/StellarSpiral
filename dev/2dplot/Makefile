@@ -11,8 +11,8 @@ bin_prefix=
 
 FFLAGS=  -O3 
 
-LIB = -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5 -fPIC -lpgplot -lX11 -limf -lm -lpng
-INCL=-I$(MPIHOME)/include -I$(FFTWHOME)/include -I$(HDF5HOME)/include -L$(PGPLOT_HOME)
+LIB = -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5 -fPIC -lpgplot -lX11 -limf -lm -lpng -L$(CFITSIO_HOME)/lib -lcfitsio -lnsl
+INCL=-I$(MPIHOME)/include -I$(FFTWHOME)/include -I$(HDF5HOME)/include -L$(PGPLOT_HOME) 
 
 
 OBJECT = \
