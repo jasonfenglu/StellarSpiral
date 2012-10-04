@@ -1,0 +1,105 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.6	//
+10	pgplot_2dmesh.f	/^ 10   IER = PGCURS(X, Y, CH)$/;"	l	subroutine:FIDDLE	file:
+1000	kepler.f	/^1000    open(unit=90,file='.\/analysis\/orbit.dat')$/;"	l	subroutine:init_kepler	file:
+A	rotation_data.f	/^              REAL/;"	k	type:rotparameters_bulge
+A	rotation_data.f	/^              REAL/;"	k	type:rotparameters_old
+A	rotation_data.f	/^      REAL/;"	v	module:rotation
+B	rotation_data.f	/^              REAL*8                    ::B /;"	k	type:rotparameters_bulge
+B	rotation_data.f	/^              REAL*8                    ::B /;"	k	type:rotparameters_old
+B	rotation_data.f	/^      REAL*8,SAVE                       ::B /;"	v	module:rotation
+BINFOLD	makefile	/^BINFOLD = ..\/bin$/;"	m
+CC	makefile	/^CC	= icpc -O3 -fPIC$/;"	m
+CFLAGS	makefile	/^CFLAGS  = -O3 $(DEBUG)$/;"	m
+CFLAGS	makefile	/^CFLAGS= $(DEBUG)$/;"	m
+CMAKE_BINARY_DIR	Makefile	/^CMAKE_BINARY_DIR = \/arrays\/mhda\/ccfeng\/fourier_companion_4622\/trunk$/;"	m
+CMAKE_COMMAND	Makefile	/^CMAKE_COMMAND = \/asiaa\/home\/ccfeng\/bin\/cmake$/;"	m
+CMAKE_EDIT_COMMAND	Makefile	/^CMAKE_EDIT_COMMAND = \/asiaa\/home\/ccfeng\/bin\/ccmake$/;"	m
+CMAKE_SOURCE_DIR	Makefile	/^CMAKE_SOURCE_DIR = \/arrays\/mhda\/ccfeng\/fourier_companion_4622\/trunk$/;"	m
+DEBUG	makefile	/^DEBUG = $/;"	m
+F90FLAGS	makefile	/^F90FLAGS= $(DEBUG)$/;"	m
+FFLAGS	makefile	/^FFLAGS  = $(DEBUG) -O3 -module $(BINFOLD) $/;"	m
+FIDDLE	pgplot_2dmesh.f	/^      SUBROUTINE FIDDLE$/;"	s	module:MATPLOT
+FORTRAN	makefile	/^FORTRAN = ifort $/;"	m
+G	kepler.f	/^        REAL*8,SAVE                     ::G /;"	v	module:KEPLER
+KEPLER	kepler.f	/^        MODULE KEPLER$/;"	m
+LIB	makefile	/^LIB = -L\/penguin\/apps\/matlabR14\/bin\/glnxa64 -lmat -lmx -L$(LAMHOME)\/lib -lmpi -llam$/;"	m
+LIBSFOLD	makefile	/^LIBSFOLD= .$/;"	m
+LIBS_OBJ	makefile	/^LIBS_OBJ= $(addprefix $(BINFOLD)\/,$(LIBS_SRC))$/;"	m
+LIBS_SRC	source.mk	/^LIBS_SRC = \\$/;"	m
+LINKER	makefile	/^LINKER  = ifort $/;"	m
+LINKFLAGS	makefile	/^LINKFLAGS = $(DEBUG) -O3 -nofor_main$/;"	m
+Laplace_para	gsl_wrapper.cpp	/^} Laplace_para;$/;"	t	typeref:struct:laplace_para	file:
+M	kepler.f	/^        REAL*8,SAVE                     ::M /;"	v	module:KEPLER
+MATH	mathfunction.f	/^        MODULE MATH$/;"	m
+MATPLOT	pgplot_2dmesh.f	/^        MODULE MATPLOT$/;"	m
+MKLROOT	makefile	/^MKLROOT=\/opt\/intel\/mkl\/10.0.1.014\/lib\/em64t$/;"	m
+OBJECT	makefile	/^OBJECT  = $(LIBS_OBJ) $/;"	m
+PALETT	pgplot_2dmesh.f	/^      SUBROUTINE PALETT(/;"	s	module:MATPLOT
+RM	Makefile	/^RM = \/asiaa\/home\/ccfeng\/bin\/cmake -E remove -f$/;"	m
+SHELL	Makefile	/^SHELL = \/bin\/sh$/;"	m
+SLATEC_SRC	source.mk	/^SLATEC_SRC = \\$/;"	m
+SUFFIXES	Makefile	/^SUFFIXES =$/;"	m
+alp	density.f	/^        REAL*8                  ::alp$/;"	v	module:density
+alpcsq2	density.f	/^        REAL*8                  ::alpcsq2$/;"	v	module:density
+angu_vel	kepler.f	/^        REAL*8,SAVE                     ::eccen,angu_vel,/;"	v	module:KEPLER
+angular	rotation_data.f	/^      FUNCTION angular(/;"	f	module:rotation
+beta	dqawoe_laplace.f	/^        real*8                :: beta$/;"	v	module:slatec
+beta	gsl_wrapper.cpp	/^	double beta;		\/\/this is the input$/;"	m	struct:laplace_para	file:
+companion_direct_force	kepler.f	/^        FUNCTION companion_direct_force(/;"	f	module:companion_force
+companion_force	kepler.f	/^        MODULE companion_force$/;"	m
+cosine_smooth	smooth.f	/^        FUNCTION cosine_smooth(/;"	f	module:smooth
+density	density.f	/^        MODULE density$/;"	m
+density_max	density.f	/^        REAL*8                  ::density_max$/;"	v	module:density
+density_type	density.f	/^        CHARACTER(len=4)        ::density_type$/;"	v	module:density
+dlaplace_coefi	gsl_wrapper.cpp	/^double dlaplace_coefi(double n,double x){$/;"	f
+dqawoe_laplace_coefi	dqawoe_laplace.f	/^        FUNCTION dqawoe_laplace_coefi(/;"	f	module:slatec
+drawmat	pgplot_2dmesh.f	/^      SUBROUTINE drawmat(/;"	s	module:MATPLOT
+eccen	kepler.f	/^        REAL*8,SAVE                     ::eccen,/;"	v	module:KEPLER
+ellipticK	mathfunction.f	/^        FUNCTION ellipticK(/;"	f	module:MATH
+f	dqawoe_laplace.f	/^        fu/;"	f	function:dqawoe_laplace_coefi
+find_th	kepler.f	/^        FUNCTION find_th(/;"	f	module:KEPLER
+focal	kepler.f	/^        FUNCTION focal(/;"	f
+force_from_companion	companion_forcing_fourier_decompose.f	/^        FUNCTION force_from_companion(/;"	f	module:fourier_decom
+fourier_decom	companion_forcing_fourier_decompose.f	/^        MODULE fourier_decom$/;"	m
+h	gsl_wrapper.cpp	/^	double h;$/;"	m	struct:laplace_para	file:
+h	kepler.f	/^        REAL*8,SAVE                     ::h /;"	v	module:KEPLER
+init_density	density.f	/^        SUBROUTINE init_density(/;"	s	module:density
+init_kepler	kepler.f	/^        SUBROUTINE init_kepler(/;"	s	module:KEPLER
+iterating	kepler.f	/^        FUNCTION iterating(/;"	f	module:KEPLER
+laplace_coefi	companion_forcing_fourier_decompose.f	/^        FUNCTION laplace_coefi(/;"	f	module:fourier_decom
+laplace_coefi	dqawoe_laplace.f	/^        FUNCTION laplace_coefi(/;"	f	module:slatec
+laplace_coefi	gsl_wrapper.cpp	/^double laplace_coefi(double n,double x){$/;"	f
+laplace_coefi0	companion_forcing_fourier_decompose.f	/^        FUNCTION laplace_coefi0(/;"	f	module:fourier_decom
+laplace_coefi1	companion_forcing_fourier_decompose.f	/^        FUNCTION laplace_coefi1(/;"	f	module:fourier_decom
+laplace_coefi_general_befor	gsl_wrapper.cpp	/^double laplace_coefi_general_befor (double x, void * params) {$/;"	f
+laplace_para	gsl_wrapper.cpp	/^typedef struct laplace_para{$/;"	s	file:
+linear_increase	smooth.f	/^        FUNCTION linear_increase(/;"	f
+n	gsl_wrapper.cpp	/^	double n;$/;"	m	struct:laplace_para	file:
+output_angular_speed	kepler.f	/^        FUNCTION output_angular_speed(/;"	f	module:KEPLER
+pi	companion_forcing_fourier_decompose.f	/^        REAL*8,PARAMETER::pi /;"	v	module:fourier_decom
+pi	smooth.f	/^        REAL*8                  ::pi /;"	v	module:smooth
+potential_1	companion_forcing_fourier_decompose.f	/^        FUNCTION potential_1(/;"	f	function:force_from_companion
+print_kepler	kepler.f	/^        SUBROUTINE print_kepler(/;"	s	module:KEPLER
+pspd	rotation_data.f	/^      FUNCTION pspd(/;"	f	module:rotation
+radius	kepler.f	/^        FUNCTION radius(/;"	f	module:KEPLER
+rinit	kepler.f	/^        REAL*8,SAVE                     ::eccen,angu_vel,rinit$/;"	v	module:KEPLER
+rotation	rotation_data.f	/^      MODULE rotation$/;"	m
+rotcurve	rotation_data.f	/^      FUNCTION rotcurve(/;"	f	module:rotation
+rotparameters_bulge	rotation_data.f	/^      type rotparameters_bulge$/;"	t	module:rotation
+rotparameters_old	rotation_data.f	/^      type rotparameters_old /;"	t	module:rotation
+s	gsl_wrapper.cpp	/^	double s;		\/\/These three define general form$/;"	m	struct:laplace_para	file:
+skapa	rotation_data.f	/^      FUNCTION skapa(/;"	f	module:rotation
+slatec	dqawoe_laplace.f	/^        MODULE slatec$/;"	m
+smooth	smooth.f	/^        MODULE smooth$/;"	m
+v0	rotation_data.f	/^              REAL*8                    ::v0 /;"	k	type:rotparameters_bulge
+v0	rotation_data.f	/^              REAL*8                    ::v0 /;"	k	type:rotparameters_old
+v0	rotation_data.f	/^      REAL*8,SAVE                       ::v0$/;"	v	module:rotation
+wrapper_dlaplace_coei	gsl_wrapper.cpp	/^void wrapper_dlaplace_coei(double *m,double *beta,double *out){$/;"	f
+wrapper_ellipticE	gsl_wrapper.cpp	/^void wrapper_ellipticE(double *K,double *out){$/;"	f
+wrapper_ellipticK	gsl_wrapper.cpp	/^void wrapper_ellipticK(double *K,double *out){$/;"	f
+wrapper_laplace_coei	gsl_wrapper.cpp	/^void wrapper_laplace_coei(double *m,double *beta,double *out){$/;"	f

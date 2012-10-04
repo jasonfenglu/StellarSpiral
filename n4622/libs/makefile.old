@@ -1,0 +1,57 @@
+#$Id: makefile.old 185 2011-08-29 04:30:16Z ccfeng $
+
+DEBUG = 
+CFLAGS= $(DEBUG)
+
+FORTRAN = ifort 
+FFLAGS  = $(DEBUG) -O3 -module $(BINFOLD) 
+F90FLAGS= $(DEBUG)
+
+
+CC	= icpc -O3 -fPIC
+CFLAGS  = -O3 $(DEBUG)
+
+LINKER  = ifort 
+LINKFLAGS = $(DEBUG) -O3 -nofor_main
+
+BINFOLD = ../bin
+LIBSFOLD= .
+include libs.mk
+vpath %.o $(BINFOLD)
+vpath %.f $(LIBSFOLD)
+vpath %.f $(LIBSFOLD)/slatec
+vpath %.c $(LIBSFOLD)
+vpath %.mod $(BINFOLD)
+
+#LIBS_SRC += $(subst .f,.o,$(SLATEC_SRC))
+
+LIBS_OBJ= $(addprefix $(BINFOLD)/,$(LIBS_SRC))
+
+OBJECT  = $(LIBS_OBJ) 
+
+# 64bit matlab lib
+LIB = -L/penguin/apps/matlabR14/bin/glnxa64 -lmat -lmx -L$(LAMHOME)/lib -lmpi -llam
+MKLROOT=/opt/intel/mkl/10.0.1.014/lib/em64t
+
+..SUFFIXES:.f .c .o
+
+all :   $(SHELL cp $(LIBSFOLD)/libslatec.a $(BINFOLD)) $(OBJECT)
+	ar rv $(BINFOLD)/libn4622.a $? 
+	cp $(LIBSFOLD)/libslatec.a $(BINFOLD)
+
+$(BINFOLD)/%.o: %.f
+	$(FORTRAN) $(FFLAGS) -c  $< -o $@ \
+	-L$(BINFOLD) -lslatec
+
+$(BINFOLD)/%.o: %.cpp
+	$(CC) -c $(CFLAGS) $< -o $@ \
+	$(shell gsl-config --libs) $(shell gsl-config --cflags) 
+
+%.o:	 %.f
+	$(FORTRAN) -c $< -o $@
+
+clean :
+	-rm $(OBJECT)
+	-rm $(BINFOLD)/*.o $(BINFOLD)/*.mod
+rm : 
+	cd mats;rm -rf *.mat
