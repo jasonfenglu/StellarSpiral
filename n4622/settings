@@ -1,0 +1,5 @@
+
+      gm    = 10
+      cr    = 40
+      cx    = cr*dcos(pspd1*t)
+      cy    = cr*dsin(pspd1*t)

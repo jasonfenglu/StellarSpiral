@@ -1,0 +1,79 @@
+#$Id: makefile.old 185 2011-08-29 04:30:16Z ccfeng $
+
+DEBUG = 
+CFLAGS= $(DEBUG)
+
+FORTRAN = mpif77 
+FFLAGS  = $(DEBUG) -O3 -module $(BINFOLD) 
+F90FLAGS= $(DEBUG)
+
+
+CC	= icpc -O3
+CFLAGS  = -O3 $(DEBUG)
+
+LINKER  = mpif77 
+LINKFLAGS = $(DEBUG) -O3 -nofor_main
+
+BINFOLD = bin
+LIBSFOLD= libs
+include libs/libs.mk
+vpath %.o .
+vpath %.f libs
+vpath %.f src
+vpath %.cpp libs
+vpath %.mod bin
+
+SRC_SRC = \
+	 $(notdir $(subst .f,.o,$(wildcard src/*.f))) \
+	 spiral.o  
+
+
+LIBS_OBJ= $(addprefix $(BINFOLD)/,$(LIBS_SRC))
+SRC_OBJ = $(addprefix $(BINFOLD)/,$(SRC_SRC))
+TESTFOLD= test_lib
+ARC     = $(BINFOLD)/libn4622.a
+
+OBJECT  = $(LIBS_OBJ) $(SRC_OBJ)
+
+
+# 64bit matlab lib
+MATLABROOT = /penguin/apps/matlabR14
+LIB = -L$(MATLABROOT)/bin/glnxa64 -I$(MATLABROOT)/extern/include -lmat -lmx -L$(LAMHOME)/lib -lmpi -llam
+MKLROOT=/opt/intel/mkl/10.0.1.014/lib/em64t
+
+..SUFFIXES:.f .cpp .o
+
+
+all :   $(ARC) $(SRC_OBJ)
+	$(LINKER) -o spiral.exe $(LINKFLAGS)  \
+	$(SRC_OBJ)  \
+	-I$(MATLABROOT)/extern/include $(LIB) \
+	$(shell gsl-config --libs) $(shell gsl-config --cflags) \
+	-L$(BINFOLD) -ln4622  -lstatec  -lgsl -lgslcblas
+
+test:
+	cd $(TESTFOLD);$(MAKE)
+
+$(ARC): $(LIBS_OBJ)
+	cd $(LIBSFOLD);$(MAKE)
+
+$(BINFOLD)/%.o: %.f
+	$(FORTRAN) -c $(FFLAGS) $< -o $@
+
+$(BINFOLD)/spiral.o: spiral.f parameters 
+	$(FORTRAN) -c $(FFLAGS) $< -o $@
+
+$(BINFOLD)/%.o: %.cpp
+	cd $(LIBSFOLD);$(MAKE)
+
+
+%.o:	 %.f
+	$(FORTRAN) -c $< -o $@
+
+clean :
+	-rm $(OBJECT)
+	-rm spiral.exe
+	-rm bin/*.o bin/*.mod
+	-rm $(TESTFOLD)/*.exe
+rm : 
+	cd mats;rm -rf *.mat

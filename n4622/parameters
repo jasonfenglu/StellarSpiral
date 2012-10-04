@@ -1,0 +1,45 @@
+CCCCC parameters It is generated automatically by LAMAC.
+CCCCC Please do not modify it.
+CCCCC If you have any problem, please contact with
+CCCCC lamac@asiaa.sinica.edu.tw
+CCCCC Date :7/21/2004 Time:14:5:34(Hours:Minutes:Seconds)
+C23456789212345678903123456789412345678951234567896123456789712
+ccccc parallel computation (parameters)========
+      parameter (npc  =       32        )
+ccccc grid numbers
+      parameter ( ieLL =  512 )
+      parameter ( ibeg =  1 )
+      parameter ( iend = (ieLL-ibeg+1)/npc )
+      parameter ( ibuf =  2 )
+      parameter ( jbeg =  1 )
+      parameter ( jend =  512 )
+      parameter ( jbuf =  2 )
+      dimension  xxx(ibeg-ibuf  :ieLL+ibuf)
+      dimension xxxl(ibeg-ibuf-1:ieLL+ibuf)
+      dimension  qm(ibeg-ibuf:iend+ibuf,jbeg-jbuf:jend+jbuf,3)
+      dimension qLL(ibeg-ibuf:ieLL+ibuf,jbeg-jbuf:jend+jbuf,3)
+      dimension s1ibuf(1:ibuf,jbeg-jbuf:jend+jbuf,1:3)
+      dimension r1ibuf(1:ibuf,jbeg-jbuf:jend+jbuf,1:3)
+      dimension s2ibuf(1:ibuf,jbeg-jbuf:jend+jbuf,1:3)
+      dimension r2ibuf(1:ibuf,jbeg-jbuf:jend+jbuf,1:3)
+      common /LLC/ nprocs,myid,xxx,xxxl,qm,qLL
+ccccc boundary flux computation for space direction cccc
+      dimension   flxl(jbeg-jbuf:jend+jbuf,1:3)
+      dimension   flxr(jbeg-jbuf:jend+jbuf,1:3)
+      dimension   flxd(ibeg-ibuf:iend+ibuf,1:3)
+      dimension   flxu(ibeg-ibuf:iend+ibuf,1:3)
+      common /bdryflux/ flxl,flxr,flxd,flxu
+ccccc grid generation x, y  are the center    of cell
+ccccc grid generation xl,yl are the interface of cell
+ccccc dxv is only for non-uniform discretization in radial direction.
+      dimension   y(jbeg-jbuf  :jend+jbuf)
+      dimension  yl(jbeg-jbuf-1:jend+jbuf)
+      dimension   x(ibeg-ibuf  :iend+ibuf)
+      dimension  xl(ibeg-ibuf-1:iend+ibuf)
+      dimension dxv(ibeg-ibuf  :iend+ibuf)
+      common  /geom/ y,yl,x,xl,dxv
+ccccc physical variables, final time,sound speed etc 
+      common  /phyv/ tf,sspd,v0sp,pspd,bfam
+ccccc numerical variables orsq for saving computational timef
+      dimension orsq(ibeg-ibuf:iend+ibuf,jbeg-jbuf:jend+jbuf)
+      common  /nums/ orsq
