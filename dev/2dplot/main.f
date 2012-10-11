@@ -1,19 +1,28 @@
       PROGRAM PGDEM3
+      USE ImageTool
 C-----------------------------------------------------------------------
 C Demonstration program for PGPLOT contouring routines.
 C-----------------------------------------------------------------------
       INTEGER PGBEG
-      REAL, ALLOCATABLE            ::dat(:,:)
+      double precision, ALLOCATABLE            ::dat(:,:)
       INTEGER                      ::naxes(2)
+
+      type (image) M81Image
 C
 C     FIND IMAGE SIZE AND COPY INTO ARRAY
 C
 
       CALL readimagesize(naxes)
-      write(*,*)'image size is',naxes
       ALLOCATE(dat(naxes(1),naxes(2)))
       CALL readimage(dat,naxes)
       
+      CALL InitImage(M81Image,dat,naxes,(/1.d0,1.d0/),(/10.d0,10.d0/))
+      DEALLOCATE(dat)
+
+      write(*,*)'?????????'
+!     write(*,*)'to real',PixelValue((/1.d0,1.d0/),M81Image)
+!     write(*,*)'to real',PixelValue()
+
       
 C
 C Call PGBEG to initiate PGPLOT and open the output device; PGBEG
@@ -23,12 +32,17 @@ C
 C
 C Call the demonstration subroutines.
 C
-      CALL plotcont(dat,naxes)
+      CALL plotcont(M81Image%imdata,M81Image%DataSize)
+      CALL PGIDEN
 C
 C Finally, call PGEND to terminate things properly.
 C
       CALL PGEND
-      DEALLOCATE(dat)
+
+      CALL DeallocateImage(M81Image)
+        
+
+
       END
 
       subroutine readimage(dat,naxes)
@@ -89,8 +103,6 @@ C         increment pointers and loop back to read the next group of pixels
           firstpix=firstpix+nbuffer
       end do
 
-      print *
-      print *,'Min and max image pixels = ',datamin,datamax
 
 C  The FITS file must always be closed before exiting the program. 
 C  Any unit numbers allocated with FTGIOU must be freed with FTFIOU.
@@ -179,7 +191,7 @@ C Fill contours with PGGRAY.
 C
 
         write(*,*)'max',maxval(dat),minval(dat)
-        CALL PGGRAY(dat,NX,NY,1,NX,1,NY,1.0,-1.0,TR) 
+        CALL PGGRAY(dat,NX,NY,1,NX,1,NY,4.0,-0.0,TR) 
 C
 C Draw the contour lines with PGCONT.
 C
@@ -188,9 +200,9 @@ c     CALL PGCONT(Z,NX,NY,1,NX,1,NY,C,NC,TR)
 C
 C Labels and box.
 C
-      CALL PGSCI(1)
-      CALL PGSCH(0.6)
-      CALL PGBOX('bctsin',1.0,10,'bctsinv',1.0,10)
+c     CALL PGSCI(1)
+c     CALL PGSCH(0.6)
+c     CALL PGBOX('bctsin',0.0,10,'bctsinv',1.0,10)
 c     CALL PGSCH(1.0)
 c     CALL PGMTXT('t',1.0,0.0,0.0,'Contour filling using PGCONF')
 
