@@ -21,7 +21,7 @@ AntaresHOME=$(PWD)
 
 FFLAGS= -cpp -O3 -DNDIM=$(NDIM) -DVERBOSE -DISOTHERMAL -DFORCE -D$(Rie_type) -module bin
 
-LIB = -L$(MPIHOME)/lib -lmpi -lz -L$(FFTWHOME)/lib -ldrfftw_mpi -ldfftw_mpi -ldrfftw -ldfftw -L$(HDF5HOME)/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5 -fPIC
+LIB = -L$(MPIHOME)/lib -lmpi -lz -L$(FFTWHOME)/lib -ldrfftw_mpi -ldfftw_mpi -ldrfftw -ldfftw -L$(HDF5HOME)/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5 -fPIC -lm -limf
 INCL=-I$(MPIHOME)/include -I$(FFTWHOME)/include -I$(HDF5HOME)/include
 
 vpath *.o bin
