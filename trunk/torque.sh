@@ -5,9 +5,9 @@
 #PBS -e parallel.err
 #PBS -o parallel.log
 ###### Queue name #######
-#PBS -q medium
+#PBS -q debug
 ###### Number of nodes and cores ######
-#PBS -l nodes=4:ppn=8:dl
+#PBS -l nodes=2:ppn=2:dl
 ###### Sends mail to yourself when the job begins and ends ######
 #PBS -M ccfeng@asiaa.sinica.edu.tw
 #PBS -m be
