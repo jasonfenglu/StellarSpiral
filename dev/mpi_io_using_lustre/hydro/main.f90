@@ -8,6 +8,7 @@ character(len=20)::infile='patch/para.nml' ! filename of namelist
 character(len=8)::flnm
 character(len=20)::dsetname
 integer::ierr ! error flag for MPI
+integer::info ! MPI INFO Object 
 double precision::dt_loc,toutput ! local time step, next point for data output
 integer::fnum=0,fstart! number of file number
 integer::i,j,k,step
@@ -51,6 +52,10 @@ namelist/run_params/ncell,xrange,yrange,zrange, &
 call MPI_INIT(ierr)
 call MPI_COMM_SIZE(MPI_COMM_WORLD,nprocs,ierr)
 call MPI_COMM_RANK(MPI_COMM_WORLD,myid,ierr)
+call MPI_INFO_CREATE(info,ierr)
+call MPI_Info_set(info,"romio_ds_write","disable",ierr);
+call MPI_Info_set(info,"romio_ds_read","disable",ierr);
+
 
 #ifdef VERBOSE
 write(*,'("node",I2,"/",I2,"   ready!!")') myid+1,nprocs

@@ -5,9 +5,9 @@
 #PBS -e parallel.err
 #PBS -o parallel.log
 ###### Queue name #######
-#PBS -q medium
+#PBS -q debug
 ###### Number of nodes and cores ######
-#PBS -l nodes=4:ppn=8:dl
+#PBS -l nodes=1:ppn=4:dl
 ###### Sends mail to yourself when the job begins and ends ######
 #PBS -M ccfeng@asiaa.sinica.edu.tw
 #PBS -m be
@@ -21,6 +21,8 @@ cd $PBS_O_WORKDIR
 . /etc/profile.d/modules.sh
 module purge
 module load torque lam fftw/2.1.5_ic11.0_mpich_1.2.7p1 HDF/5-1.8.7_ic11.0_lam_7.1.4 ifc  icc
+
+rm -rf log parallel.err parallel.log
 
 ###### Run parallel jobs ######
 $LAM_HOME/bin/lamboot $PBS_NODEFILE
