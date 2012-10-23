@@ -8,11 +8,11 @@ ncell=512,512,0
 xrange=-5.,5.
 yrange=-5.,5.
 zrange=-0.,0.
-tend=0.5
+tend=0.2644
 CFL=0.4
 dtout=0.001d0
 snd=10.0
 gam=1.3333333333d0
 GravConst=4.3011d0
-fstart=265
+fstart=0
 /

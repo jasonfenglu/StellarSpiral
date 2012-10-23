@@ -1,5 +1,6 @@
 subroutine force2d(q_loc,fx,fy)
 use common_params
+use galaxy
 implicit none
 double precision::q_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR)
 double precision::fx(1:ncell_loc(1),1:ncell_loc(2)),fy(1:ncell_loc(1),1:ncell_loc(2))
@@ -15,7 +16,7 @@ integer::i,j
   do j=1, ncell_loc(2)
     do i=1, ncell_loc(1)
        r_loc = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
-       CV = 390.944d0*r_loc/(r_loc**0.661485+r_loc**1.772219)
+       CV = RC(r_loc)
        Orsq= (CV/r_loc)**2.d0
        fx(i,j)=-x_loc(i)*Orsq
        fy(i,j)=-y_loc(j)*Orsq
