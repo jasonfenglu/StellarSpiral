@@ -29,6 +29,7 @@ end subroutine
 !!!==========================================================
        subroutine bndflux_outgoing_isothermal(U1, Fx, dd)
        use common_params
+       use galaxy
        implicit none
        dimension U1(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,nvar)
        dimension Fx(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,nvar)
@@ -41,23 +42,22 @@ end subroutine
        csq = snd**2.d0
          c = snd
 !       write(*,*) " snd:", snd
-        v0 = 390.944d0
       if(dd .eq. 1) then
 !cccccccccccccccccccccccccccccccccccccccccc
       do j = 1,ncell_loc(2)
          i   = 1
          r   = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
-         rho = 1.53d2
-          ux = -v0*y_loc(j)/(r**0.661485+r**1.772219)
-          uy =  v0*x_loc(i)/(r**0.661485+r**1.772219)
+         rho = density(r,0.d0)
+          ux = -RC(r)*y_loc(j)/r
+          uy =  RC(r)*x_loc(i)/r
           dW = U1(1,j,1)-rho
           dU = U1(1,j,2)-rho*ux
           dV = U1(1,j,3)-rho*uy
          !i   = 0
          xl = x_loc(i)-0.5d0*dx
          r   = dsqrt(xl**2.d0+y_loc(j)**2.d0)
-          ux = -v0*y_loc(j)/(r**0.661485+r**1.772219)
-          uy =  v0*xl/(r**0.661485+r**1.772219)
+          ux = -RC(r)*y_loc(j)/r
+          uy =  RC(r)*xl/r
           z1 =  ( ( ux+c )*dW-dU )/2.d0/c
           z2 =    (-uy   )*dW+dV
           z3 =  (-( ux-c )*dW+dU )/2.d0/c
@@ -75,16 +75,16 @@ end subroutine
       do j = 1,ncell_loc(2)
          i   = ncell_loc(1)
          r   = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
-         rho = 1.53d2
-          ux = -v0*y_loc(j)/(r**0.661485+r**1.772219)
-          uy =  v0*x_loc(i)/(r**0.661485+r**1.772219)
+         rho = density(r,0.d0)
+          ux = -RC(r)*y_loc(j)/r
+          uy =  RC(r)*x_loc(i)/r
           dW = U1(ncell_loc(1),j,1)-rho
           dU = U1(ncell_loc(1),j,2)-rho*ux
           dV = U1(ncell_loc(1),j,3)-rho*uy
           xl = x_loc(i)+0.5d0*dx
          r   = dsqrt(xl**2.d0+y_loc(j)**2.d0)
-          ux = -v0*y_loc(j)/(r**0.661485+r**1.772219)
-          uy =  v0*xl/(r**0.661485+r**1.772219)
+          ux = -RC(r)*y_loc(j)/r
+          uy =  RC(r)*xl/r
           z1 =  ( ( ux+c )*dW-dU )/2.d0/c
           z2 =    (-uy   )*dW+dV
           z3 =  (-( ux-c )*dW+dU )/2.d0/c
@@ -103,17 +103,17 @@ end subroutine
       do i = 1,ncell_loc(1)
          j   = 1
          r   = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
-         rho = 1.53d2
-          uy = v0*y_loc(j)/(r**0.661485+r**1.772219)
-          ux = v0*x_loc(i)/(r**0.661485+r**1.772219)
+         rho = density(r,0.d0)
+          ux =  RC(r)*x_loc(i)/r
+          uy =  RC(r)*y_loc(j)/r
           dW = U1(i,1,1)-rho
           dU = U1(i,1,3)-rho*ux
           dV = -U1(i,1,2)-rho*uy
          !j   = 0
           yl = y_loc(j)-0.5d0*dx
          r   = dsqrt(x_loc(i)**2.d0+yl**2.d0)
-          uy =  v0* yl/(r**0.661485+r**1.772219)
-          ux =  v0*x_loc(i)/(r**0.661485+r**1.772219)
+          ux =  RC(r)*x_loc(i)/r
+          uy =  RC(r)*yl/r
           z1 =  ( ( ux+c )*dW-dU )/2.d0/c
           z2 =    (-uy   )*dW+dV
           z3 =  (-( ux-c )*dW+dU )/2.d0/c
@@ -131,16 +131,16 @@ end subroutine
       do i = 1,ncell_loc(1)
          j   = ncell_loc(2)
          r   = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
-         rho = 1.53d2
-          uy = v0*y_loc(j)/(r**0.661485+r**1.772219)
-          ux = v0*x_loc(i)/(r**0.661485+r**1.772219)
+         rho = density(r,0.d0)
+          ux =  RC(r)*x_loc(i)/r
+          uy =  RC(r)*y_loc(j)/r
           dW = U1(i,ncell_loc(2),1)-rho
           dU = U1(i,ncell_loc(2),3)-rho*ux
           dV = -U1(i,ncell_loc(2),2)-rho*uy
           yl = y_loc(j)+0.5d0*dx
          r   = dsqrt(x_loc(i)**2.d0+yl**2.d0)
-          uy =  v0* yl/(r**0.661485+r**1.772219)
-          ux =  v0*x_loc(i)/(r**0.661485+r**1.772219)
+          ux =  RC(r)*x_loc(i)/r
+          uy =  RC(r)*yl/r
           z1 =  ( ( ux+c )*dW-dU )/2.d0/c
           z2 =    (-uy   )*dW+dV
           z3 =  (-( ux-c )*dW+dU )/2.d0/c
