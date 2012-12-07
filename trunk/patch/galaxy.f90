@@ -83,10 +83,65 @@
 
         FUNCTION density(r,z)
         IMPLICIT NONE
-        DOUBLE PRECISION        ::density,r,z
+        DOUBLE PRECISION                ::density,r
+        DOUBLE PRECISION,OPTIONAL       ::z
 
-        density = 1.d0
+        density = GaussianDensity(r,z)
 
         ENDFUNCTION
 
+        FUNCTION UniDensity(r,z)
+        IMPLICIT NONE
+        DOUBLE PRECISION        ::UniDensity,r,z
+
+        !Uniform density distribution
+        !
+        !
+        !       rho = const
+        !
+        !---------------------------
+
+        UniDensity = 1.d0
+
+        ENDFUNCTION
+
+        FUNCTION GaussianDensity(r,z)
+        IMPLICIT NONE
+        DOUBLE PRECISION                ::GaussianDensity,r
+        DOUBLE PRECISION,OPTIONAL       ::z
+        DOUBLE PRECISION                ::rho,a
+
+        !Gaussian density distribution
+        !
+        !
+        !  density = rho * exp(-r^2/(2a))
+        !
+        !---------------------------
+
+        rho = 1.d0
+        a   = 7.d0
+
+        GaussianDensity = rho * dexp(-r**2/2/a)
+
+        ENDFUNCTION
+
+        FUNCTION dGaussianDensity(r,z)
+        IMPLICIT NONE
+        DOUBLE PRECISION        ::dGaussianDensity,r
+        DOUBLE PRECISION,OPTIONAL       ::z
+        DOUBLE PRECISION        ::rho,a
+
+        !Uniform density distribution
+        !
+        !
+        !  density = rho * exp(-r^2/(2a))
+        !
+        !---------------------------
+
+        rho = 1.d0
+        a   = 7.d0
+
+        dGaussianDensity = -1.d0*r/a*GaussianDensity(r,z)
+
+        ENDFUNCTION
         endmodule galaxy
