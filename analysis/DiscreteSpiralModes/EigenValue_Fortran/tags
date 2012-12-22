@@ -4,90 +4,50 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.6	//
-AB	SearchAll.f90	/^      REAL AL(20), AR(20), AG(20), AB(/;"	v	module:plotting
-AG	SearchAll.f90	/^      REAL AL(20), AR(20), AG(/;"	v	module:plotting
-AL	SearchAll.f90	/^      REAL /;"	v	module:plotting
-AR	SearchAll.f90	/^      REAL AL(20), AR(/;"	v	module:plotting
-BRIGHT	SearchAll.f90	/^      REAL CONTRA, BRIGHT$/;"	v	module:plotting
-CONTRA	SearchAll.f90	/^      REAL CONTRA,/;"	v	module:plotting
-F	2k3sqrt.f	/^        FU/;"	f	function:find_b
-F	k3sqrt.f	/^        FU/;"	f	function:find_b
+AE	k3sqrt.f	/^        DOUBLE PRECISION        ::B,C,i,RE,AE$/;"	v
+B	k3sqrt.f	/^        DOUBL/;"	v
+C	k3sqrt.f	/^        DOUBLE PRECI/;"	v
+F	k3sqrt.f	/^        FU/;"	f
 F90	Makefile	/^F90=ifort$/;"	m
 FCC	Makefile	/^FCC=icc$/;"	m
-FFLAGS	Makefile	/^FFLAGS=  -O3  -g -lm  -L. -lslatec -limf$/;"	m
-GB	SearchAll.f90	/^      REAL GL(2), GR(2), GG(2), GB(/;"	v	module:plotting
-GG	SearchAll.f90	/^      REAL GL(2), GR(2), GG(/;"	v	module:plotting
-GL	SearchAll.f90	/^      REAL GL(/;"	v	module:plotting
-GR	SearchAll.f90	/^      REAL GL(2), GR(/;"	v	module:plotting
-HB	SearchAll.f90	/^      REAL HL(5), HR(5), HG(5), HB(/;"	v	module:plotting
-HDF5HOME	Makefile	/^HDF5HOME=$(HDF5_HOME)$/;"	m
-HG	SearchAll.f90	/^      REAL HL(5), HR(5), HG(/;"	v	module:plotting
-HL	SearchAll.f90	/^      REAL HL(/;"	v	module:plotting
-HR	SearchAll.f90	/^      REAL HL(5), HR(/;"	v	module:plotting
-INCL	Makefile	/^INCL  = -I$(HDF5HOME)\/include$/;"	m
-KappaOverASqr	2k3sqrt.f	/^      function KappaOverASqr(/;"	f
-KappaOverASqr	k3sqrt.f	/^      function KappaOverASqr(/;"	f
-OBJECT	Makefile	/^OBJECT = rk4.o k3sqrt.o SearchAll.o$/;"	m
-OBJECT2	Makefile	/^OBJECT2 = rk4.o k3sqrt.o FindOne.o$/;"	m
-Q	2k3sqrt.f	/^      function Q(/;"	f
-Q	k3sqrt.f	/^      function Q(/;"	f
-RB	SearchAll.f90	/^      REAL RL(9), RR(9), RG(9), RB(/;"	v	module:plotting
-RG	SearchAll.f90	/^      REAL RL(9), RR(9), RG(/;"	v	module:plotting
-RL	SearchAll.f90	/^      REAL RL(/;"	v	module:plotting
-RR	SearchAll.f90	/^      REAL RL(9), RR(/;"	v	module:plotting
-WB	SearchAll.f90	/^      REAL WL(10), WR(10), WG(10), WB(/;"	v	module:plotting
-WG	SearchAll.f90	/^      REAL WL(10), WR(10), WG(/;"	v	module:plotting
-WL	SearchAll.f90	/^      REAL WL(/;"	v	module:plotting
-WR	SearchAll.f90	/^      REAL WL(10), WR(/;"	v	module:plotting
-arg	FindOne.f90	/^CHARACTER(len=32)               ::arg$/;"	v	program:find_one
-domain	SearchAll.f90	/^DOUBLE PRECISION                ::domain(/;"	v	program:find_all
-error	2k3sqrt.f	/^        DOUBLE COMPLEX          ::error$/;"	v
-error	FindOne.f90	/^DOUBLE PRECISION                ::error$/;"	v	program:find_one
-error	SearchAll.f90	/^INTEGER                         ::i,j,n,error,/;"	v	program:find_all
-error	k3sqrt.f	/^        DOUBLE COMPLEX          ::error$/;"	v
-error_	error.c	/^double complex error_(double* rr, double* wrr, double* wii,double* errorr, double* errori)$/;"	f
-f	rk4.f90	/^FUNCTION f(/;"	f
-f	rk4.f90	/^FUNCTION f(/;"	f	subroutine:rk45
-find_all	SearchAll.f90	/^PROGRAM find_all$/;"	p
-find_b	2k3sqrt.f	/^        function find_b(/;"	f
-find_b	k3sqrt.f	/^        function find_b(/;"	f
-find_one	FindOne.f90	/^PROGRAM find_one$/;"	p
-h	2k3sqrt.f	/^        DOUBLE PRECISION        ::h=/;"	v
-h	k3sqrt.f	/^        DOUBLE PRECISION        ::h=/;"	v
-i	FindOne.f90	/^INTEGER                         ::i$/;"	v	program:find_one
-i	SearchAll.f90	/^INTEGER                         ::i,/;"	v	program:find_all
-istep	SearchAll.f90	/^DOUBLE PRECISION                ::wr,wi,rstep,istep,/;"	v	program:find_all
-j	SearchAll.f90	/^INTEGER                         ::i,j,/;"	v	program:find_all
-k3sqrt	2k3sqrt.f	/^        DOUBLE COMPLEX,EXTERNAL ::k3sqrt$/;"	v
-k3sqrt	2k3sqrt.f	/^      function k3sqrt(/;"	f
-k3sqrt	k3sqrt.f	/^        DOUBLE COMPLEX,EXTERNAL ::k3sqrt$/;"	v
+FFLAGS	Makefile	/^FFLAGS =-O2 -L. -lslatec$/;"	m
+GravConst	k3sqrt.f	/^      DOUBLE PRECISION,PARAMETER::GravConst /;"	v	module:STELLARDISK
+IFLAG	k3sqrt.f	/^        INTEGER                 ::IFLAG$/;"	v
+N	rc.f90	/^INT/;"	v	program:RC
+OBJECT2	Makefile	/^OBJECT2 = k3sqrt.o rc.o$/;"	m
+Omega	k3sqrt.f	/^        FUNCTION Omega(/;"	f
+PGBEG	rc.f90	/^INTEGER                         ::PGBEG$/;"	v	program:RC
+PGPLOT	Makefile	/^PGPLOT =-L$(PGPLOT_DIR) -lpgplot  -limf -lm -lX11 -lpng$/;"	m
+Q	k3sqrt.f	/^      DOUBLE PRECISION  Q,/;"	k	type:QParameterType
+QParameter	k3sqrt.f	/^      type(QParameterT/;"	k	type:QParameterType
+QParameterType	k3sqrt.f	/^      type                      ::QParameterType$/;"	t	module:STELLARDISK
+Qod	k3sqrt.f	/^        DOUBLE PRECISION        ::Qod,/;"	k	type:QParameterType
+RC	rc.f90	/^PROGRAM RC$/;"	p
+RE	k3sqrt.f	/^        DOUBLE PREC/;"	v
+STELLARDISK	k3sqrt.f	/^      MODULE STELLARDISK$/;"	m
+Sigma0	k3sqrt.f	/^      DOUBLE PRECISION          ::Sigma0,/;"	v
+arg	rc.f90	/^CHARACTER(len=32)               ::arg$/;"	v	program:RC
+cmd	rc.f90	/^CHARACTER                       ::cmd$/;"	v	program:RC
+dat	rc.f90	/^DOUBLE PRECISION,ALLOCATABLE    ::dat(/;"	v	program:RC
+dr	rc.f90	/^DOUBLE PRECISION                ::dr,/;"	v	program:RC
+find_b	k3sqrt.f	/^        DOUBLE PRECISION        find_b,/;"	v
+g	k3sqrt.f	/^      DOUBLE PRECISION,PARAMETER::g /;"	v	module:STELLARDISK
+i	k3sqrt.f	/^        DOUBLE PRECISION        ::B,C,i,/;"	v
+i	rc.f90	/^INTEGER                         ::i$/;"	v	program:RC
 k3sqrt	k3sqrt.f	/^      function k3sqrt(/;"	f
-kappa	2k3sqrt.f	/^      function kappa(/;"	f
 kappa	k3sqrt.f	/^      function kappa(/;"	f
-mo	2k3sqrt.f	/^        FUNCTION mo(/;"	f	function:find_b
-mo	k3sqrt.f	/^        FUNCTION mo(/;"	f	function:find_b
-n	SearchAll.f90	/^INTEGER                         ::i,j,n,/;"	v	program:find_all
-nu	2k3sqrt.f	/^      function nu(/;"	f
-nu	k3sqrt.f	/^      function nu(/;"	f
-p	FindOne.f90	/^FUNCTION p(/;"	f	program:find_one
-p	SearchAll.f90	/^FUNCTION p(/;"	f	program:find_all
-plot2d	SearchAll.f90	/^        SUBROUTINE plot2d(/;"	s	module:plotting
-plotting	SearchAll.f90	/^        module plotting$/;"	m
-r	2k3sqrt.f	/^        DOUBLE PRECISION,INTENT(in)::r,/;"	v
-r	k3sqrt.f	/^        DOUBLE PRECISION,INTENT(in)::r,/;"	v
-rk45	rk4.f90	/^SUBROUTINE rk45(/;"	s
-rstep	SearchAll.f90	/^DOUBLE PRECISION                ::wr,wi,rstep,/;"	v	program:find_all
-search	SearchAll.f90	/^SUBROUTINE search(/;"	s	program:find_all
-table	SearchAll.f90	/^DOUBLE PRECISION,ALLOCATABLE    ::table(/;"	v	program:find_all
-threadid	SearchAll.f90	/^INTEGER                         ::i,j,n,error,threadid$/;"	v	program:find_all
-update	FindOne.f90	/^SUBROUTINE update(/;"	s	program:find_one
-wi	2k3sqrt.f	/^        DOUBLE PRECISION,INTENT(in)::r,wr,wi$/;"	v
-wi	FindOne.f90	/^DOUBLE PRECISION                ::wr,wi$/;"	v	program:find_one
-wi	SearchAll.f90	/^DOUBLE PRECISION                ::wr,wi,/;"	v	program:find_all
-wi	k3sqrt.f	/^        DOUBLE PRECISION,INTENT(in)::r,wr,wi$/;"	v
-wii	SearchAll.f90	/^DOUBLE PRECISION                ::wr,wi,rstep,istep,wrr,wii$/;"	v	program:find_all
-wr	2k3sqrt.f	/^        DOUBLE PRECISION,INTENT(in)::r,wr,/;"	v
-wr	FindOne.f90	/^DOUBLE PRECISION                ::wr,/;"	v	program:find_one
-wr	SearchAll.f90	/^DOUBLE PRECISION                ::wr,/;"	v	program:find_all
-wr	k3sqrt.f	/^        DOUBLE PRECISION,INTENT(in)::r,wr,/;"	v
-wrr	SearchAll.f90	/^DOUBLE PRECISION                ::wr,wi,rstep,istep,wrr,/;"	v	program:find_all
+pDisk	k3sqrt.f	/^        FUNCTION pDisk(/;"	f	function:Omega
+pi	k3sqrt.f	/^      DOUBLE PRECISION,PARAMETER::pi=/;"	v	module:STELLARDISK
+q	k3sqrt.f	/^        DOUBLE PRECISION        ::Qod,q,/;"	k	type:QParameterType
+r	k3sqrt.f	/^      DOUBLE PRECISION          ::Sigma0,r$/;"	v
+r	k3sqrt.f	/^      DOUBLE PRECISION  Q,r$/;"	k	type:QParameterType
+r	rc.f90	/^DOUBLE PRECISION                ::dr,/;"	v	program:RC
+rd	k3sqrt.f	/^      DOUBLE PRECISION          ::ssigma0,rd$/;"	v
+rf	rc.f90	/^DOUBLE PRECISION                ::rf=/;"	v	program:RC
+ri	rc.f90	/^DOUBLE PRECISION                ::ri=/;"	v	program:RC
+rq	k3sqrt.f	/^        DOUBLE PRECISION        ::Qod,q,rq$/;"	k	type:QParameterType
+snsd	k3sqrt.f	/^      function snsd(/;"	f
+ssigma0	k3sqrt.f	/^      DOUBLE PRECISION          ::ssigma0,/;"	v
+wi	k3sqrt.f	/^      DOUBLE PRECISION,SAVE     ::wr,wi$/;"	v	module:STELLARDISK
+wr	k3sqrt.f	/^        DOUBLE PRECISION        find_b,wr$/;"	v
+wr	k3sqrt.f	/^      DOUBLE PRECISION,SAVE     ::wr,/;"	v	module:STELLARDISK

@@ -1,21 +1,18 @@
 F90=ifort
 FCC=icc
 
-FFLAGS=  -O2  -L. -lslatec  $(shell gsl-config --cflags)
-INCL  = -I$(HDF5HOME)/include
+FFLAGS =-O2 -L. -lslatec
 
-HDF5HOME=$(HDF5_HOME)
+PGPLOT =-L$(PGPLOT_DIR) -lpgplot  -limf -lm -lX11 -lpng
 
 
-#OBJECT = rk4.o k3sqrt.o SearchAll.o
-OBJECT2 = rk4.o k3sqrt.o FindOne.o wrapper.o
+OBJECT2 = k3sqrt.o rc.o
 
 all: $(OBJECT) $(OBJECT2)
-	#$(F90) -o SearchAll.exe $(OBJECT) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf -openmp
-	$(F90) -o FindOne.exe $(OBJECT2) $(FFLAGS) $(shell gsl-config --libs)
+	$(F90) -o rc.exe $(OBJECT2) $(FFLAGS) $(PGPLOT)
 
 %.o:%.f90
-	$(F90) $(FFLAGS)  -c $< -o $@  $(INCL) 
+	$(F90) $(FFLAGS)  -c $< -o $@ 
 	
 %.o:%.f
 	$(F90) $(FFLAGS)  -c $< -o $@ 
