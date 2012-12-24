@@ -7,6 +7,7 @@
         DOUBLE PRECISION        ::Qod,q,rq
       ENDTYPE
       type(QParameterType),SAVE ::QParameter
+
       CONTAINS
       function Q(r)
       DOUBLE PRECISION  Q,r
@@ -58,19 +59,19 @@
       DOUBLE PRECISION          ::g = 4.3
 
 
-      snsd = Q(r)*pi*g*sigma0(r)/kappa(r)
+      snsd = Q(r)*pi*GravConst*sigma0(r)/kappa(r)
 
       ENDFUNCTION
-
 
       function Sigma0(r)
       IMPLICIT NONE
       DOUBLE PRECISION          ::Sigma0,r
-      DOUBLE PRECISION          ::ssigma0,rd
-      ssigma0 = 1206.d0
-      rd      = 2.83d0
+      DOUBLE PRECISION          ::m,a
 
-      Sigma0 = ssigma0*dexp(-r/rd)
+      a = 2.23662
+      M = 7.00629d10
+      Sigma0 = 2187.d0*M*(400d0*a**2+243.d0*r**2)/4.d0/pi
+      Sigma0 = Sigma0/(100.d0*a**2+81.d0*r**2)**2.5
       ENDFUNCTION
 
       function kappa(r)
@@ -79,28 +80,16 @@
       DOUBLE PRECISION  dr
       DOUBLE PRECISION  dOmega
 !     DOUBLE PRECISION,EXTERNAL ::Omega
-      dr = 0.00000000001d0
+      dr = 0.001d0
       dOmega = 0.d0
       dOmega = dOmega +  -3.d0/2.d0*Omega(r)
       dOmega = dOmega +        2.d0*Omega(r+dr)
       dOmega = dOmega +  -1.d0/2.d0*Omega(r+2*dr)
+      dOmega = dOmega/dr**2
 
-      kappa = sqrt(4.d0*Omega(r)**2*(1.d0+r/(2.d0*Omega(r))*dOmega))
+      kappa = &
+      sqrt(4.d0*Omega(r)**2*(1.d0+r/(2.d0*Omega(r))*dfunc(Omega,r)))
       ENDFUNCTION
-
-!       function error(r,wr,wi)
-!       IMPLICIT NONE
-!       DOUBLE COMPLEX          ::error
-!       DOUBLE COMPLEX,EXTERNAL ::k3sqrt
-!       DOUBLE PRECISION,INTENT(in)::r,wr,wi
-!       DOUBLE PRECISION        ::h=10d-5
-
-!       error  = -(0.d0,1.d0)*sqrt(k3sqrt(r,wr,wi))
-!       error  = error -
-!    c  0.5d0/sqrt(k3sqrt(r,wr,wi))
-!    c *(sqrt(k3sqrt(r+h,wr,wi))-sqrt(k3sqrt(r-h,wr,wi)))/(2.d0*h)
-
-!       endfunction
 
         function find_b(wr)
         IMPLICIT NONE
@@ -145,16 +134,23 @@
         VHalo = sqrt(r*gHalo)
 
         !Bulge
+        !Athanassoula Bulge
         Mb   = 2.087d8
         rb   = 1.3d0
         gBulge = 4*pi*rb**3*Mb*(-r/sqrt(1+r**2/rb**2)/rb+asinh(r/rb))
         gBulge = gBulge*GravConst/r**2
         VBulge = sqrt(r*gBulge)
 
+        !Kent Bulge
+        !Mb = 1.5d10
+        !rb = 1.5d0
+        !gBulge  = GravConst/r**2*(Mb*r/(r+rb))
+        !VBulge = sqrt(r*gBulge)
+
         !Disk
-        dM     = 3.5d10
-        da     = 2.7
-        db     = 0.3
+        dM     = 7.0d10
+        da     = 2.236262d0
+        db     = 0.24851d0
         VDisk  = sqrt(dfunc(pDisk,r)*r)
 
         Omega  = sqrt(VHalo**2+VBulge**2+VDisk**2)/r
@@ -182,13 +178,28 @@
         IMPLICIT NONE
         DOUBLE PRECISION,EXTERNAL       ::func
         DOUBLE PRECISION                ::r,dfunc
-        DOUBLE PRECISION                ::dr = 0.00000001d0
+        DOUBLE PRECISION                ::dr = 0.1d-4
 
         dfunc = 0.d0
-        dfunc = dfunc +  -3.d0/2.d0*func(r)
-        dfunc = dfunc +        2.d0*func(r+dr)
-        dfunc = dfunc +  -1.d0/2.d0*func(r+2*dr)
-        dfunc = dfunc/dr
+        dfunc = dfunc +  -3.d0/2.d0*func(r)/dr
+        dfunc = dfunc +        2.d0*func(r+dr)/dr
+        dfunc = dfunc +  -1.d0/2.d0*func(r+2*dr)/dr
+        dfunc = dfunc
         endfunction
 
         ENDMODULE
+
+!       MODULE POTENTIAL
+!       type                      ::AthanassoulaBulgeType
+!               DOUBLE PRECISION        ::Mb
+!               DOUBLE PRECISION        ::rb
+!               contains
+!               PROCEDURE::gBulge=>gABulge
+!       endtype
+
+!       contains
+!       subroutine gABulge
+!       write(*,*)'here'
+!       endsubroutine
+!       
+!       ENDMODULE
