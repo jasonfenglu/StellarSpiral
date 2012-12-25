@@ -8,31 +8,45 @@ r = dr:dr:20.0;
 
 
 %% Disk Model
-Vod = 275.;
-rOmega = 2.;
-rs = 5.3;
-Sod = 1.34;
-V = Vod*(1.+rOmega^2./r.^2).^-0.5.*(1.+r.^4./rs^4).^(-0.25*(Sod-1.));
-ss = 1206;
-h  = 2.83;
-sigg = 6.;
-sigma0 = ss*(1.-0.45)*exp(-r/h).*f(r/6./h)+6.;
+%Halo
+Lh	= 3.;
+rhoh	= 3.3e7;
+gHalo	= 4.d0*Lh^2*pi*rhoh*(r-Lh*atan(r/Lh));
+gHalo   = GravConst./r.^2.*gHalo;
+VHalo 	= sqrt(r.*gHalo);
+
+%Bulge
+Mb 	= 2.087e8;
+rb	= 1.3e0;
+gBulge	= 4.*pi*rb^3*Mb;
+gBulge	= gBulge.*(-r./sqrt(1.+r.^2./rb^2)/rb+asinh(r./rb));
+gBulge  = gBulge.*GravConst./r.^2.;
+VBulge	= sqrt(r.*gBulge);
+
+%Disk
+dM	= 7.e10;
+da	= 2.23626;
+db	= 0.24851;
+pDisk	= -GravConst*dM./sqrt(r.^2+(da+db)^2.);
+VDisk	= sqrt(gradient(pDisk,dr).*r);
+
+V 	= sqrt(VHalo.^2.+VBulge.^2.+VDisk.^2.);
+
+load surface.mat;
+sigma0  = interp1(surfacer,sigma,r)*10e-7;
 
 %%%Disk Analysis
 %Toomre Q
 Qod = 1.0;
-q = 2.6;
-rq = 3.5;
+q = 3.9;
+rq = 3.1;
 ToomreQ = Qod*(1.+q*exp(-r.^2/rq^2));
 
 Omega = V./r;
 
-plot(r,Omega);
 dOmega_dr = gradient(Omega,dr);
 kappa = sqrt(4*Omega.^2.*(1+r./(2*Omega).*dOmega_dr));
 snd = ToomreQ.*pi*g.*sigma0./kappa;
-figure;
-plot(r,snd);
 axis([0 20 0 120]);
 s = -r./Omega.*dOmega_dr;
 curF = 2*m*(pi*GravConst*sigma0)./(kappa.^2.*r)./sqrt(1./s-0.5);
@@ -40,11 +54,11 @@ curF = 2*m*(pi*GravConst*sigma0)./(kappa.^2.*r)./sqrt(1./s-0.5);
 
 %%=====================================
 
-%omegar = 60.:-.1  :20.000;
+%omegar = 60.:.1  :80.000;
 %omegai =-  0.0:-.1  :-6.;
 
-cenr    = 40.800;
-ceni    = -0.150;
+cenr    = 41.340;
+ceni    = -0.520;
 rrr     = .01;
 omegar  = cenr-rrr:rrr/10:cenr+rrr;
 omegai  = ceni-rrr:rrr/10:ceni+rrr;
@@ -121,7 +135,7 @@ for k=1:length(omegar)
         
         
     end % end l
-    figure(7)
+    figure(1)
     mesh(omgr,omgi,abs(transpose(bnderr)), 'facecolor','interp');
     view(2)
     colorbar
