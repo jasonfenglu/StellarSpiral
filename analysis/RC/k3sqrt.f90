@@ -66,12 +66,44 @@
       function Sigma0(r)
       IMPLICIT NONE
       DOUBLE PRECISION          ::Sigma0,r
-      DOUBLE PRECISION          ::m,a
+      DOUBLE PRECISION          ::m,a,b
+      DOUBLE PRECISION          ::BOUND,EPSREL,EPSABS
+      DOUBLE PRECISION          ::ans
+      DOUBLE PRECISION          ::ABSERR
+      INTEGER                   ::NEVAL,IERR,LIMIT,LENW,LAST,INF
+      DOUBLE PRECISION,ALLOCATABLE ::WORK(:)
+      INTEGER,ALLOCATABLE       ::IWORK(:)
 
-      a = 2.23662
+      a = 2.23662d0
+      b = 0.248513d0
       M = 7.00629d10
-      Sigma0 = 2187.d0*M*(400d0*a**2+243.d0*r**2)/4.d0/pi
-      Sigma0 = Sigma0/(100.d0*a**2+81.d0*r**2)**2.5
+
+      BOUND = 0.d0
+      INF   = 2
+      EPSREL = 10d-15
+      EPSABS = 10d-15
+      LIMIT  = 100
+      LENW   = LIMIT*4+2
+      ALLOCATE(IWORK(LENW))
+      ALLOCATE(WORK(LENW))
+      CALL DQAGI(FUN,BOUND,INF,EPSABS,EPSREL,ANS,ABSERR,NEVAL,IERR, &
+                 LIMIT,LENW,LAST,IWORK,WORK)
+      DEALLOCATE(WORK)
+      DEALLOCATE(IWORK)
+      Sigma0 = ans/10d5
+      contains 
+      function FUN(z)
+      IMPLICIT NONE
+      DOUBLE PRECISION          ::fun,z
+      fun = &
+      (b**2*M/4.d0/pi)*&
+      (a*r**2+(a+3.d0*sqrt(z**2+b**2))*(a+sqrt(z**2+b**2))**2)/&
+      (r**2+(a+sqrt(z**2+b**2))**2)**2.5/(z**2+b**2)**1.5
+
+      ENDFUNCTION
+
+!     Sigma0 = 2187.d0*M*(400d0*a**2+243.d0*r**2)/4.d0/pi
+!     Sigma0 = Sigma0/(100.d0*a**2+81.d0*r**2)**2.5
       ENDFUNCTION
 
       function kappa(r)
@@ -128,7 +160,7 @@
         DOUBLE PRECISION          ::dM,da,db,VDisk
         !Halo
         Lh   = 3.d0
-        rhoh = 3.3e7
+        rhoh = 3.3d7
         gHalo = 4.d0*Lh**2.d0*pi*rhoh*(r - Lh*atan(r/Lh))
         gHalo = GravConst/(r**2)*gHalo
         VHalo = sqrt(r*gHalo)
@@ -137,7 +169,7 @@
         !Athanassoula Bulge
         Mb   = 2.087d8
         rb   = 1.3d0
-        gBulge = 4*pi*rb**3*Mb*(-r/sqrt(1+r**2/rb**2)/rb+asinh(r/rb))
+        gBulge = 4.d0*pi*rb**3.d0*Mb*(-r/sqrt(1.d0+r**2/rb**2)/rb+asinh(r/rb))
         gBulge = gBulge*GravConst/r**2
         VBulge = sqrt(r*gBulge)
 
