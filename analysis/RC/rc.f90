@@ -5,7 +5,7 @@ INTEGER                         ::i
 CHARACTER(len=32)               ::arg
 DOUBLE PRECISION                ::ri=0.d0
 DOUBLE PRECISION                ::rf=20.d0
-INTEGER                         ::N = 1000
+INTEGER                         ::N = 200
 DOUBLE PRECISION                ::dr,r
 DOUBLE PRECISION,ALLOCATABLE    ::dat(:,:)
 REAL                            ::LoweRC(20,2),tmp
@@ -36,19 +36,21 @@ QParameter=QParameterType(1.d0,3.9d0,3.1d0)
 wr        = 26.d0
 wi        = 0.d0
 
-do while(.true.)
 !fill in data
 do i = 1, N
         !fill Omega
         r        = dat(1,i)
         dat(2,i) = Omega(r)*r
+        dat(5,i) = Omega(r)-kappa(r)/2.d0
+        dat(6,i) = Sigma0(r)
+enddo
+
+do while(.true.)
+do i = 1, N
         dat(3,i) = Q(r)
         dat(4,i) = k3sqrt(r)
-        dat(5,i) = Omega(r)-kappa(r)/2.d0
-        dat(6,i) = snsd(r)
-enddo
-write(*,*)'kappa at 0 ',kappa(1.d0)
 
+enddo
 !start pgplot
 !IF (PGBEG(0,'?',1,1) .NE. 1) STOP
 IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
