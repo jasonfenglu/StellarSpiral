@@ -36,13 +36,13 @@
 !       vmin = -4.d6
 
         BRIGHT = 0.5
-        CONTRA = 2.0
+        CONTRA = -0.8
         CALL PALETT(2,CONTRA,Bright)
 
 !        CALL PGBBUF
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
         CALL PGIMAG(REAL(F(:,:)),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, 'pixel value')
+        CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, 'pixel value')
         CALL PGSCH(1.0)
 !       CALL PGEBUF
 
@@ -127,28 +127,37 @@
         endmodule
 
 PROGRAM spiral
-USE DISK_PARAM
 USE PLOTTING
+USE STELLARDISK,ToomreQ=>Q
 IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
 DOUBLE COMPLEX,ALLOCATABLE      ::u(:,:)
-DOUBLE PRECISION                ::wr,wi
 DOUBLE PRECISION                ::domain=10.d0,dx,dy,r,th
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
-INTEGER,PARAMETER               ::n=500
+INTEGER,PARAMETER               ::n=10
+INTEGER                         ::PGBEG
 
 !CALL getarg(1,arg)
 !READ(arg,*)wr
 !CALL getarg(2,arg)
 !READ(arg,*)wi
 
-wr = 62.d0
-wi = -5.5d0
+wr = 59.218d0
+wi = -0.855d0
 
 ALLOCATE(u(3,3*n))
-CALL findu(wr,wi,u)
+CALL findu(u)
+!!!!!!!!!!!!!!to plot u
+!IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
+!CALL PGSVP(0.0,0.95,0.0,0.95)
+!CALL PGENV(0.,real(domain),0.,u(1,:),0,1)
+!CALL PGLINE(3*n,real(u(1,:)),real(u(1,:)))
+!CALL PGCLOS
+stop
+!!!!!!!!!!!!!!!to plot u
+
 
 dx = domain/dble(n)
 dy = domain/dble(n)
@@ -169,6 +178,7 @@ DO j = 1, n*2
         r = sqrt(xcoord(i)**2+ycoord(j)**2)
         th = atan2(ycoord(j),xcoord(i))
         density(i,j) = sigma1(r,th)
+!       density(i,j) = sigma0(r)
 ENDDO
 !$OMP END DO
 !$OMP END PARALLEL
@@ -178,7 +188,7 @@ ENDDO
 
 
 
-!ALLOCATE(potential(2*n,2*n))
+ALLOCATE(potential(2*n,2*n))
 !CALL FindPotential(density,potential)
 !CALL plot2d(density,n,domain)
 CALL plot2d(density,potential,n,domain)
@@ -194,52 +204,7 @@ STOP
 CONTAINS
 
 SUBROUTINE FindPotential(density,potential)
-use,intrinsic                   ::iso_c_binding
-use                             ::DISK_PARAM
-IMPLICIT NONE
-include                         'fftw3.f03'
 DOUBLE PRECISION                ::density(:,:),potential(:,:)
-
-type(C_PTR)                     ::plan
-complex(C_DOUBLE_COMPLEX),ALLOCATABLE::in(:,:),out(:,:)
-INTEGER                         ::n
-INTEGER                         ::i,j
-
-n = size(density,1)*2
-ALLOCATE(in(n,n))
-ALLOCATE(out(n,n))
-
-in = 0.d0
-do i = 1, n/2
-do j = 1, n/2
-        in(i,j) = DCMPLX(density(i,j))
-enddo
-enddo
-
-plan = fftw_plan_dft_2d(n,n,in,out,FFTW_FORWARD,FFTW_ESTIMATE)
-CALL fftw_execute_dft(plan,in,out)
-call fftw_destroy_plan(plan)
-
-
- in = (0.d0,0.d0)
- do i = 1, n
- do j = 1, n
-         in(i,j) = out(i,j)/(-pi)/(dcmplx(i)**2+dcmplx(j)**2)*4.d0*g
- enddo
- enddo
- 
- plan = fftw_plan_dft_2d(n,n,in,out,FFTW_BACKWARD,FFTW_ESTIMATE)
- CALL fftw_execute_dft(plan,in,out)
- call fftw_destroy_plan(plan)
-
-do i = 1, n/2
-do j = 1, n/2
-        potential(i,j) = -1.d0*dble(out(i,j))/dble(n**2)
-enddo
-enddo
-
-DEALLOCATE(in)
-DEALLOCATE(out)
 ENDSUBROUTINE
 
 FUNCTION p(r)
@@ -252,17 +217,15 @@ ENDFUNCTION
 FUNCTION q(r)
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::q
-!DOUBLE COMPLEX,EXTERNAL         ::k3sqrt
 DOUBLE PRECISION                ::r
-q = k3sqrt(r,wr,wi)
+q = k3sqrt(r)
 ENDFUNCTION
 
-SUBROUTINE findu(wr,wi,u)
+SUBROUTINE findu(u)
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::u(:,:)
 DOUBLE COMPLEX                  ::ui(3)
 DOUBLE PRECISION                ::a,b
-DOUBLE PRECISION                ::wr,wi
 
 
 a = 0.d0
@@ -284,10 +247,11 @@ ENDFUNCTION
 function Sigma(r)
 IMPLICIT NONE
 DOUBLE PRECISION                ::Sigma,r
-Sigma = 2.d0*pi*G*sigma0(r)/snsp(r)**2
+Sigma = 2.d0*pi*G*sigma0(r)/snsd(r)**2
 ENDFUNCTION
 
 FUNCTION sigma1(r,th)
+!This is to find density perturbation by solve the k3sqr ODE
 IMPLICIT NONE
 DOUBLE PRECISION                ::sigma1
 DOUBLE PRECISION,INTENT(IN)     ::r,th
@@ -302,11 +266,11 @@ do i = 1, n*3
 enddo
 uu = (r-u(1,i-1))/(u(1,i)-u(1,i-1))*(u(2,i)-u(2,i-1)) + u(2,i-1)
 
-rad = sqrt(kappa(r)**2*(1-nu(r,wr,wi)**2)/sigma0(r)/r)
+rad = sqrt(kappa(r)**2*(1-nu(r)**2)/sigma0(r)/r)
 
 h1 = uu*rad*exp(-0.5*(0.d0,1.d0)*ExpPart(r)-2.d0*th*(0.d0,1.d0))
 
-sigma1 = real(h1)*sigma0(r)/snsp(r)
+sigma1 = real(h1)*sigma0(r)/snsd(r)
 
 ENDFUNCTION
 

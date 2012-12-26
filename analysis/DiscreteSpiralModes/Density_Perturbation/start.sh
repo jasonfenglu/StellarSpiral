@@ -5,7 +5,7 @@
 #PBS -o bc.out
 #PBS -e bc.err
 ###### Number of nodes and cores ######
-#PBS -l nodes=1:ppn=1:dl
+#PBS -l nodes=1:ppn=1
 ###### Queue name ######
 #PBS -q serial
 ###### Specific the shell types ######

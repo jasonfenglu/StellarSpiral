@@ -1,215 +1,128 @@
-      MODULE DISK_PARAM
-      IMPLICIT NONE
-      DOUBLE PRECISION,PARAMETER::M1=2.d10,M2=5.d9
-      DOUBLE PRECISION,PARAMETER::Ms=5.4d9,As=1.75d0
-      DOUBLE PRECISION,PARAMETER::A1=12.d0,A2=  8.d0
-      DOUBLE PRECISION,PARAMETER::pi= datan(1.d0)*4.d0
-      DOUBLE PRECISION,PARAMETER::G = 4.3d-6
+      MODULE STELLARDISK
+      DOUBLE PRECISION,PARAMETER::GravConst = 4.3d-6 
+      DOUBLE PRECISION,PARAMETER::g = 4.3d0
+      DOUBLE PRECISION,PARAMETER::pi=4.d0*atan(1.d0)
+      DOUBLE PRECISION,SAVE     ::wr,wi
+      type                      ::QParameterType
+        DOUBLE PRECISION        ::Qod,q,rq
+      ENDTYPE
+      type(QParameterType),SAVE ::QParameter
       CONTAINS
-      function ToomQ(r)
-      DOUBLE PRECISION  ToomQ,r
-      ToomQ = 1.d0 + 0.75d0*dexp(-r**2)
+      function Q(r)
+      DOUBLE PRECISION  Q,r
+      Qod = 1.d0
+      q   = 6.2d0
+      rq  = 2.5d0
+
+
+      !Qod = QParameter%Qod
+      !q   = QParameter%q  
+      !rq  = QParameter%rq 
+
+      Q = Qod*(1.d0 + q*dexp(-r**2/rq**2))
       endfunction
 
-      function nu(r,wr,wi)
+      function nu(r)
       IMPLICIT NONE
       DOUBLE COMPLEX    nu   
-      DOUBLE PRECISION  wr,wi,r
+      DOUBLE PRECISION  r
+      DOUBLE PRECISION  m 
 
-      nu =
-     - (-2*Sqrt(4332.198668720216/(1 + 0.32653061224489793*r**2)**1.5 + 
-     -       (16*(49.763968707502585*
-     -             (59.0625/(1 + r**2/144.)**5.5 + 
-     -               26.25/(1 + r**2/144.)**4.5 + 
-     -               16.875/(1 + r**2/144.)**3.5 + 
-     -               11.25/(1 + r**2/144.)**2.5 + 
-     -               6.5625/(1 + r**2/144.)**1.5) - 
-     -            41.988348596955305*
-     -             (59.0625/(1 + r**2/64.)**5.5 + 
-     -               26.25/(1 + r**2/64.)**4.5 + 
-     -               16.875/(1 + r**2/64.)**3.5 + 
-     -          11.25/(1 + r**2/64.)**2.5 + 6.5625/(1 + r**2/64.)**1.5)
-     -            ))/105.) + (0,1)*wi + wr)/
-     -(2.*Sqrt((4332.198668720216/(1 + 0.32653061224489793*r**2)**1.5 + 
-     -        (16*(49.763968707502585*
-     -              (59.0625/(1 + r**2/144.)**5.5 + 
-     -                26.25/(1 + r**2/144.)**4.5 + 
-     -                16.875/(1 + r**2/144.)**3.5 + 
-     -                11.25/(1 + r**2/144.)**2.5 + 
-     -                6.5625/(1 + r**2/144.)**1.5) - 
-     -             41.988348596955305*
-     -              (59.0625/(1 + r**2/64.)**5.5 + 
-     -                26.25/(1 + r**2/64.)**4.5 + 
-     -                16.875/(1 + r**2/64.)**3.5 + 
-     -           11.25/(1 + r**2/64.)**2.5 + 6.5625/(1 + r**2/64.)**1.5
-     -                )))/105.)*
-     -      (1 + (r*((-4243.786450991232*r)/
-     -              (1 + 0.32653061224489793*r**2)**2.5 + 
-     -             (16*(49.763968707502585*
-     -                   ((-4.51171875*r)/(1 + r**2/144.)**6.5 - 
-     -                     (1.640625*r)/(1 + r**2/144.)**5.5 - 
-     -                     (0.8203125*r)/(1 + r**2/144.)**4.5 - 
-     -                     (0.390625*r)/(1 + r**2/144.)**3.5 - 
-     -                     (0.13671875*r)/(1 + r**2/144.)**2.5) - 
-     -                  41.988348596955305*
-     -                   ((-10.1513671875*r)/(1 + r**2/64.)**6.5 - 
-     -                     (3.69140625*r)/(1 + r**2/64.)**5.5 - 
-     -                     (1.845703125*r)/(1 + r**2/64.)**4.5 - 
-     -                     (0.87890625*r)/(1 + r**2/64.)**3.5 - 
-     -                (0.3076171875*r)/(1 + r**2/64.)**2.5)))/105.))/
-     -    (4.*(4332.198668720216/(1 + 0.32653061224489793*r**2)**1.5 + 
-     -             (16*(49.763968707502585*
-     -                   (59.0625/(1 + r**2/144.)**5.5 + 
-     -                     26.25/(1 + r**2/144.)**4.5 + 
-     -                     16.875/(1 + r**2/144.)**3.5 + 
-     -                     11.25/(1 + r**2/144.)**2.5 + 
-     -                     6.5625/(1 + r**2/144.)**1.5) - 
-     -                  41.988348596955305*
-     -                   (59.0625/(1 + r**2/64.)**5.5 + 
-     -                     26.25/(1 + r**2/64.)**4.5 + 
-     -                     16.875/(1 + r**2/64.)**3.5 + 
-     -                     11.25/(1 + r**2/64.)**2.5 + 
-     -                     6.5625/(1 + r**2/64.)**1.5)))/105.)))))
+      m = 2.d0
+
+      nu = (dcmplx(wr,wi)-m*Omega(r))/kappa(r)
       
       endfunction
 
-      function k3sqrt(r,wr,wi)
+      function k3sqrt(r)
       IMPLICIT NONE
       DOUBLE COMPLEX            k3sqrt
-      DOUBLE PRECISION,INTENT(in)::r,wr,wi
+      DOUBLE PRECISION,INTENT(in)::r
       DOUBLE PRECISION          ::rr
         
-!     k3sqrt = KappaOverASqr(r)*(ToomQ(r)**(-2) - 1.d0 + nu(r,wr,wi)**2)
-      rr = r +0.0000000001d0
-      k3sqrt = KappaOverASqr(rr)*(ToomQ(rr)**(-2) - 1.d0 +
-     c nu(rr,wr,wi)**2+0.25d0*curF(rr)**2*ToomQ(rr)**2)
-
+      k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(Q(r))**-2 
+     c         - 1.d0 + nu(r)**2)
+!     rr = r +0.0000000001d0
+!     k3sqrt = KappaOverASqr(rr)*(Q(rr)**(-2) - 1.d0 +
+!    c nu(rr,wr,wi)**2+0.25d0*curF(rr)**2*q(rr)**2)
 
       endfunction
-
-      function KappaOverASqr(r)
-      IMPLICIT NONE
-      DOUBLE PRECISION            KappaOverASqr
-      DOUBLE PRECISION            r
       
-      KappaOverASqr =       
-     -  (8.769255739407259e10*(4332.198668720216/
-     -        (1 + 0.32653061224489793*r**2)**1.5 + 
-     -       (16*(49.763968707502585*
-     -             (59.0625/(1 + r**2/144.)**5.5 + 
-     -               26.25/(1 + r**2/144.)**4.5 + 
-     -               16.875/(1 + r**2/144.)**3.5 + 
-     -               11.25/(1 + r**2/144.)**2.5 + 
-     -               6.5625/(1 + r**2/144.)**1.5) - 
-     -            41.988348596955305*
-     -             (59.0625/(1 + r**2/64.)**5.5 + 
-     -               26.25/(1 + r**2/64.)**4.5 + 
-     -               16.875/(1 + r**2/64.)**3.5 + 
-     -        11.25/(1 + r**2/64.)**2.5 + 6.5625/(1 + r**2/64.)**1.5)
-     -            ))/105.)**2*(1 + 
-     -       (r*((-4243.786450991232*r)/
-     -             (1 + 0.32653061224489793*r**2)**2.5 + 
-     -            (16*(49.763968707502585*
-     -                  ((-4.51171875*r)/(1 + r**2/144.)**6.5 - 
-     -                    (1.640625*r)/(1 + r**2/144.)**5.5 - 
-     -                    (0.8203125*r)/(1 + r**2/144.)**4.5 - 
-     -                    (0.390625*r)/(1 + r**2/144.)**3.5 - 
-     -                    (0.13671875*r)/(1 + r**2/144.)**2.5) - 
-     -                 41.988348596955305*
-     -                  ((-10.1513671875*r)/(1 + r**2/64.)**6.5 - 
-     -                    (3.69140625*r)/(1 + r**2/64.)**5.5 - 
-     -                    (1.845703125*r)/(1 + r**2/64.)**4.5 - 
-     -                    (0.87890625*r)/(1 + r**2/64.)**3.5 - 
-     -              (0.3076171875*r)/(1 + r**2/64.)**2.5)))/105.))/
-     -   (4.*(4332.198668720216/(1 + 0.32653061224489793*r**2)**1.5 + 
-     -            (16*(49.763968707502585*
-     -                  (59.0625/(1 + r**2/144.)**5.5 + 
-     -                    26.25/(1 + r**2/144.)**4.5 + 
-     -                    16.875/(1 + r**2/144.)**3.5 + 
-     -                    11.25/(1 + r**2/144.)**2.5 + 
-     -                    6.5625/(1 + r**2/144.)**1.5) - 
-     -                 41.988348596955305*
-     -                  (59.0625/(1 + r**2/64.)**5.5 + 
-     -                    26.25/(1 + r**2/64.)**4.5 + 
-     -                    16.875/(1 + r**2/64.)**3.5 + 
-     -                    11.25/(1 + r**2/64.)**2.5 + 
-     -                    6.5625/(1 + r**2/64.)**1.5)))/105.)))**2)
+      function snsd(r)
+      IMPLICIT NONE
+      DOUBLE PRECISION          ::r,snsd
+!     DOUBLE PRECISION,EXTERNAL ::Q
 
-      KappaOverASqr = KappaOverASqr/
-     -  ((1 + 0.75/exp(1.)**r**2)**2*
-     -    (1.9894367886486915e8/(1 + r**2/144.)**5.5 - 
-     -       1.1190581936148891e8/(1 + r**2/64.)**5.5)**2)
 
-      endfunction
-
-      function kappa(r)
-      DOUBLE PRECISION  kappa,r
-
-      kappa = 
-     - 2*Sqrt((4332.198668720216/(1. + 0.32653061224489793*r**2)**1.5 + 
-     -      (16.*(49.763968707502585*
-     -            (59.0625/(1. + r**2/144.)**5.5 + 
-     -              26.25/(1. + r**2/144.)**4.5 + 
-     -              16.875/(1. + r**2/144.)**3.5 + 
-     -          11.25/(1 + r**2/144.)**2.5 + 6.5625/(1. + r**2/144.)**1.5
-     -              ) - 41.988348596955305*
-     -            (59.0625/(1. + r**2/64.)**5.5 + 
-     -              26.25/(1. + r**2/64.)**4.5 + 
-     -              16.875/(1. + r**2/64.)**3.5 + 
-     -        11.25/(1. + r**2/64.)**2.5 + 6.5625/(1. + r**2/64.)**1.5))
-     -         )/105.)*(1. + (r*
-     -         ((-4243.786450991232*r)/
-     -            (1. + 0.32653061224489793*r**2)**2.5 + 
-     -           (16.*(49.763968707502585*
-     -                 ((-4.51171875*r)/(1. + r**2/144.)**6.5 - 
-     -                   (1.640625*r)/(1. + r**2/144.)**5.5 - 
-     -                   (0.8203125*r)/(1. + r**2/144.)**4.5 - 
-     -                   (0.390625*r)/(1. + r**2/144.)**3.5 - 
-     -                   (0.13671875*r)/(1. + r**2/144.)**2.5) - 
-     -                41.988348596955305*
-     -                 ((-10.1513671875*r)/(1. + r**2/64.)**6.5 - 
-     -                   (3.69140625*r)/(1. + r**2/64.)**5.5 - 
-     -                   (1.845703125*r)/(1. + r**2/64.)**4.5 - 
-     -                   (0.87890625*r)/(1. + r**2/64.)**3.5 - 
-     -               (0.3076171875*r)/(1. + r**2/64.)**2.5)))/105.))/
-     -    (4.*(4332.198668720216/(1. + 0.32653061224489793*r**2)**1.5 + 
-     -           (16*(49.763968707502585*
-     -                 (59.0625/(1. + r**2/144.)**5.5 + 
-     -                   26.25/(1. + r**2/144.)**4.5 + 
-     -                   16.875/(1. + r**2/144.)**3.5 + 
-     -                   11.25/(1. + r**2/144.)**2.5 + 
-     -                   6.5625/(1. + r**2/144.)**1.5) - 
-     -                41.988348596955305*
-     -                 (59.0625/(1. + r**2/64.)**5.5 + 
-     -                   26.25/(1. + r**2/64.)**4.5 + 
-     -                   16.875/(1. + r**2/64.)**3.5 + 
-     -                   11.25/(1. + r**2/64.)**2.5 + 
-     -                   6.5625/(1. + r**2/64.)**1.5)))/105.))))
-
+      snsd = Q(r)*pi*g*sigma0(r)/kappa(r)
 
       ENDFUNCTION
 
-        function error(r,wr,wi)
-        IMPLICIT NONE
-        DOUBLE COMPLEX          ::error
-        DOUBLE PRECISION,INTENT(in)::r,wr,wi
-        DOUBLE PRECISION        ::h=10d-5
+      function Sigma0(r)
+      IMPLICIT NONE
+      DOUBLE PRECISION          ::Sigma0,r
+      DOUBLE PRECISION          ::m,a,b
+      DOUBLE PRECISION          ::BOUND,EPSREL,EPSABS
+      DOUBLE PRECISION          ::ans
+      DOUBLE PRECISION          ::ABSERR
+      INTEGER                   ::NEVAL,IERR,LIMIT,LENW,LAST,INF
+      DOUBLE PRECISION,ALLOCATABLE ::WORK(:)
+      INTEGER,ALLOCATABLE       ::IWORK(:)
 
-        error  = -(0.d0,1.d0)*sqrt(k3sqrt(r,wr,wi))
-        error  = error -
-     c  0.5d0/sqrt(k3sqrt(r,wr,wi))
-     c *(sqrt(k3sqrt(r+h,wr,wi))-sqrt(k3sqrt(r-h,wr,wi)))/(2.d0*h)
+      M     = 5.0d10
+      a     = 2.7
+      b     = 0.3
 
-        endfunction
+      BOUND = 0.d0
+      INF   = 2
+      EPSREL = 10d-10
+      EPSABS = 10d-10
+      LIMIT  = 100
+      LENW   = LIMIT*4+2
+      ALLOCATE(IWORK(LENW))
+      ALLOCATE(WORK(LENW))
+      CALL DQAGI(FUN,BOUND,INF,EPSABS,EPSREL,ANS,ABSERR,NEVAL,IERR,  
+     c           LIMIT,LENW,LAST,IWORK,WORK)
+      DEALLOCATE(WORK)
+      DEALLOCATE(IWORK)
+      Sigma0 = ans/10d5
+      contains 
+      function FUN(z)
+      IMPLICIT NONE
+      DOUBLE PRECISION          ::fun,z
+      fun =  
+     c(b**2*M/4.d0/pi)* 
+     c(a*r**2+(a+3.d0*sqrt(z**2+b**2))*(a+sqrt(z**2+b**2))**2)/ 
+     c(r**2+(a+sqrt(z**2+b**2))**2)**2.5/(z**2+b**2)**1.5
+
+      ENDFUNCTION
+
+      ENDFUNCTION
+
+      function kappa(r)
+      IMPLICIT NONE
+      DOUBLE PRECISION  kappa,r
+      DOUBLE PRECISION  dr
+      DOUBLE PRECISION  dOmega
+!     DOUBLE PRECISION,EXTERNAL ::Omega
+      dr = 0.00000000001d0
+      dOmega = 0.d0
+      dOmega = dOmega +  -3.d0/2.d0*Omega(r)
+      dOmega = dOmega +        2.d0*Omega(r+dr)
+      dOmega = dOmega +  -1.d0/2.d0*Omega(r+2*dr)
+
+      kappa = sqrt(4.d0*Omega(r)**2*(1.d0+r/(2.d0*Omega(r))*dOmega))
+      ENDFUNCTION
 
         function find_b(wr)
         IMPLICIT NONE
         DOUBLE PRECISION        find_b,wr
         DOUBLE PRECISION        ::B,C,i,RE,AE
+!       DOUBLE PRECISION,EXTERNAL::kappa,Omega
         INTEGER                 ::IFLAG
 
-        B = 0.d0
-        C = 10.d0
+        B = 1.d0
+        C = 8.d0
         I = B
         
 
@@ -220,129 +133,90 @@
 
         FUNCTION F(r)
         DOUBLE PRECISION        ::F,r
-        F = wr - 
-     -  2*Sqrt(4332.198668720216/
-     -     (1 + 0.32653061224489793*r**2)**1.5 + 
-     -    (16*(49.763968707502585*
-     -          (59.0625/(1 + r**2/144.)**5.5 + 
-     -            26.25/(1 + r**2/144.)**4.5 + 
-     -            16.875/(1 + r**2/144.)**3.5 + 
-     -            11.25/(1 + r**2/144.)**2.5 + 
-     -            6.5625/(1 + r**2/144.)**1.5) - 
-     -         41.988348596955305*
-     -          (59.0625/(1 + r**2/64.)**5.5 + 
-     -            26.25/(1 + r**2/64.)**4.5 + 
-     -            16.875/(1 + r**2/64.)**3.5 + 
-     -            11.25/(1 + r**2/64.)**2.5 + 
-     -            6.5625/(1 + r**2/64.)**1.5)))/105.)
+        F = (2.d0*wr -2.d0*Omega(r))/kappa(r)
 
-       F = F /kappa(r) -0.5d0
+        F = F/kappa(r) -0.5d0
         ENDFUNCTION
 
         endfunction
 
         FUNCTION Omega(r)
+        IMPLICIT NONE
         DOUBLE PRECISION          ::Omega,r
-        Omega = 
-     -  Sqrt(4332.198668720216/
-     -     (1 + 0.32653061224489793*r**2)**1.5 + 
-     -    (16*(49.763968707502585*
-     -          (59.0625/(1 + r**2/144.)**5.5 + 
-     -            26.25/(1 + r**2/144.)**4.5 + 
-     -            16.875/(1 + r**2/144.)**3.5 + 
-     -            11.25/(1 + r**2/144.)**2.5 + 
-     -            6.5625/(1 + r**2/144.)**1.5) - 
-     -         41.988348596955305*
-     -          (59.0625/(1 + r**2/64.)**5.5 + 
-     -            26.25/(1 + r**2/64.)**4.5 + 
-     -            16.875/(1 + r**2/64.)**3.5 + 
-     -            11.25/(1 + r**2/64.)**2.5 + 
-     -            6.5625/(1 + r**2/64.)**1.5)))/105.)
-        ENDFUNCTION
+        !Halo
+        DOUBLE PRECISION          ::Lh,rhoh,gHalo,VHalo
+        !bulge
+        DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
+        !disk
+        DOUBLE PRECISION          ::dM,da,db,VDisk
+        !Halo
+        Lh   = 0.3d0
+        rhoh = 3.4e9
+        gHalo = 4.d0*Lh**2.d0*pi*rhoh*(r - Lh*atan(r/Lh))
+        gHalo = GravConst/(r**2)*gHalo
+        VHalo = sqrt(r*gHalo)
 
-        FUNCTION curF(r)
+        !Bulge
+        Mb   = 12.0d8
+        rb   = 0.8d0
+        gBulge = 4*pi*rb**3*Mb*(-r/sqrt(1+r**2/rb**2)/rb+asinh(r/rb))
+        gBulge = gBulge*GravConst/r**2
+        VBulge = sqrt(r*gBulge)
+
+        !Disk
+        dM     = 5.0d10
+        da     = 2.7
+        db     = 0.3
+        VDisk  = sqrt(dfunc(pDisk,r)*r)
+
+        Omega  = sqrt(VHalo**2+VBulge**2+VDisk**2)/r
+        CONTAINS
+        FUNCTION pDisk(r)
         IMPLICIT NONE
-        DOUBLE  PRECISION       ::curF,r
-        curF = 
-     -  (0.00007641060048193885*
-     -    (-9.612636687793569e17/(64 + r**2)**5.5 + 
-     -      1.4781681869206313e20/(144 + r**2)**5.5))/
-     -  (r*(4332.198668720216/
-     -       (1 + 0.32653061224489793*r**2)**1.5 - 
-     -      3.2460945126654697e12/(64 + r**2)**5.5 - 
-     -      2.254232300462132e10/(64 + r**2)**4.5 - 
-     -      2.264295837517766e8/(64 + r**2)**3.5 - 
-     -      2.35864149741434e6/(64 + r**2)**2.5 - 
-     -      21498.03448164112/(64 + r**2)**1.5 + 
-     -      3.3277540777497106e14/(144 + r**2)**5.5 + 
-     -      1.0270845918980587e12/(144 + r**2)**4.5 + 
-     -      4.585199070973476e9/(144 + r**2)**3.5 + 
-     -      2.1227773476729058e7/(144 + r**2)**2.5 + 
-     -      85992.13792656448/(144 + r**2)**1.5)*
-     -    (4 + (r**2*(-4243.786450991232/
-     -            (1 + 0.32653061224489793*r**2)**2.5 + 
-     -           3.5707039639320164e13/(64 + r**2)**6.5 + 
-     -           2.0288090704159186e11/(64 + r**2)**5.5 + 
-     -           1.5850070862624364e9/(64 + r**2)**4.5 + 
-     -           1.1793207487071699e7/(64 + r**2)**3.5 + 
-     -           64494.10344492335/(64 + r**2)**2.5 - 
-     -           3.6605294855246815e15/(144 + r**2)**6.5 - 
-     -           9.24376132708253e12/(144 + r**2)**5.5 - 
-     -           3.2096393496814335e10/(144 + r**2)**4.5 - 
-     -           1.061388673836453e8/(144 + r**2)**3.5 - 
-     -           257976.41377969345/(144 + r**2)**2.5))/
-     -       (4332.198668720216/
-     -          (1 + 0.32653061224489793*r**2)**1.5 - 
-     -         3.2460945126654697e12/(64 + r**2)**5.5 - 
-     -         2.254232300462132e10/(64 + r**2)**4.5 - 
-     -         2.264295837517766e8/(64 + r**2)**3.5 - 
-     -         2.35864149741434e6/(64 + r**2)**2.5 - 
-     -         21498.03448164112/(64 + r**2)**1.5 + 
-     -         3.3277540777497106e14/(144 + r**2)**5.5 + 
-     -         1.0270845918980587e12/(144 + r**2)**4.5 + 
-     -         4.585199070973476e9/(144 + r**2)**3.5 + 
-     -         2.1227773476729058e7/(144 + r**2)**2.5 + 
-     -         85992.13792656448/(144 + r**2)**1.5))*
-     -    Sqrt(-1 - (4*(4332.198668720216/
-     -            (1 + 0.32653061224489793*r**2)**1.5 - 
-     -           3.2460945126654697e12/(64 + r**2)**5.5 - 
-     -           2.254232300462132e10/(64 + r**2)**4.5 - 
-     -           2.264295837517766e8/(64 + r**2)**3.5 - 
-     -           2.35864149741434e6/(64 + r**2)**2.5 - 
-     -           21498.03448164112/(64 + r**2)**1.5 + 
-     -           3.3277540777497106e14/(144 + r**2)**5.5 + 
-     -           1.0270845918980587e12/(144 + r**2)**4.5 + 
-     -           4.585199070973476e9/(144 + r**2)**3.5 + 
-     -           2.1227773476729058e7/(144 + r**2)**2.5 + 
-     -           85992.13792656448/(144 + r**2)**1.5))/
-     -       (r**2*(-4243.786450991232/
-     -            (1 + 0.32653061224489793*r**2)**2.5 + 
-     -           3.5707039639320164e13/(64 + r**2)**6.5 + 
-     -           2.0288090704159186e11/(64 + r**2)**5.5 + 
-     -           1.5850070862624364e9/(64 + r**2)**4.5 + 
-     -           1.1793207487071699e7/(64 + r**2)**3.5 + 
-     -           64494.10344492335/(64 + r**2)**2.5 - 
-     -           3.6605294855246815e15/(144 + r**2)**6.5 - 
-     -           9.24376132708253e12/(144 + r**2)**5.5 - 
-     -           3.2096393496814335e10/(144 + r**2)**4.5 - 
-     -           1.061388673836453e8/(144 + r**2)**3.5 - 
-     -           257976.41377969345/(144 + r**2)**2.5))))
+        DOUBLE PRECISION        ::pDisk,r
+        pDisk  = -GravConst*dM
+        pDisk  = pDisk/sqrt(r**2+(da+db)**2)
+        ENDFUNCTION
 
         ENDFUNCTION
 
-        FUNCTION sigma0(r)
+        function dfunc(func,r)
+        !
+        ! Forward differential
+        !
         IMPLICIT NONE
-        DOUBLE PRECISION        sigma0,r
-        DOUBLE PRECISION        ::x1,x2
-        x1 = dsqrt(1.d0+(r/a1)**2)
-        x2 = dsqrt(1.d0+(r/a2)**2)
-        sigma0 = 4.5d0*M1/(pi*a1**2*x1**11)-4.5d0*M2/(pi*a2**2*x2**11)
-        ENDFUNCTION
+        DOUBLE PRECISION,EXTERNAL       ::func
+        DOUBLE PRECISION                ::r,dfunc
+        DOUBLE PRECISION                ::dr = 0.00000001d0
 
-      FUNCTION snsp(r)
-      IMPLICIT NONE
-      DOUBLE PRECISION          ::snsp,r
-      snsp = ToomQ(r)*pi*G*sigma0(r)/kappa(r)
-      ENDFUNCTION
+        dfunc = 0.d0
+        dfunc = dfunc +  -3.d0/2.d0*func(r)
+        dfunc = dfunc +        2.d0*func(r+dr)
+        dfunc = dfunc +  -1.d0/2.d0*func(r+2*dr)
+        dfunc = dfunc/dr
+        endfunction
 
-      ENDMODULE
+        ENDMODULE
+
+
+
+!       function error(r,wr,wi)
+!       IMPLICIT NONE
+!       DOUBLE COMPLEX          ::error
+!       DOUBLE COMPLEX,EXTERNAL ::k3sqrt
+!       DOUBLE PRECISION,INTENT(in)::r,wr,wi
+!       DOUBLE PRECISION        ::h=10d-5
+
+!       error  = -(0.d0,1.d0)*sqrt(k3sqrt(r,wr,wi))
+!       error  = error -
+!    c  0.5d0/sqrt(k3sqrt(r,wr,wi))
+!    c *(sqrt(k3sqrt(r+h,wr,wi))-sqrt(k3sqrt(r-h,wr,wi)))/(2.d0*h)
+
+!       endfunction
+
+!       FUNCTION curF(r)
+!       IMPLICIT NONE
+!       DOUBLE  PRECISION       ::curF,r
+!       curF = 
+
+!       ENDFUNCTION
