@@ -1,7 +1,7 @@
 F90=ifort
 FCC=icc
 
-FFLAGS=  -O3  -g -lm  -L. -lslatec -limf -L$(FFTW_HOME)/lib -lfftw3
+FFLAGS=  -O2  -g -lm  -L. -lslatec -limf -L$(FFTW_HOME)/lib -lfftw3
 INCL  = -I$(HDF5HOME)/include -I$(FFTW_INCL)
 
 HDF5HOME=$(HDF5_HOME)

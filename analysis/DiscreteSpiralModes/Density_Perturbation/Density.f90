@@ -36,7 +36,7 @@
 !       vmin = -4.d6
 
         BRIGHT = 0.5
-        CONTRA = -0.8
+        CONTRA = -0.9
         CALL PALETT(2,CONTRA,Bright)
 
 !        CALL PGBBUF
@@ -133,31 +133,29 @@ IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
 DOUBLE COMPLEX,ALLOCATABLE      ::u(:,:)
-DOUBLE PRECISION                ::domain=10.d0,dx,dy,r,th
+DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
-INTEGER,PARAMETER               ::n=10
-INTEGER                         ::PGBEG
+INTEGER,PARAMETER               ::n=100
 
 !CALL getarg(1,arg)
 !READ(arg,*)wr
 !CALL getarg(2,arg)
 !READ(arg,*)wi
 
-wr = 59.218d0
-wi = -0.855d0
+!wr = 59.218d0
+!wi = -0.855d0
+!wr = 47.393d0
+!wi = -0.533d0
+wr = 39.500d0
+wi = -0.400d0
 
 ALLOCATE(u(3,3*n))
+!find EigenFunction
 CALL findu(u)
-!!!!!!!!!!!!!!to plot u
-!IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
-!CALL PGSVP(0.0,0.95,0.0,0.95)
-!CALL PGENV(0.,real(domain),0.,u(1,:),0,1)
-!CALL PGLINE(3*n,real(u(1,:)),real(u(1,:)))
-!CALL PGCLOS
-stop
-!!!!!!!!!!!!!!!to plot u
-
+DO i = 1, n*3
+ write(*,*)real(u(1,i)),real(real(u(2,i)))
+enddo
 
 dx = domain/dble(n)
 dy = domain/dble(n)
@@ -219,16 +217,18 @@ IMPLICIT NONE
 DOUBLE COMPLEX                  ::q
 DOUBLE PRECISION                ::r
 q = k3sqrt(r)
+!q = +1.d0
 ENDFUNCTION
 
 SUBROUTINE findu(u)
+use rk
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::u(:,:)
 DOUBLE COMPLEX                  ::ui(3)
 DOUBLE PRECISION                ::a,b
 
 
-a = 0.d0
+a = 0.0000001d0
 b = 2.d0*domain
 ui = (/a,1.d0,0.d0/)
 CALL rk4(a,b,3*N,p,q,p,u,ui)

@@ -40,6 +40,7 @@
       DOUBLE PRECISION,INTENT(in)::r
       DOUBLE PRECISION          ::rr
         
+
       k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(Q(r))**-2 
      c         - 1.d0 + nu(r)**2)
 !     rr = r +0.0000000001d0
@@ -105,13 +106,14 @@
       DOUBLE PRECISION  dr
       DOUBLE PRECISION  dOmega
 !     DOUBLE PRECISION,EXTERNAL ::Omega
-      dr = 0.00000000001d0
+      dr = 0.00000001d0
       dOmega = 0.d0
       dOmega = dOmega +  -3.d0/2.d0*Omega(r)
       dOmega = dOmega +        2.d0*Omega(r+dr)
       dOmega = dOmega +  -1.d0/2.d0*Omega(r+2*dr)
 
-      kappa = sqrt(4.d0*Omega(r)**2*(1.d0+r/(2.d0*Omega(r))*dOmega))
+      kappa =
+     c sqrt(4.d0*Omega(r)**2*(1.d0+r/(2.d0*Omega(r))*dfunc(Omega,r)))
       ENDFUNCTION
 
         function find_b(wr)
@@ -187,7 +189,7 @@
         IMPLICIT NONE
         DOUBLE PRECISION,EXTERNAL       ::func
         DOUBLE PRECISION                ::r,dfunc
-        DOUBLE PRECISION                ::dr = 0.00000001d0
+        DOUBLE PRECISION                ::dr = 0.00001d0
 
         dfunc = 0.d0
         dfunc = dfunc +  -3.d0/2.d0*func(r)

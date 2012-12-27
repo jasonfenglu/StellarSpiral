@@ -21,6 +21,8 @@
 !   REVISION HISTORY  (YYMMDD)
 !   121122   DATE WRITTEN
 !***END PROLOGUE  RK4
+module rk
+contains
 
 SUBROUTINE rk45(ri,rf,N,p,q,s,u,ui)
 IMPLICIT NONE
@@ -91,7 +93,6 @@ do l = 2,n
 enddo
 
 
-write(*,*)REAL(u)
 
 
 contains
@@ -122,7 +123,7 @@ INTEGER                 ::I,J,L
 
 
 !init boundary
-h = (rf-ri)/REAL(N)
+h = (rf-ri)/dble(N)
 r = ri
 
 !init RKF Tableau
@@ -173,7 +174,7 @@ DOUBLE COMPLEX          ::f(3)
 DOUBLE COMPLEX          ::ui(3)
 DOUBLE COMPLEX,EXTERNAL::p,q,s
 DOUBLE PRECISION        ::r
-r = ui(1)
+r    = real(ui(1))
 f(1) = 1.d0
 f(2) = ui(3)
 f(3) = s(r)-p(r)*ui(3)-q(r)*ui(2)
@@ -236,3 +237,4 @@ ENDSUBROUTINE
 !        r = r + h
 !
 !enddo
+endmodule
