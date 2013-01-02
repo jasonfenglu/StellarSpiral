@@ -190,7 +190,8 @@ ALLOCATE(phi1(2*n))
 CALL FindPhi1(phi1)
 
 DO i = 2, n*4,2
-         write(*,'(4(1XE15.6))')real(u(1,i)),real(u(2,i)),real(h1(i)),real(phi1(i/2))
+!        write(*,'(4(1XE15.6))')real(u(1,i)),real(u(2,i)),real(h1(i)),real(phi1(i/2))
+         write(*,'(4(1XE15.6))')real(u(1,i)),real(phi1(i/2)),imag(phi1(i/2))
 enddo
 
 
@@ -348,9 +349,8 @@ DOUBLE PRECISION                ::r,h
 INTEGER                         ::i,j,l,nn
 
 h = u(1,3)-u(1,1)
-phi1(1) = (0.d0,0.d0)
+phi1(1) = (1.d0,1.d0)
 DO i = 2,4*N-2,2
-!DO i = 1,4*3-2,2
         r = u(1,i-1)
         k(1) = h*dsimplifiedPoisson(r           ,phi1(i/2)                ,h1(i-1))
         k(2) = h*dsimplifiedPoisson(r+h/2.d0    ,phi1(i/2)+k(1)/2.d0      ,h1(i))
@@ -367,9 +367,13 @@ IMPLICIT NONE
 DOUBLE COMPLEX                  ::dsimplifiedPoisson
 DOUBLE COMPLEX,INTENT(IN)       ::phi,h
 DOUBLE PRECISION                ::r
-dsimplifiedPoisson = -phi/(2.d0*r)+(0.d0,1.d0)*cmplx(Sigma(r))*h
-!dsimplifiedPoisson =  -phi*r
+!dsimplifiedPoisson = -phi/(2.d0*r)+(0.d0,1.d0)*cmplx(Sigma(r))*h
 
+!!test case 
+dsimplifiedPoisson =  -phi*r + (0.d0,1.d0)*r
+!!bnd condition is phi = 1+i at r=0
+!!solution is
+!!phi = exp(r**2/2)+ i
 ENDFUNCTION
 
 
