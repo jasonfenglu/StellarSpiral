@@ -1,8 +1,9 @@
         module plotting
         CONTAINS
-        SUBROUTINE plot2d(F,F2,n,domain)
+        SUBROUTINE plot2d(F,F2,force,n,domain)
         IMPLICIT NONE
         DOUBLE PRECISION,ALLOCATABLE,INTENT(IN) ::F(:,:),F2(:,:)!plotting data
+        DOUBLE PRECISION                        ::force(:,:,:)
         DOUBLE PRECISION                        ::domain!plot range
         REAL                                    ::TR(6) !plot geometry
         REAL                                    ::vmax,vmin
@@ -12,7 +13,7 @@
         REAL                                    ::dx,dy
 
 
-        IF (PGBEG(0,'/png',1,1) .NE. 1) STOP
+        IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
         CALL PGSVP(0.0,0.95,0.0,0.95)
 
         m = n
@@ -26,40 +27,44 @@
         TR(6) = 1.d0/(2.d0*dble(m)-1.)*(2.d0*domain-dy)
         TR(4) = TR(6)*dble(m)-2.*domain-dy
 
-
-!       TR = (/0.,1.,0.,0.,0.,1./)
-        vmax = real(MAXVAL(F(:,:)))
-        vmin = real(MINVAL(F(:,:)))
-!       write(*,*)vmax,vmin
-
-!       vmax = 4.d6
-!       vmin = -4.d6
-
         BRIGHT = 0.5
         CONTRA = -0.9
-        CALL PALETT(2,CONTRA,Bright)
 
-!        CALL PGBBUF
+
+        !!Density
+        vmax = real(MAXVAL(F(:,:)))
+        vmin = real(MINVAL(F(:,:)))
+        CALL PALETT(2,CONTRA,Bright)
+        CALL PGBBUF
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
         CALL PGIMAG(REAL(F(:,:)),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-        CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, 'pixel value')
+        CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, '')
         CALL PGSCH(1.0)
-!       CALL PGEBUF
+        CALL PGLAB('kpc','kpc','Density')
 
+        !!Potential
+        vmax = real(MAXVAL(F2(:,:)))
+        vmin = real(MINVAL(F2(:,:)))
+        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+        CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+        CALL PGSCH(1.0)
+        CALL PGLAB('kpc','kpc','Potential')
 
-!       vmax = real(MAXVAL(F2(:,:)))
-!       vmin = real(MINVAL(F2(:,:)))
-!       write(*,*)vmax,vmin
-
-!       vmax = 10.d4
-!       vmin = -10.d4
+        !!Force
 !       CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
-!       CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-!       CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, 'pixel value')
-!       CALL PGSCH(1.0)
+!       CALL PGVECT(force(:,:,1),force(:,:,2),2*n,2*n,         &
+!                   maxval(force(:,:,1)),1., &
+!                   maxval(force(:,:,2)),1., &
+!                   0.0,0,TR,0.)
 
-        CALL PGCLOS
-
+!       CALL PGSCH(0.3)
+!       CALL PGSAH(20.0)
+!       CALL PGVECT(force(:,:,1),force(:,:,2),2*n,2*n,         &
+!                   n,2*n-1, &
+!                   n,2*n-1, &
+!                   0.1,0,TR,-1.E10)
+!       CALL PGCLOS
         ENDSUBROUTINE
 
 
@@ -136,6 +141,7 @@ DOUBLE COMPLEX,ALLOCATABLE      ::u(:,:),h1(:),phi1r(:)
 DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
+DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 INTEGER,PARAMETER               ::n=500
 
 !CALL getarg(1,arg)
@@ -156,11 +162,6 @@ ALLOCATE(h1(4*n))
 CALL findu(u)
 !find h1
 CALL findh1(u,h1)
-!find phi
-!DO i = 1, n*3
-! write(*,*)real(u(1,i)),real(h1(i))
-!enddo
-!stop
 
 dx = domain/dble(n)
 dy = domain/dble(n)
@@ -183,12 +184,10 @@ DO j = 1, n*2
 ENDDO
 ENDDO
 
-!CALL TEST(DENSITY)
 
-CALL plot2d(density,density,n,domain)
+!!Find phi1 along r
 ALLOCATE(phi1r(2*n))
 CALL FindPhi1(phi1r)
-
 open(10,file='r-dep.dat')
 DO i = 2, n*4,2
          write(10,'(4(1XE15.6))')real(u(1,i)),real(u(2,i)),real(h1(i)),real(phi1r(i/2))
@@ -196,6 +195,7 @@ enddo
 close(10)
 
 
+!!Find 2d Potential
 ALLOCATE(potential(2*n,2*n))
 DO i = 1, n*2
 DO j = 1, n*2
@@ -204,64 +204,49 @@ DO j = 1, n*2
         potential(i,j) = phi1(r,th)
 ENDDO
 ENDDO
- CALL plot2d(potential,potential,n,domain)
+
+!!Find Force
+ALLOCATE(force(2*n,2*n,2))
+DO i = 1,n*2
+DO j = 1, n*2
+        r = sqrt(xcoord(i)**2+ycoord(j)**2)
+        th = atan2(ycoord(j),xcoord(i))
+        call FindForce(force(i,j,:),r,th)
+ENDDO
+ENDDO
 
 
-!DEALLOCATE(potential)
+CALL plot2d(density,potential,force,n,domain)
+DEALLOCATE(potential)
 DEALLOCATE(xcoord)
 DEALLOCATE(ycoord)
-
 DEALLOCATE(u)
 DEALLOCATE(density)
 STOP
 CONTAINS
 
-SUBROUTINE FindPotential(density,potential)
-use,intrinsic                   ::iso_c_binding
+SUBROUTINE FindForce(force,r,th)
 IMPLICIT NONE
-include                         'fftw3.f03'
-DOUBLE PRECISION                ::density(:,:),potential(:,:)
-
-type(C_PTR)                     ::plan
-complex(C_DOUBLE_COMPLEX),ALLOCATABLE::in(:,:),out(:,:)
-INTEGER                         ::n
-INTEGER                         ::i,j
-
-n = size(density,1)*2
-ALLOCATE(in(n,n))
-ALLOCATE(out(n,n))
-
-in = 0.d0
-do i = 1, n/2
-do j = 1, n/2
-        in(i,j) = DCMPLX(density(i,j))
+DOUBLE PRECISION                ::force(2),r,th
+DOUBLE COMPLEX                  ::hh1,phir
+DOUBLE PRECISION                ::runit(2),thunit(2)
+INTEGER                         ::i
+!interploting u at non-grid point r
+do i = 1, n*2
+        if(real(u(1,2*i)).gt.r)then
+                exit
+        endif
 enddo
-enddo
+phir =(r-u(1,2*i-2))/(u(1,2*i)-u(1,2*i-2))*(phi1r(i)-phi1r(i-1)) + phi1r(i-1)
+i = i*2
+hh1 =(r-u(1,i-1))/(u(1,i)-u(1,i-1))*(h1(i)-h1(i-1)) + h1(i-1)
 
-plan = fftw_plan_dft_2d(n,n,in,out,FFTW_FORWARD,FFTW_ESTIMATE)
-CALL fftw_execute_dft(plan,in,out)
-call fftw_destroy_plan(plan)
+runit = (/cos(th),sin(th)/)
+thunit = (/-sin(th),cos(th)/)
 
+force = real(dsimplifiedPoisson(r,phir,hh1)*runit &
+      + (0.d0,-2.d0)*phir/r*exp((0.d0,-2.d0)*th))
 
- in = (0.d0,0.d0)
- do i = 1, n
- do j = 1, n
-         in(i,j) = out(i,j)/(-pi)/(dcmplx(i)**2+dcmplx(j)**2)*4.d0*g
- enddo
- enddo
- 
- plan = fftw_plan_dft_2d(n,n,in,out,FFTW_BACKWARD,FFTW_ESTIMATE)
- CALL fftw_execute_dft(plan,in,out)
- call fftw_destroy_plan(plan)
-
-do i = 1, n/2
-do j = 1, n/2
-        potential(i,j) = -1.d0*dble(out(i,j))/dble(n**2)
-enddo
-enddo
-
-DEALLOCATE(in)
-DEALLOCATE(out)
 ENDSUBROUTINE
 
 FUNCTION p(r)
@@ -378,6 +363,7 @@ DOUBLE COMPLEX                  ::phi1(:),k(4)
 DOUBLE PRECISION                ::r,h
 INTEGER                         ::i,j,l,nn
 
+!!Solve ODE of phi from density by RK4
 h = u(1,3)-u(1,1)
 phi1(1) = (0.d0,0.d0)
 DO i = 2,4*N-2,2
@@ -449,8 +435,6 @@ enddo
 !!!
 
 ENDSUBROUTINE
-
-
 
 END PROGRAM
 
