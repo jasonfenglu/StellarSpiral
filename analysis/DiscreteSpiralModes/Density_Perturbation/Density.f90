@@ -6,6 +6,7 @@
         DOUBLE PRECISION                        ::force(:,:,:)
         DOUBLE PRECISION                        ::domain!plot range
         REAL                                    ::TR(6) !plot geometry
+        REAL                                    ::TR2(6) !plot geometry
         REAL                                    ::vmax,vmin
         REAL                                    ::BRIGHT,CONTRA
         INTEGER                                 ::m,n   !dimentsion
@@ -22,10 +23,10 @@
 
         TR(3) = 0.
         TR(5) = 0.
-        TR(2) = 1.d0/(2.d0*dble(n)-1.)*(2.d0*domain-dx)
-        TR(1) = TR(2)*dble(n)-2.*domain-dx
-        TR(6) = 1.d0/(2.d0*dble(m)-1.)*(2.d0*domain-dy)
-        TR(4) = TR(6)*dble(m)-2.*domain-dy
+        TR(2) = dx
+        TR(1) = -domain-dx/2.d0
+        TR(4) = -domain-dy/2.d0
+        TR(6) = dy
 
         BRIGHT = 0.5
         CONTRA = -0.9
@@ -47,24 +48,29 @@
         vmin = real(MINVAL(F2(:,:)))
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
         CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+        CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, '')
         CALL PGSCH(1.0)
         CALL PGLAB('kpc','kpc','Potential')
 
         !!Force
-!       CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
-!       CALL PGVECT(force(:,:,1),force(:,:,2),2*n,2*n,         &
-!                   maxval(force(:,:,1)),1., &
-!                   maxval(force(:,:,2)),1., &
-!                   0.0,0,TR,0.)
-
-!       CALL PGSCH(0.3)
-!       CALL PGSAH(20.0)
-!       CALL PGVECT(force(:,:,1),force(:,:,2),2*n,2*n,         &
-!                   n,2*n-1, &
-!                   n,2*n-1, &
-!                   0.1,0,TR,-1.E10)
-!       CALL PGCLOS
+        TR2 = 0.
+        TR2(2) = 8.d0*dx
+        TR2(1) = -domain-dx*4.d0
+        TR2(6) = 8.d0*dy
+        TR2(4) = -domain-dy*4.d0
+        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,-1)
+        CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+        CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, '')
+        CALL PGSCH(1.0)
+        CALL PGLAB('kpc','kpc','Force')
+        CALL PGSCH(0.8)
+        CALL PGSCI(0)
+        CALL PGSAH(1,20.,0.3)
+        CALL PGVECT(real(force(:,:,1)),real(force(:,:,2)),n/4,n/4,         &
+                    2,n/4-2, &
+                    2,n/4-2, &
+                    0.02,2,TR2,-1.E10)
+        CALL PGCLOS
         ENDSUBROUTINE
 
 
@@ -138,11 +144,11 @@ IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
 DOUBLE COMPLEX,ALLOCATABLE      ::u(:,:),h1(:),phi1r(:)
-DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th
+DOUBLE PRECISION                ::domain= 10.d0,dx,dy,r,th
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
-INTEGER,PARAMETER               ::n=500
+INTEGER,PARAMETER               ::n=100
 
 !CALL getarg(1,arg)
 !READ(arg,*)wr
@@ -206,15 +212,14 @@ ENDDO
 ENDDO
 
 !!Find Force
-ALLOCATE(force(2*n,2*n,2))
-DO i = 1,n*2
-DO j = 1, n*2
-        r = sqrt(xcoord(i)**2+ycoord(j)**2)
-        th = atan2(ycoord(j),xcoord(i))
+ALLOCATE(force(n/4,n/4,2))
+DO i = 1,n/4
+DO j = 1, n/4
+        r = sqrt(xcoord(i*8)**2+ycoord(j*8)**2)
+        th = atan2(ycoord(j*8),xcoord(i*8))
         call FindForce(force(i,j,:),r,th)
 ENDDO
 ENDDO
-
 
 CALL plot2d(density,potential,force,n,domain)
 DEALLOCATE(potential)
@@ -244,8 +249,8 @@ hh1 =(r-u(1,i-1))/(u(1,i)-u(1,i-1))*(h1(i)-h1(i-1)) + h1(i-1)
 runit = (/cos(th),sin(th)/)
 thunit = (/-sin(th),cos(th)/)
 
-force = real(dsimplifiedPoisson(r,phir,hh1)*runit &
-      + (0.d0,-2.d0)*phir/r*exp((0.d0,-2.d0)*th))
+force = real(dsimplifiedPoisson(r,phir,hh1)*exp((0.d0,-2.d0)*th)*runit &
+      + (0.d0,-2.d0)*phir/r*exp((0.d0,-2.d0)*th)*thunit)
 
 ENDSUBROUTINE
 
