@@ -134,4 +134,5 @@ set loadpath
 set fontpath 
 set fit noerrorvariables
 plot 'r-dep.dat' using 1:2 title 'u','r-dep.dat' using 1:3 title 'h1','r-dep.dat' using 1:4 title 'phi1','LoweA.dat' using 1:($2*7)title 'Lowea'
+pause -1
 #    EOF

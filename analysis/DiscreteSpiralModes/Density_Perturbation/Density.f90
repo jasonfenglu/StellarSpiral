@@ -12,7 +12,7 @@
         REAL                                    ::dx,dy
 
 
-        IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
+        IF (PGBEG(0,'/png',1,1) .NE. 1) STOP
         CALL PGSVP(0.0,0.95,0.0,0.95)
 
         m = n
@@ -132,19 +132,19 @@ USE STELLARDISK,ToomreQ=>Q
 IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
-DOUBLE COMPLEX,ALLOCATABLE      ::u(:,:),h1(:),phi1(:)
+DOUBLE COMPLEX,ALLOCATABLE      ::u(:,:),h1(:),phi1r(:)
 DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
-INTEGER,PARAMETER               ::n=100
+INTEGER,PARAMETER               ::n=500
 
 !CALL getarg(1,arg)
 !READ(arg,*)wr
 !CALL getarg(2,arg)
 !READ(arg,*)wi
 
-wr = 59.218d0
-wi = -0.855d0
+ wr = 59.218d0
+ wi = -0.855d0
 !wr = 47.393d0
 !wi = -0.533d0
 !wr = 39.500d0
@@ -186,19 +186,25 @@ ENDDO
 !CALL TEST(DENSITY)
 
 CALL plot2d(density,density,n,domain)
-ALLOCATE(phi1(2*n))
-CALL FindPhi1(phi1)
+ALLOCATE(phi1r(2*n))
+CALL FindPhi1(phi1r)
 
+open(10,file='r-dep.dat')
 DO i = 2, n*4,2
-!        write(*,'(4(1XE15.6))')real(u(1,i)),real(u(2,i)),real(h1(i)),real(phi1(i/2))
-         write(*,'(4(1XE15.6))')real(u(1,i)),real(phi1(i/2)),imag(phi1(i/2))
+         write(10,'(4(1XE15.6))')real(u(1,i)),real(u(2,i)),real(h1(i)),real(phi1r(i/2))
 enddo
+close(10)
 
 
 ALLOCATE(potential(2*n,2*n))
-!CALL FindPotential(density,potential)
-!CALL plot2d(density,n,domain)
-!CALL plot2d(potential,potential,n,domain)
+DO i = 1, n*2
+DO j = 1, n*2
+        r = sqrt(xcoord(i)**2+ycoord(j)**2)
+        th = atan2(ycoord(j),xcoord(i))
+        potential(i,j) = phi1(r,th)
+ENDDO
+ENDDO
+ CALL plot2d(potential,potential,n,domain)
 
 
 !DEALLOCATE(potential)
@@ -342,6 +348,30 @@ sigma1 = real(hh1*sigma0(r)/snsd(r)**2*exp(-2.d0*th*(0.d0,1.d0)))
 
 ENDFUNCTION
 
+FUNCTION phi1(r,th)
+!This is to find density perturbation by solve the k3sqr ODE
+IMPLICIT NONE
+DOUBLE PRECISION                ::phi1
+DOUBLE PRECISION,INTENT(IN)     ::r,th
+DOUBLE COMPLEX                  ::uu,hh1
+DOUBLE PRECISION                ::rad
+INTEGER                         ::i,j,k,l
+!interploting u at non-grid point r
+do i = 1, n*2
+        if(real(u(1,2*i)).gt.r)then
+                exit
+        endif
+enddo
+!uu = (r-u(1,i-1))/(u(1,i)-u(1,i-1))*(u(2,i)-u(2,i-1)) + u(2,i-1)
+hh1 =(r-u(1,2*i-2))/(u(1,2*i)-u(1,2*i-2))*(phi1r(i)-phi1r(i-1)) + phi1r(i-1)
+
+
+!find density
+phi1 = real(hh1*exp(-2.d0*th*(0.d0,1.d0)))
+
+
+ENDFUNCTION
+
 SUBROUTINE FindPhi1(phi1)
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::phi1(:),k(4)
@@ -349,7 +379,7 @@ DOUBLE PRECISION                ::r,h
 INTEGER                         ::i,j,l,nn
 
 h = u(1,3)-u(1,1)
-phi1(1) = (1.d0,1.d0)
+phi1(1) = (0.d0,0.d0)
 DO i = 2,4*N-2,2
         r = u(1,i-1)
         k(1) = h*dsimplifiedPoisson(r           ,phi1(i/2)                ,h1(i-1))
@@ -367,15 +397,14 @@ IMPLICIT NONE
 DOUBLE COMPLEX                  ::dsimplifiedPoisson
 DOUBLE COMPLEX,INTENT(IN)       ::phi,h
 DOUBLE PRECISION                ::r
-!dsimplifiedPoisson = -phi/(2.d0*r)+(0.d0,1.d0)*cmplx(Sigma(r))*h
+dsimplifiedPoisson = -phi/(2.d0*r)+(0.d0,1.d0)*cmplx(Sigma(r))*h
 
 !!test case 
-dsimplifiedPoisson =  -phi*r + (0.d0,1.d0)*r
+!!dsimplifiedPoisson =  -phi*r + (0.d0,1.d0)*r
 !!bnd condition is phi = 1+i at r=0
 !!solution is
 !!phi = exp(r**2/2)+ i
 ENDFUNCTION
-
 
 SUBROUTINE test(density)
 IMPLICIT NONE
