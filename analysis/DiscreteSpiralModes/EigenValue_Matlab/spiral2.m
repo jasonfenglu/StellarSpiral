@@ -3,43 +3,43 @@ close all
 GravConst = 4.3e-6;
 g = GravConst*1e6;
 m = 2; % [number of spiral]
-dr = 0.0001;
+dr = 0.001;
 r = dr:dr:20.0;
 
 
 %% Disk Model
 %Halo
-Lh	= 3.;
-rhoh	= 3.3e7;
+rhoh	= 3.4e9;
+Lh	= 0.3;
 gHalo	= 4.d0*Lh^2*pi*rhoh*(r-Lh*atan(r/Lh));
 gHalo   = GravConst./r.^2.*gHalo;
 VHalo 	= sqrt(r.*gHalo);
 
 %Bulge
-Mb 	= 2.087e8;
-rb	= 1.3e0;
+Mb 	= 1.2e9;
+rb	= 0.8e0;
 gBulge	= 4.*pi*rb^3*Mb;
 gBulge	= gBulge.*(-r./sqrt(1.+r.^2./rb^2)/rb+asinh(r./rb));
 gBulge  = gBulge.*GravConst./r.^2.;
 VBulge	= sqrt(r.*gBulge);
 
 %Disk
-dM	= 7.e10;
-da	= 2.23626;
-db	= 0.24851;
+dM	= 5.e10;
+da	= 2.70000;
+db	= 0.3;
 pDisk	= -GravConst*dM./sqrt(r.^2+(da+db)^2.);
 VDisk	= sqrt(gradient(pDisk,dr).*r);
 
 V 	= sqrt(VHalo.^2.+VBulge.^2.+VDisk.^2.);
 
 load surface.mat;
-sigma0  = interp1(surfacer,sigma,r)*10e-7;
+sigma0  = interp1(sigr,Sigma0,r);
 
 %%%Disk Analysis
 %Toomre Q
 Qod = 1.0;
-q = 3.9;
-rq = 3.1;
+q = 6.2;
+rq = 2.5;
 ToomreQ = Qod*(1.+q*exp(-r.^2/rq^2));
 
 Omega = V./r;
@@ -54,11 +54,11 @@ curF = 2*m*(pi*GravConst*sigma0)./(kappa.^2.*r)./sqrt(1./s-0.5);
 
 %%=====================================
 
-%omegar = 60.:.1  :80.000;
+%omegar = 70.:-.1  :20.000;
 %omegai =-  0.0:-.1  :-6.;
 
-cenr    = 41.340;
-ceni    = -0.520;
+cenr    = 47.390;
+ceni    = -0.530;
 rrr     = .01;
 omegar  = cenr-rrr:rrr/10:cenr+rrr;
 omegai  = ceni-rrr:rrr/10:ceni+rrr;
