@@ -42,8 +42,8 @@ INTEGER                 ::n
 
 
 !!mode = 1
-wr = 59.218d0
-wi = -0.855d0
+wr = 65.440d0
+wi = -0.710d0
 !wr = 47.393d0
 !wi = -0.533d0
 !wr = 39.500d0
@@ -55,9 +55,8 @@ function ToomreQ(r)
 DOUBLE PRECISION  Q,r,Qod,ToomreQ,rq
 
 Qod = 1.d0
-q   = 6.2d0
-rq  = 2.5d0
-
+q   = 1.2d0
+rq  = 2.8d0
 ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2))
 endfunction
 
@@ -80,18 +79,17 @@ DOUBLE PRECISION,INTENT(in)::r
 DOUBLE PRECISION          ::rr
 
 
-!k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(Q(r))**-2  &
-!         - 1.d0 + nu(r)**2)
+ k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
+          - 1.d0 + nu(r)**2)
 
-k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
-       - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
+!k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
+!         - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
 
 endfunction
 
 function snsd(r)
 IMPLICIT NONE
 DOUBLE PRECISION          ::r,snsd
-
 
 snsd = ToomreQ(r)*pi*g*sigma0(r)/kappa(r)
 
@@ -108,7 +106,7 @@ INTEGER                   ::NEVAL,IERR,LIMIT,LENW,LAST,INF
 DOUBLE PRECISION,ALLOCATABLE ::WORK(:)
 INTEGER,ALLOCATABLE       ::IWORK(:)
 
-M     = 5.0d10
+M     = 7.0d10
 a     = 2.7
 b     = 0.3
 
@@ -143,16 +141,9 @@ IMPLICIT NONE
 DOUBLE PRECISION  kappa,r
 DOUBLE PRECISION  dr
 DOUBLE PRECISION  dOmega
-!     DOUBLE PRECISION,EXTERNAL ::Omega
-dr = 0.00000001d0
-dOmega = 0.d0
-dOmega = dOmega +  -3.d0/2.d0*Omega(r)
-dOmega = dOmega +        2.d0*Omega(r+dr)
-dOmega = dOmega +  -1.d0/2.d0*Omega(r+2*dr)
 
 kappa = sqrt(4.d0*Omega(r)**2*(1.d0+r/(2.d0*Omega(r))*dfunc(Omega,r)))
 ENDFUNCTION
-
 
 FUNCTION Omega(r)
 IMPLICIT NONE
@@ -209,5 +200,25 @@ dfunc = dfunc +        2.d0*func(r+dr)
 dfunc = dfunc +  -1.d0/2.d0*func(r+2*dr)
 dfunc = dfunc/dr
 endfunction
+
+function curf(r)
+IMPLICIT NONE
+DOUBLE COMPLEX                  ::curf
+DOUBLE PRECISION                ::s,r,tmp
+INTEGER                         ::m=2
+
+s    = -r/Omega(r)*dfunc(Omega,r)
+curf = 2*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
+
+tmp = 1.d0/s-0.5d0
+if(tmp.le.0.d0)then
+        tmp = sqrt(-tmp)
+        curf = curf/tmp/(0.d0,1.d0)
+else
+        tmp = sqrt(tmp)
+        curf = curf/tmp
+endif
+
+ENDFUNCTION
 
 ENDMODULE
