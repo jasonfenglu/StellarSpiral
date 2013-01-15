@@ -38,14 +38,11 @@
       IMPLICIT NONE
       DOUBLE COMPLEX            k3sqrt
       DOUBLE PRECISION,INTENT(in)::r
-      DOUBLE PRECISION          ::rr
         
 
       k3sqrt =(kappa(r)/snsd(r))**2*(dcmplx(Q(r),0.d0)**-2 
-     c         - 1.d0 + nu(r)**2)
-!     rr = r +0.0000000001d0
-!     k3sqrt = KappaOverASqr(rr)*(Q(rr)**(-2) - 1.d0 +
-!    c nu(rr,wr,wi)**2+0.25d0*curF(rr)**2*q(rr)**2)
+     c         - 1.d0 + nu(r)**2 + 0.25d0*curf(r)**2*q(r)**2)
+
 
       endfunction
       
@@ -197,5 +194,25 @@
         dfunc = dfunc +  -1.d0/2.d0*func(r+2*dr)
         dfunc = dfunc/dr
         endfunction
+
+        function curf(r)
+        IMPLICIT NONE
+        DOUBLE COMPLEX                  ::curf
+        DOUBLE PRECISION                ::s,r,tmp
+        INTEGER                         ::m=2
+
+        s    = -r/Omega(r)*dfunc(Omega,r)
+        curf = 2*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
+
+        tmp = 1.d0/s-0.5d0
+        if(tmp.le.0.d0)then
+                tmp = sqrt(-tmp)
+                curf = curf/tmp/(0.d0,1.d0)
+        else
+                tmp = sqrt(tmp)
+                curf = curf/tmp
+        endif
+
+        ENDFUNCTION
 
         ENDMODULE
