@@ -133,6 +133,6 @@ set colorbox vertical origin 0.9,0.2 size 0.1,0.63 bdefault
 set loadpath 
 set fontpath 
 set fit noerrorvariables
-plot 'r-dep.dat' using 1:2 title 'u','r-dep.dat' using 1:3 title 'h1','r-dep.dat' using 1:4 title 'phi1','LoweA.dat' using 1:($2*7)title 'Lowea'
+plot 'r-dep.dat' using 1:2 title 'u','r-dep.dat' using 1:3 title 'sigma1','r-dep.dat' using 1:4 title 'phi1','LoweA.dat' using 1:($2*7)title 'Lowea','r-dep.dat' using 1:5 title 'h1',0
 pause -1
 #    EOF

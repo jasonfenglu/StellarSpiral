@@ -153,31 +153,6 @@ dOmega = dOmega +  -1.d0/2.d0*Omega(r+2*dr)
 kappa = sqrt(4.d0*Omega(r)**2*(1.d0+r/(2.d0*Omega(r))*dfunc(Omega,r)))
 ENDFUNCTION
 
-function find_b(wr)
-IMPLICIT NONE
-DOUBLE PRECISION        find_b,wr
-DOUBLE PRECISION        ::B,C,i,RE,AE
-!       DOUBLE PRECISION,EXTERNAL::kappa,Omega
-INTEGER                 ::IFLAG
-
-B = 1.d0
-C = 8.d0
-I = B
-
-
-CALL DFZERO(F,B,C,I,RE,AE,IFLAG)
-find_b = b
-
-CONTAINS
-
-FUNCTION F(r)
-DOUBLE PRECISION        ::F,r
-F = (2.d0*wr -2.d0*Omega(r))/kappa(r)
-
-F = F/kappa(r) -0.5d0
-ENDFUNCTION
-
-endfunction
 
 FUNCTION Omega(r)
 IMPLICIT NONE
@@ -189,21 +164,21 @@ DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
 !disk
 DOUBLE PRECISION          ::dM,da,db,VDisk
 !Halo
-Lh   = 0.3d0
-rhoh = 3.4e9
+Lh   = 2.8d0
+rhoh = 4.0e7
 gHalo = 4.d0*Lh**2.d0*pi*rhoh*(r - Lh*atan(r/Lh))
 gHalo = GravConst/(r**2)*gHalo
 VHalo = sqrt(r*gHalo)
 
 !Bulge
-Mb   = 12.0d8
-rb   = 0.8d0
+Mb   = 10.0d7
+rb   = 2.0d0
 gBulge = 4*pi*rb**3*Mb*(-r/sqrt(1+r**2/rb**2)/rb+asinh(r/rb))
 gBulge = gBulge*GravConst/r**2
 VBulge = sqrt(r*gBulge)
 
 !Disk
-dM     = 5.0d10
+dM     = 7.0d10
 da     = 2.7
 db     = 0.3
 VDisk  = sqrt(dfunc(pDisk,r)*r)
@@ -234,17 +209,5 @@ dfunc = dfunc +        2.d0*func(r+dr)
 dfunc = dfunc +  -1.d0/2.d0*func(r+2*dr)
 dfunc = dfunc/dr
 endfunction
-
-FUNCTION curF(r)
-IMPLICIT NONE
-DOUBLE  PRECISION       ::curF,r
-DOUBLE PRECISION        ::s
-
-s = -r/Omega(r)*dfunc(Omega,r)
-
-curF = 2.d0*2.d0*(pi*GravConst*sigma0(r)/kappa(r)**2/r)
-curF = curF / (s**-1-0.5d0)**0.5
-
-ENDFUNCTION
 
 ENDMODULE

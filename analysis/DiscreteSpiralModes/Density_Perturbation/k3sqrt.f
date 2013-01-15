@@ -11,8 +11,8 @@
       function Q(r)
       DOUBLE PRECISION  Q,r
       Qod = 1.d0
-      q   = 6.2d0
-      rq  = 2.5d0
+      q   = 1.2d0
+      rq  = 2.8d0
 
 
       !Qod = QParameter%Qod
@@ -41,7 +41,7 @@
       DOUBLE PRECISION          ::rr
         
 
-      k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(Q(r))**-2 
+      k3sqrt =(kappa(r)/snsd(r))**2*(dcmplx(Q(r),0.d0)**-2 
      c         - 1.d0 + nu(r)**2)
 !     rr = r +0.0000000001d0
 !     k3sqrt = KappaOverASqr(rr)*(Q(rr)**(-2) - 1.d0 +
@@ -70,7 +70,7 @@
       DOUBLE PRECISION,ALLOCATABLE ::WORK(:)
       INTEGER,ALLOCATABLE       ::IWORK(:)
 
-      M     = 5.0d10
+      M     = 7.0d10
       a     = 2.7
       b     = 0.3
 
@@ -152,21 +152,21 @@
         !disk
         DOUBLE PRECISION          ::dM,da,db,VDisk
         !Halo
-        Lh   = 0.3d0
-        rhoh = 3.4e9
+        Lh   = 2.8d0
+        rhoh = 4.0e7
         gHalo = 4.d0*Lh**2.d0*pi*rhoh*(r - Lh*atan(r/Lh))
         gHalo = GravConst/(r**2)*gHalo
         VHalo = sqrt(r*gHalo)
 
         !Bulge
-        Mb   = 12.0d8
-        rb   = 0.8d0
+        Mb   = 10.0d7
+        rb   = 2.0d0
         gBulge = 4*pi*rb**3*Mb*(-r/sqrt(1+r**2/rb**2)/rb+asinh(r/rb))
         gBulge = gBulge*GravConst/r**2
         VBulge = sqrt(r*gBulge)
 
         !Disk
-        dM     = 5.0d10
+        dM     = 7.0d10
         da     = 2.7
         db     = 0.3
         VDisk  = sqrt(dfunc(pDisk,r)*r)
@@ -199,26 +199,3 @@
         endfunction
 
         ENDMODULE
-
-
-
-!       function error(r,wr,wi)
-!       IMPLICIT NONE
-!       DOUBLE COMPLEX          ::error
-!       DOUBLE COMPLEX,EXTERNAL ::k3sqrt
-!       DOUBLE PRECISION,INTENT(in)::r,wr,wi
-!       DOUBLE PRECISION        ::h=10d-5
-
-!       error  = -(0.d0,1.d0)*sqrt(k3sqrt(r,wr,wi))
-!       error  = error -
-!    c  0.5d0/sqrt(k3sqrt(r,wr,wi))
-!    c *(sqrt(k3sqrt(r+h,wr,wi))-sqrt(k3sqrt(r-h,wr,wi)))/(2.d0*h)
-
-!       endfunction
-
-!       FUNCTION curF(r)
-!       IMPLICIT NONE
-!       DOUBLE  PRECISION       ::curF,r
-!       curF = 
-
-!       ENDFUNCTION

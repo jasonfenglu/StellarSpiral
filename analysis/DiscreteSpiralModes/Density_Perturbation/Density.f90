@@ -1,142 +1,3 @@
-        module plotting
-        CONTAINS
-        SUBROUTINE plot2d(F,F2,force,n,domain)
-        IMPLICIT NONE
-        DOUBLE PRECISION,ALLOCATABLE,INTENT(IN) ::F(:,:),F2(:,:)!plotting data
-        DOUBLE PRECISION                        ::force(:,:,:)
-        DOUBLE PRECISION                        ::domain!plot range
-        REAL                                    ::TR(6) !plot geometry
-        REAL                                    ::TR2(6) !plot geometry
-        REAL                                    ::vmax,vmin
-        REAL                                    ::BRIGHT,CONTRA
-        INTEGER                                 ::m,n   !dimentsion
-        INTEGER                                 ::PGBEG
-        REAL                                    ::dx,dy
-
-
-        IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
-        CALL PGSVP(0.0,0.95,0.0,0.95)
-
-        m = n
-        dx = real(domain)/real(n)
-        dy = real(domain)/real(m)
-
-        TR(3) = 0.
-        TR(5) = 0.
-        TR(2) = dx
-        TR(1) = -domain-dx/2.d0
-        TR(4) = -domain-dy/2.d0
-        TR(6) = dy
-
-        BRIGHT = 0.5
-        CONTRA = -0.9
-
-
-        !!Density
-        vmax = real(MAXVAL(F(:,:)))
-        vmin = real(MINVAL(F(:,:)))
-        CALL PALETT(2,CONTRA,Bright)
-        CALL PGBBUF
-        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
-        CALL PGIMAG(REAL(F(:,:)),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-        CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, '')
-        CALL PGSCH(1.0)
-        CALL PGLAB('kpc','kpc','Density')
-
-        !!Potential
-        vmax = real(MAXVAL(F2(:,:)))
-        vmin = real(MINVAL(F2(:,:)))
-        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
-        CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-        CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, '')
-        CALL PGSCH(1.0)
-        CALL PGLAB('kpc','kpc','Potential')
-
-        !!Force
-        TR2 = 0.
-        TR2(2) = 8.d0*dx
-        TR2(1) = -domain-dx*4.d0
-        TR2(6) = 8.d0*dy
-        TR2(4) = -domain-dy*4.d0
-        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,-1)
-        CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-        CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, '')
-        CALL PGSCH(1.0)
-        CALL PGLAB('kpc','kpc','Force')
-        CALL PGSCH(0.8)
-        CALL PGSCI(0)
-        CALL PGSAH(1,20.,0.3)
-        CALL PGVECT(real(force(:,:,1)),real(force(:,:,2)),n/4,n/4,         &
-                    2,n/4-2, &
-                    2,n/4-2, &
-                    0.02,2,TR2,-1.E10)
-        CALL PGCLOS
-        ENDSUBROUTINE
-
-
-      SUBROUTINE PALETT(TYPE, CONTRA, BRIGHT)
-!-----------------------------------------------------------------------
-! Set a "palette" of colors in the range of color indices used by
-! PGIMAG.
-!-----------------------------------------------------------------------
-      INTEGER TYPE
-      REAL CONTRA, BRIGHT
-!
-      REAL GL(2), GR(2), GG(2), GB(2)
-      REAL RL(9), RR(9), RG(9), RB(9)
-      REAL HL(5), HR(5), HG(5), HB(5)
-      REAL WL(10), WR(10), WG(10), WB(10)
-      REAL AL(20), AR(20), AG(20), AB(20)
-!
-      DATA GL /0.0, 1.0/
-      DATA GR /0.0, 1.0/
-      DATA GG /0.0, 1.0/
-      DATA GB /0.0, 1.0/
-!
-      DATA RL /-0.5, 0.0, 0.17, 0.33, 0.50, 0.67, 0.83, 1.0, 1.7/
-      DATA RR / 0.0, 0.0,  0.0,  0.0,  0.6,  1.0,  1.0, 1.0, 1.0/
-      DATA RG / 0.0, 0.0,  0.0,  1.0,  1.0,  1.0,  0.6, 0.0, 1.0/
-      DATA RB / 0.0, 0.3,  0.8,  1.0,  0.3,  0.0,  0.0, 0.0, 1.0/
-!
-      DATA HL /0.0, 0.2, 0.4, 0.6, 1.0/
-      DATA HR /0.0, 0.5, 1.0, 1.0, 1.0/
-      DATA HG /0.0, 0.0, 0.5, 1.0, 1.0/
-      DATA HB /0.0, 0.0, 0.0, 0.3, 1.0/
-!
-      DATA WL /0.0, 0.5, 0.5, 0.7, 0.7, 0.85, 0.85, 0.95, 0.95, 1.0/
-      DATA WR /0.0, 1.0, 0.0, 0.0, 0.3,  0.8,  0.3,  1.0,  1.0, 1.0/
-      DATA WG /0.0, 0.5, 0.4, 1.0, 0.0,  0.0,  0.2,  0.7,  1.0, 1.0/
-      DATA WB /0.0, 0.0, 0.0, 0.0, 0.4,  1.0,  0.0,  0.0, 0.95, 1.0/
-!
-      DATA AL /0.0, 0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5, &
-               0.5, 0.6, 0.6, 0.7, 0.7, 0.8, 0.8, 0.9, 0.9, 1.0/
-      DATA AR /0.0, 0.0, 0.3, 0.3, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, &
-               0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0/
-      DATA AG /0.0, 0.0, 0.3, 0.3, 0.0, 0.0, 0.0, 0.0, 0.8, 0.8, &
-               0.6, 0.6, 1.0, 1.0, 1.0, 1.0, 0.8, 0.8, 0.0, 0.0/
-      DATA AB /0.0, 0.0, 0.3, 0.3, 0.7, 0.7, 0.7, 0.7, 0.9, 0.9, &
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/
-!
-      IF (TYPE.EQ.1) THEN
-!        -- gray scale
-         CALL PGCTAB(GL, GR, GG, GB, 2, CONTRA, BRIGHT)
-      ELSE IF (TYPE.EQ.2) THEN
-!        -- rainbow
-         CALL PGCTAB(RL, RR, RG, RB, 9, CONTRA, BRIGHT)
-      ELSE IF (TYPE.EQ.3) THEN
-!        -- heat
-         CALL PGCTAB(HL, HR, HG, HB, 5, CONTRA, BRIGHT)
-      ELSE IF (TYPE.EQ.4) THEN
-!        -- weird IRAF
-         CALL PGCTAB(WL, WR, WG, WB, 10, CONTRA, BRIGHT)
-      ELSE IF (TYPE.EQ.5) THEN
-!        -- AIPS
-         CALL PGCTAB(AL, AR, AG, AB, 20, CONTRA, BRIGHT)
-      END IF
-      ENDSUBROUTINE
-
-        endmodule
-
 PROGRAM spiral
 USE PLOTTING
 USE STELLARDISK,ToomreQ=>Q
@@ -144,23 +5,19 @@ IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
 DOUBLE COMPLEX,ALLOCATABLE      ::u(:,:),h1(:),phi1r(:)
-DOUBLE PRECISION                ::domain= 10.d0,dx,dy,r,th
+DOUBLE PRECISION                ::domain= 20.d0,dx,dy,r,th
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
-INTEGER,PARAMETER               ::n=100
+INTEGER,PARAMETER               ::n=500
 
 !CALL getarg(1,arg)
 !READ(arg,*)wr
 !CALL getarg(2,arg)
 !READ(arg,*)wi
 
- wr = 59.218d0
- wi = -0.855d0
-!wr = 47.393d0
-!wi = -0.533d0
-!wr = 39.500d0
-!wi = -0.400d0
+ wr = 65.44d0
+ wi = -0.71d0
 
 ALLOCATE(u(3,4*n))
 ALLOCATE(h1(4*n))
@@ -168,6 +25,10 @@ ALLOCATE(h1(4*n))
 CALL findu(u)
 !find h1
 CALL findh1(u,h1)
+CALL refineh1(u,h1)
+!!Find phi1 along r
+ALLOCATE(phi1r(2*n))
+CALL FindPhi1(phi1r)
 
 dx = domain/dble(n)
 dy = domain/dble(n)
@@ -191,15 +52,13 @@ ENDDO
 ENDDO
 
 
-!!Find phi1 along r
-ALLOCATE(phi1r(2*n))
-CALL FindPhi1(phi1r)
 open(10,file='r-dep.dat')
 DO i = 2, n*4,2
-         write(10,'(4(1XE15.6))')real(u(1,i)),real(u(2,i)),real(h1(i)),real(phi1r(i/2))
+         r = real(u(1,i))
+        write(10,'(5(1XE15.6))')real(u(1,i)),real(u(2,i)),real(h1(i))/snsd(r)**2*sigma0(r),real(phi1r(i/2)),real(h1(i))
+!        write(10,'(4(1XE15.6))')real(u(1,i)),real(phi1r(i/2))
 enddo
 close(10)
-
 
 !!Find 2d Potential
 ALLOCATE(potential(2*n,2*n))
@@ -213,13 +72,13 @@ ENDDO
 
 !!Find Force
 ALLOCATE(force(n/4,n/4,2))
-DO i = 1,n/4
-DO j = 1, n/4
-        r = sqrt(xcoord(i*8)**2+ycoord(j*8)**2)
-        th = atan2(ycoord(j*8),xcoord(i*8))
-        call FindForce(force(i,j,:),r,th)
-ENDDO
-ENDDO
+!DO i = 1,n/4
+!DO j = 1, n/4
+!        r = sqrt(xcoord(i*8)**2+ycoord(j*8)**2)
+!        th = atan2(ycoord(j*8),xcoord(i*8))
+!        call FindForce(force(i,j,:),r,th)
+!ENDDO
+!ENDDO
 
 CALL plot2d(density,potential,force,n,domain)
 DEALLOCATE(potential)
@@ -283,16 +142,34 @@ CALL rk4(a,b,4*N,p,q,p,u,ui)
 
 ENDSUBROUTINE
 
+SUBROUTINE refineh1(u,h1)
+IMPLICIT NONE
+DOUBLE COMPLEX                  ::u(:,:),h1(:)
+INTEGER                         ::i,f
+DO i =1, size(u,2)
+        if(abs(u(1,i)).gt.9.5d0)then
+                f = i
+                exit
+        endif
+enddo
+
+DO i = f+1, size(u,2)
+        h1(i) = h1(i)*exp((-abs(u(1,i))+9.5d0)/0.5d0)
+enddo
+
+ENDSUBROUTINE
+
 SUBROUTINE findh1(u,h1)
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::u(:,:),h1(:)
-DOUBLE PRECISION                ::rad,h,r
+DOUBLE COMPLEX                  ::rad
+DOUBLE PRECISION                ::h,r
 INTEGER                         ::i,j
 
 do i = 1, 4*N 
 !find h1 by the interploted u
         r   = u(1,i)
-        rad = sqrt(kappa(r)**2*(1-nu(r)**2)/sigma0(r)/r)
+        rad = sqrt(kappa(r)**2*(1.d0-nu(r)**2)/sigma0(r)/r)
         h1(i) = u(2,i)*rad*exp(-0.5*(0.d0,1.d0)*ExpPart(r))
 enddo
 
@@ -356,7 +233,7 @@ enddo
 hh1 =(r-u(1,2*i-2))/(u(1,2*i)-u(1,2*i-2))*(phi1r(i)-phi1r(i-1)) + phi1r(i-1)
 
 
-!find density
+!find potential
 phi1 = real(hh1*exp(-2.d0*th*(0.d0,1.d0)))
 
 
@@ -388,58 +265,17 @@ IMPLICIT NONE
 DOUBLE COMPLEX                  ::dsimplifiedPoisson
 DOUBLE COMPLEX,INTENT(IN)       ::phi,h
 DOUBLE PRECISION                ::r
-dsimplifiedPoisson = -phi/(2.d0*r)+(0.d0,1.d0)*cmplx(Sigma(r))*h
+
+dsimplifiedPoisson = -phi/(2.d0*r)+(0.d0,1.d0)*cmplx(Sigma(r),0)*h
+!dsimplifiedPoisson = dsimplifiedPoisson + 3.75d0/(0.d0,1.d0)/Sigma(r)/r**2*phi
 
 !!test case 
 !!dsimplifiedPoisson =  -phi*r + (0.d0,1.d0)*r
 !!bnd condition is phi = 1+i at r=0
 !!solution is
-!!phi = exp(r**2/2)+ i
+!!phi = exp(-r**2/2)+ i
+!!dsimplifiedPoisson = -phi*r
 ENDFUNCTION
-
-SUBROUTINE test(density)
-IMPLICIT NONE
-DOUBLE PRECISION                ::density(:,:)
-DOUBLE PRECISION                ::x,y,a,b
-INTEGER                        ::t,i,j
-
-a = 1.d0
-b = 1.d0
-density=0.d0
-
-do t = 1,1000
-        x = a*dexp(b*dble(t)/10.d1)*dcos(dble(t/10.d1))
-        y = a*dexp(b*dble(t)/10.d1)*dsin(dble(t/10.d1))
-        if(abs(x).lt.domain .and. abs(y).lt.domain)then
-                do i = 1,2*n
-                       if(xcoord(i).gt.x)then
-                                exit
-                       endif
-                enddo
-                do j = 1,2*n
-                       if(ycoord(j).gt.y)then
-                                exit
-                       endif
-                enddo
-
-                density(i,j) = 10.d0
-        write(*,*)x,y
-        endif
-enddo
-
-!!!test plot
-!DO i = 1,2*n
-!DO j = 1,2*n
-!        
-!        x = xcoord(i)
-!        y = ycoord(j)
-!        density(i,j) = 1.d0*(x-3.d0)*y
-!
-!ENDDO
-!ENDDO
-!!!
-
-ENDSUBROUTINE
 
 END PROGRAM
 
