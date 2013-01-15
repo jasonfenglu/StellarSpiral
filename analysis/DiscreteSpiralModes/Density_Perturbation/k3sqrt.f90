@@ -1,53 +1,31 @@
 MODULE STELLARDISK
 IMPLICIT NONE
-
-type    type_u
-       DOUBLE COMPLEX,ALLOCATABLE       ::u(:,:) 
-       DOUBLE PRECISION,ALLOCATABLE     ::rcoord(:)
-       DOUBLE PRECISION                 ::rmin,rmax
-       INTEGER                          ::length
-endtype
-
-type    type_h1
-       DOUBLE COMPLEX,ALLOCATABLE       ::h1(:,:) 
-       DOUBLE PRECISION,ALLOCATABLE     ::rcoord(:)
-       DOUBLE PRECISION                 ::rmin,rmax
-       INTEGER                          ::length
-endtype
-
-type    type_phi1
-       DOUBLE COMPLEX,ALLOCATABLE       ::h1(:,:) 
-       DOUBLE PRECISION,ALLOCATABLE     ::rcoord(:)
-       DOUBLE PRECISION                 ::rmin,rmax
-       INTEGER                          ::length
-endtype
-
-type    type_stellarwave
-        type(type_u)                    ::u
-        type(type_h1)                   ::h1
-        type(type_phi1)                 ::phi
-endtype     
-
 DOUBLE PRECISION,PARAMETER::GravConst = 4.3d-6 
 DOUBLE PRECISION,PARAMETER::g = 4.3d0
 DOUBLE PRECISION,PARAMETER::pi=4.d0*atan(1.d0)
-DOUBLE PRECISION,SAVE     ::wr,wi
+DOUBLE PRECISION,PARAMETER::wr=65.44d0
+DOUBLE PRECISION,PARAMETER::wi=-0.71d0
 !solved wave
-DOUBLE COMPLEX,ALLOCATABLE,SAVE ::u(:,:),h1(:),phi1r(:)
+DOUBLE COMPLEX,ALLOCATABLE,SAVE         ::u(:,:),h1(:),phi1r(:)
 CONTAINS
 
-SUBROUTINE INIT_STELLARDISK(n)
+SUBROUTINE INIT_STELLARDISK(n,domain)
 IMPLICIT NONE
+DOUBLE PRECISION        ::domain
 INTEGER                 ::n
 
+!!Allocate
+ALLOCATE(u(3,4*n))
+ALLOCATE(h1(4*n))
+ALLOCATE(phi1r(2*n))
 
-!!mode = 1
-wr = 65.440d0
-wi = -0.710d0
-!wr = 47.393d0
-!wi = -0.533d0
-!wr = 39.500d0
-!wi = -0.400d0
+
+!find EigenFunction
+CALL findu(u,domain)
+!find h1
+CALL findh1(u,h1)
+!!Find phi1 along r
+CALL FindPhi1(phi1r)
 
 ENDSUBROUTINE
 
@@ -221,4 +199,243 @@ endif
 
 ENDFUNCTION
 
-ENDMODULE
+SUBROUTINE findu(u,domain)
+IMPLICIT NONE
+DOUBLE COMPLEX                  ::u(:,:)
+DOUBLE COMPLEX                  ::ui(3)
+DOUBLE PRECISION                ::a,b,domain
+INTEGER                         ::n
+
+
+n = size(u,2)
+a = 0.00001d0
+b = 2.d0*domain
+ui = (/a,1.d0,0.d0/)
+CALL rk4(a,b,N,p,q,p,u,ui)
+contains
+
+FUNCTION p(r)
+IMPLICIT NONE
+DOUBLE COMPLEX                  ::p
+DOUBLE PRECISION                ::r
+p = (0.d0,0.d0)
+ENDFUNCTION
+
+FUNCTION q(r)
+IMPLICIT NONE
+DOUBLE COMPLEX                  ::q
+DOUBLE PRECISION                ::r
+q = k3sqrt(r)
+!q = +1.d0
+ENDFUNCTION
+
+ENDSUBROUTINE
+
+SUBROUTINE findh1(u,h1)
+IMPLICIT NONE
+DOUBLE COMPLEX                  ::u(:,:),h1(:)
+DOUBLE COMPLEX                  ::rad
+DOUBLE PRECISION                ::h,r
+INTEGER                         ::i,n
+
+n = size(u,2)
+do i = 1, N 
+!find h1 by the interploted u
+        r   = u(1,i)
+        rad = sqrt(kappa(r)**2*(1.d0-nu(r)**2)/sigma0(r)/r)
+        h1(i) = u(2,i)*rad*exp(-0.5*(0.d0,1.d0)*ExpPart(r))
+enddo
+
+CALL refineh1(u,h1)
+
+CONTAINS
+        Function ExpPart(r)
+        IMPLICIT NONE
+        DOUBLE PRECISION                ::ExpPart,r
+        DOUBLE PRECISION                ::err = 10.d-10
+        INTEGER                         ::IERR
+        CALL DGAUS8(Sigma,0.d0,r,ERR,ExpPart,IERR)
+
+        ENDFUNCTION ExpPart
+
+ENDSUBROUTINE findh1
+
+SUBROUTINE refineh1(u,h1)
+IMPLICIT NONE
+DOUBLE COMPLEX                  ::u(:,:),h1(:)
+INTEGER                         ::i,f
+DO i =1, size(u,2)
+        if(abs(u(1,i)).gt.9.5d0)then
+                f = i
+                exit
+        endif
+enddo
+
+DO i = f+1, size(u,2)
+        h1(i) = h1(i)*exp((-abs(u(1,i))+9.5d0)/0.5d0)
+enddo
+
+ENDSUBROUTINE refineh1
+
+SUBROUTINE FindPhi1(phi1)
+IMPLICIT NONE
+DOUBLE COMPLEX                  ::phi1(:),k(4)
+DOUBLE PRECISION                ::r,h
+INTEGER                         ::i,j,l,n
+
+n = size(u,2)
+!!Solve ODE of phi from density by RK4
+h = u(1,3)-u(1,1)
+phi1(1) = (0.d0,0.d0)
+DO i = 2,N-2,2
+        r = u(1,i-1)
+        k(1) = h*dsimplifiedPoisson(r           ,phi1(i/2)                ,h1(i-1))
+        k(2) = h*dsimplifiedPoisson(r+h/2.d0    ,phi1(i/2)+k(1)/2.d0      ,h1(i))
+        k(3) = h*dsimplifiedPoisson(r+h/2.d0    ,phi1(i/2)+k(2)/2.d0      ,h1(i))
+        k(4) = h*dsimplifiedPoisson(r+h         ,phi1(i/2)+k(3)           ,h1(i+1))
+        phi1(i/2+1) = phi1(i/2) + (k(1)+2.d0*k(2)+2.d0*k(3)+k(4))/6.d0
+ENDDO
+
+
+ENDSUBROUTINE
+
+FUNCTION dsimplifiedPoisson(r,phi,h)
+IMPLICIT NONE
+DOUBLE COMPLEX                  ::dsimplifiedPoisson
+DOUBLE COMPLEX,INTENT(IN)       ::phi,h
+DOUBLE PRECISION                ::r
+
+dsimplifiedPoisson = -phi/(2.d0*r)+(0.d0,1.d0)*cmplx(Sigma(r),0)*h
+!dsimplifiedPoisson = dsimplifiedPoisson + 3.75d0/(0.d0,1.d0)/Sigma(r)/r**2*phi
+
+!!test case 
+!!dsimplifiedPoisson =  -phi*r + (0.d0,1.d0)*r
+!!bnd condition is phi = 1+i at r=0
+!!solution is
+!!phi = exp(-r**2/2)+ i
+!!dsimplifiedPoisson = -phi*r
+ENDFUNCTION
+
+function Sigma(r)
+!This is NOT related to density
+IMPLICIT NONE
+DOUBLE PRECISION                ::Sigma,r
+Sigma = 2.d0*pi*G*sigma0(r)/snsd(r)**2
+ENDFUNCTION
+
+SUBROUTINE FindForce(force,r,th)
+IMPLICIT NONE
+DOUBLE PRECISION                ::force(2),r,th
+DOUBLE COMPLEX                  ::hh1,phir
+DOUBLE PRECISION                ::runit(2),thunit(2)
+INTEGER                         ::i,n
+!interploting u at non-grid point r
+n = size(u,2)/2
+do i = 1, n
+        if(real(u(1,2*i)).gt.r)then
+                exit
+        endif
+enddo
+phir =(r-u(1,2*i-2))/(u(1,2*i)-u(1,2*i-2))*(phi1r(i)-phi1r(i-1)) + phi1r(i-1)
+i = i*2
+hh1 =(r-u(1,i-1))/(u(1,i)-u(1,i-1))*(h1(i)-h1(i-1)) + h1(i-1)
+
+runit = (/cos(th),sin(th)/)
+thunit = (/-sin(th),cos(th)/)
+
+force = real(dsimplifiedPoisson(r,phir,hh1)*exp((0.d0,-2.d0)*th)*runit &
+      + (0.d0,-2.d0)*phir/r*exp((0.d0,-2.d0)*th)*thunit)
+
+ENDSUBROUTINE
+
+FUNCTION sigma1(r,th)
+!This is to find density perturbation by solve the k3sqr ODE
+IMPLICIT NONE
+DOUBLE PRECISION                ::sigma1
+DOUBLE PRECISION,INTENT(IN)     ::r,th
+DOUBLE COMPLEX                  ::uu,hh1
+DOUBLE PRECISION                ::rad
+INTEGER                         ::i,j,k,l,n
+!interploting u at non-grid point r
+n = size(u,2)
+do i = 1, n
+        if(real(u(1,i)).gt.r)then
+                exit
+        endif
+enddo
+!uu = (r-u(1,i-1))/(u(1,i)-u(1,i-1))*(u(2,i)-u(2,i-1)) + u(2,i-1)
+hh1 =(r-u(1,i-1))/(u(1,i)-u(1,i-1))*(h1(i)-h1(i-1)) + h1(i-1)
+
+
+!find density
+sigma1 = real(hh1*sigma0(r)/snsd(r)**2*exp(-2.d0*th*(0.d0,1.d0)))
+
+
+ENDFUNCTION
+
+FUNCTION phi1(r,th)
+!This is to find density perturbation by solve the k3sqr ODE
+IMPLICIT NONE
+DOUBLE PRECISION                ::phi1
+DOUBLE PRECISION,INTENT(IN)     ::r,th
+DOUBLE COMPLEX                  ::uu,hh1
+DOUBLE PRECISION                ::rad
+INTEGER                         ::i,j,k,l,n
+!interploting u at non-grid point r
+n = size(h1)
+do i = 1, n*2
+        if(real(u(1,2*i)).gt.r)then
+                exit
+        endif
+enddo
+!uu = (r-u(1,i-1))/(u(1,i)-u(1,i-1))*(u(2,i)-u(2,i-1)) + u(2,i-1)
+hh1 =(r-u(1,2*i-2))/(u(1,2*i)-u(1,2*i-2))*(phi1r(i)-phi1r(i-1)) + phi1r(i-1)
+
+
+!find potential
+phi1 = real(hh1*exp(-2.d0*th*(0.d0,1.d0)))
+
+
+ENDFUNCTION
+
+SUBROUTINE ENDSTELLARDISK
+DEALLOCATE(u)
+DEALLOCATE(h1)
+DEALLOCATE(phi1r)
+
+ENDSUBROUTINE
+
+SUBROUTINE TEMP
+type    type_u
+       DOUBLE COMPLEX,POINTER           ::u(:,:) 
+       DOUBLE PRECISION,POINTER         ::rcoord(:)
+       INTEGER                          ::length
+endtype
+
+type    type_h1
+       DOUBLE COMPLEX,POINTER           ::h1(:) 
+       DOUBLE PRECISION,POINTER         ::rcoord(:)
+       INTEGER                          ::length
+endtype
+
+type    type_phi1
+       DOUBLE COMPLEX,POINTER           ::h1(:) 
+       DOUBLE PRECISION,POINTER         ::rcoord(:)
+       INTEGER                          ::length
+endtype
+
+type    type_stellarspiral
+        type(type_u)                    ::u
+        type(type_h1)                   ::h1
+        type(type_phi1)                 ::phi
+        DOUBLE PRECISION                ::rmin,rmax
+endtype     
+
+type(type_stellarspiral)                ::stellarspiral
+ENDSUBROUTINE
+
+ENDMODULE STELLARDISK
+
+
+
+
