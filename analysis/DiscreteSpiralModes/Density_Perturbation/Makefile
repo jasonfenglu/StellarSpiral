@@ -1,7 +1,7 @@
 F90=ifort
 FCC=icc
 
-FFLAGS=  -O2  -g -lm  -L. -lslatec -limf 
+FFLAGS=  -O2  -g -lm  -L. -lslatec -limf  -mp1 -fp-speculation=safe
 INCL  = -I$(HDF5HOME)/include 
 
 HDF5HOME=$(HDF5_HOME)

@@ -57,11 +57,11 @@ DOUBLE PRECISION,INTENT(in)::r
 DOUBLE PRECISION          ::rr
 
 
- k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
-          - 1.d0 + nu(r)**2)
+!k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
+!         - 1.d0 + nu(r)**2)
 
-!k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
-!         - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
+ k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
+          - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
 
 endfunction
 
@@ -170,7 +170,7 @@ function dfunc(func,r)
 IMPLICIT NONE
 DOUBLE PRECISION,EXTERNAL       ::func
 DOUBLE PRECISION                ::r,dfunc
-DOUBLE PRECISION                ::dr = 0.00001d0
+DOUBLE PRECISION                ::dr = 1.d-5
 
 dfunc = 0.d0
 dfunc = dfunc +  -3.d0/2.d0*func(r)
@@ -181,21 +181,14 @@ endfunction
 
 function curf(r)
 IMPLICIT NONE
-DOUBLE COMPLEX                  ::curf
+DOUBLE PRECISION                ::curf
 DOUBLE PRECISION                ::s,r,tmp
 INTEGER                         ::m=2
 
 s    = -r/Omega(r)*dfunc(Omega,r)
 curf = 2*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
+curf = curf/sqrt(1.d0/s-0.5d0)
 
-tmp = 1.d0/s-0.5d0
-if(tmp.le.0.d0)then
-        tmp = sqrt(-tmp)
-        curf = curf/tmp/(0.d0,1.d0)
-else
-        tmp = sqrt(tmp)
-        curf = curf/tmp
-endif
 
 ENDFUNCTION
 
