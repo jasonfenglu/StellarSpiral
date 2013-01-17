@@ -5,6 +5,9 @@ DOUBLE PRECISION,PARAMETER::g = 4.3d0
 DOUBLE PRECISION,PARAMETER::pi=4.d0*atan(1.d0)
 DOUBLE PRECISION,PARAMETER::wr=57.102d0
 DOUBLE PRECISION,PARAMETER::wi=-2.182d0
+!Pspd without curF
+!DOUBLE PRECISION,PARAMETER::wr=63.444d0
+!DOUBLE PRECISION,PARAMETER::wi=-1.048d0
 !solved wave
 DOUBLE COMPLEX,ALLOCATABLE,SAVE         ::u(:,:),h1(:),phi1r(:)
 CONTAINS
@@ -29,6 +32,18 @@ CALL FindPhi1(phi1r)
 
 ENDSUBROUTINE
 
+SUBROUTINE k3sqrtlog
+IMPLICIT NONE                           
+INTEGER                                 ::i
+DOUBLE PRECISION                        ::r
+open(10,file='r-dep.dat')
+DO i = 2, size(u,2),2
+         r = real(u(1,i))
+        write(10,'(5(1XE15.6))')real(u(1,i)),real(u(2,i)),real(h1(i))/snsd(r)**2*sigma0(r),real(phi1r(i/2)),real(h1(i))
+enddo
+close(10)
+ENDSUBROUTINE
+
 function ToomreQ(r)
 DOUBLE PRECISION  Q,r,Qod,ToomreQ,rq
 
@@ -40,9 +55,9 @@ endfunction
 
 function nu(r)
 IMPLICIT NONE
-DOUBLE COMPLEX    nu   
-DOUBLE PRECISION  r
-DOUBLE PRECISION  m 
+DOUBLE COMPLEX                  ::nu   
+DOUBLE PRECISION                ::r
+DOUBLE PRECISION                ::m 
 
 m = 2.d0
 
@@ -429,7 +444,3 @@ type(type_stellarspiral)                ::stellarspiral
 ENDSUBROUTINE
 
 ENDMODULE STELLARDISK
-
-
-
-
