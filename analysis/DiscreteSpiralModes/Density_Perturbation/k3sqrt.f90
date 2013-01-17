@@ -3,8 +3,8 @@ IMPLICIT NONE
 DOUBLE PRECISION,PARAMETER::GravConst = 4.3d-6 
 DOUBLE PRECISION,PARAMETER::g = 4.3d0
 DOUBLE PRECISION,PARAMETER::pi=4.d0*atan(1.d0)
-DOUBLE PRECISION,PARAMETER::wr=65.44d0
-DOUBLE PRECISION,PARAMETER::wi=-0.71d0
+DOUBLE PRECISION,PARAMETER::wr=57.102d0
+DOUBLE PRECISION,PARAMETER::wi=-2.182d0
 !solved wave
 DOUBLE COMPLEX,ALLOCATABLE,SAVE         ::u(:,:),h1(:),phi1r(:)
 CONTAINS
@@ -60,8 +60,8 @@ DOUBLE PRECISION          ::rr
 !k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
 !         - 1.d0 + nu(r)**2)
 
- k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
-          - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
+k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
+         - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
 
 endfunction
 
@@ -170,7 +170,7 @@ function dfunc(func,r)
 IMPLICIT NONE
 DOUBLE PRECISION,EXTERNAL       ::func
 DOUBLE PRECISION                ::r,dfunc
-DOUBLE PRECISION                ::dr = 1.d-5
+DOUBLE PRECISION                ::dr = 1.d-4
 
 dfunc = 0.d0
 dfunc = dfunc +  -3.d0/2.d0*func(r)
@@ -200,9 +200,10 @@ DOUBLE PRECISION                ::a,b,domain
 INTEGER                         ::n
 
 
+u = 0.d0
 n = size(u,2)
-a = 0.00001d0
-b = 2.d0*domain
+a = 0.001d0
+b = 1.d0*domain
 ui = (/a,1.d0,0.d0/)
 CALL rk4(a,b,N,p,q,p,u,ui)
 contains
