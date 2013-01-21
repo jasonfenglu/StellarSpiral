@@ -1,89 +1,148 @@
 PROGRAM RC
-USE STELLARDISK
+USE STELLARDISK,only:Omega,k3sqrt,para
 IMPLICIT NONE
 INTEGER                         ::i
-CHARACTER(len=32)               ::arg
 DOUBLE PRECISION                ::ri=0.d0
 DOUBLE PRECISION                ::rf=20.d0
-INTEGER                         ::N = 200
+INTEGER                         ::N = 500
 DOUBLE PRECISION                ::dr,r
-DOUBLE PRECISION,ALLOCATABLE    ::dat(:,:)
-REAL                            ::LoweRC(20,2),tmp
+DOUBLE PRECISION,ALLOCATABLE            ::dat(:,:)
+DOUBLE PRECISION,ALLOCATABLE,TARGET     ::std(:,:)
+DOUBLE PRECISION,TARGET         ::stdpara(10)
 INTEGER                         ::PGBEG
-CHARACTER                       ::cmd
-
-
-!CALL getarg(1,arg)
-!READ(arg,*)wr
-!CALL getarg(2,arg)
-!READ(arg,*)wi
-
-open(unit=10,file='RC_Lowe')
-do i = 1,20
-        read(10,*)LoweRC(i,1),LoweRC(i,2)
-enddo
+!Halo
+DOUBLE PRECISION                ::Lh,rhoh,gHalo,VHalo
+!bulge
+DOUBLE PRECISION                ::rb,Mb,gBulge,VBulge
+!disk
+DOUBLE PRECISION                ::dM,da,db,VDisk
+!Toomre Q
+DOUBLE PRECISION                ::Q,Qod,rq
+INTEGER                         ::iter
 
 !set up grid
 dr = (rf-ri)/dble(N)
-ALLOCATE(dat(8,N))
+ALLOCATE(std(3,N))
 do i = 1,N
         !r axis
-        dat(1,i) = ri+dr*dble(i)
+        std(1,i) = ri+dr*dble(i)
 enddo
 
-!set basic parameters
-QParameter=QParameterType(1.d0,3.9d0,3.1d0)
-wr        = 26.d0
-wi        = 0.d0
+Lh   = 2.8d0
+rhoh = 4.0e7
+Mb   = 10.0d7
+rb   = 2.0d0
+dM   = 7.0d10
+da   = 2.7
+db   = 0.3
+Qod  = 1.d0
+q    = 1.2d0
+rq   = 2.8d0
 
-!fill in data
+stdpara = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq/)
+para=>stdpara
+
+!fill in standard data
 do i = 1, N
-        !fill Omega
-        r        = dat(1,i)
-        dat(2,i) = Omega(r)*r
-        dat(5,i) = Omega(r)-kappa(r)/2.d0
-        dat(6,i) = Sigma0(r)
+        r        = std(1,i)
+        std(2,i) = Omega(r)*r
+        std(3,i) = k3sqrt(r)
 enddo
 
-do while(.true.)
-do i = 1, N
-        dat(3,i) = Q(r)
-        dat(4,i) = k3sqrt(r)
 
+!set pgplot
+IF (PGBEG(0,'?',1,1) .NE. 1) STOP
+CALL PGSVP(0.3,0.70,0.3,0.70)
+CALL PGSUBP(4,3)
+
+
+!start interation to all components
+ALLOCATE(dat(3,N))
+do iter = 1,10
+        CALL iteration(iter,stdpara,dat,std,N)
 enddo
-!start pgplot
-!IF (PGBEG(0,'?',1,1) .NE. 1) STOP
-IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
-CALL PGSVP(0.0,0.95,0.0,0.95)
-CALL PGSUBP(2,2)
-!plot Velocity
-tmp  = amax1(maxval(LoweRC(:,2)),real(maxval(dat(2,:))))*1.1
-CALL PGENV(REAL(ri),REAL(rf),0.,tmp,0,1)
-CALL PGLINE(N,real(dat(1,:)),real(dat(2,:)))
-CALL PGSCI(2)
-CALL PGPT(20,LoweRC(:,1),LoweRC(:,2),0)
-CALL PGSCI(1)
-CALL PGLAB("","","V")
-!plot Q
-CALL PGENV(REAL(ri),REAL(rf),0.,real(maxval(dat(3,:))),0,1)
-CALL PGLINE(N,real(dat(1,:)),real(dat(3,:)))
-CALL PGLAB("","","Q")
-!plot k3sqr
-CALL PGENV(REAL(ri),REAL(rf),-0.1,1.,0,1)
-CALL PGLINE(N,real(dat(1,:)),real(dat(4,:)))
-CALL PGLAB("","","k3sqr")
-!plot nu
-CALL PGENV(REAL(ri),REAL(rf),0.,real(maxval(dat(6,:))),0,1)
-CALL PGLINE(N,real(dat(1,:)),real(dat(6,:)))
-CALL PGLAB("","","snsd")
+
 CALL PGIDEN
 CALL PGCLOS
-write(*,*)QParameter
-read(*,*)QParameter%Qod,QParameter%q,QParameter%rq
-enddo
 
-
-DEALLOCATE(dat)
+DEALLOCATE(dat,std)
 STOP
 END PROGRAM
 
+SUBROUTINE intitype(set_para)
+USE STELLARDISK
+DOUBLE PRECISION,TARGET         ::set_para(10)
+para => set_para
+ENDSUBROUTINE
+
+SUBROUTINE plot(dat,std,N,num,iter)
+IMPLICIT NONE
+CHARACTER(len=10),DIMENSION(10)  ::lab
+CHARACTER(len=20)               ::ch
+DOUBLE PRECISION                ::dat(3,N),std(3,N)
+DOUBLE PRECISION,PARAMETER      ::ri = 0.d0
+DOUBLE PRECISION,PARAMETER      ::rf = 20.d0
+DOUBLE PRECISION                ::num
+INTEGER                         ::N,iter
+
+lab(1) = 'Lh'
+lab(2) = 'rhoh'
+lab(3) = 'Mb ' 
+lab(4) = 'rb ' 
+lab(5) = 'dM ' 
+lab(6) = 'da ' 
+lab(7) = 'db ' 
+lab(8) = 'Qod' 
+lab(9) = 'q  ' 
+lab(10)= 'rq ' 
+
+!print *,'!!!!!!!!',lab(1)
+write(ch,'(A6,E9.3E2)'),lab(iter),num
+
+!plot Velocity
+CALL PGENV(REAL(ri),REAL(rf),-1.,5.,0,1)
+CALL PGLINE(N,real(dat(1,:)),real(dat(3,:)))
+CALL PGSLS(3)
+CALL PGLINE(N,real(dat(1,:)),real(std(3,:)))
+CALL PGSLS(1)
+CALL PGLAB('','',ch)
+!print *,std(3,:)-dat(3,:)
+ENDSUBROUTINE
+
+SUBROUTINE iteration(iter,stdpara,dat,std,N)
+USE STELLARDISK
+IMPLICIT NONE
+DOUBLE PRECISION                ::dat(3,N),std(3,N)
+DOUBLE PRECISION                ::stdpara(10)
+DOUBLE PRECISION,TARGET         ::sstdpara(10)
+DOUBLE PRECISION,PARAMETER      ::div = 0.5d0
+DOUBLE PRECISION                ::tmp,r
+INTEGER                         ::iter,N,i,j,k
+
+sstdpara = stdpara
+
+j = 0
+DO tmp = sstdpara(iter)*(1.d0-div),sstdpara(iter)*(1.d0+div),sstdpara(iter)*(div/5.d0)
+!DO tmp = sstdpara(iter)*(1.d0-div),sstdpara(iter)*(1.d0-div)
+!        print *,tmp
+        sstdpara(iter) = tmp
+        para=>sstdpara
+        !fill in data
+        do i = 1,N
+                !r axis
+                r = std(1,i)
+                dat(1,i) = r
+                dat(2,i) = Omega(r)*r
+                dat(3,i) = k3sqrt(r)
+        enddo
+        !plot using pgplot
+        CALL plot(dat,std,N,tmp,iter)
+        j = j + 1
+!       print *,j
+ENDDO
+!padding to next page
+DO k = j,11
+        CALL PGPAGE
+ENDDO
+
+ENDSUBROUTINE
