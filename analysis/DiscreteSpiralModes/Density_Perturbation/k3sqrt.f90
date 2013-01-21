@@ -25,6 +25,7 @@ ALLOCATE(phi1r(2*n))
 
 !find EigenFunction
 CALL findu(u,domain)
+stop
 !find h1
 CALL findh1(u,h1)
 !!Find phi1 along r
@@ -77,6 +78,8 @@ DOUBLE PRECISION          ::rr
 
 k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
          - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
+!print *,r,reappal(k3sqrt)
+print *,r,curf(r)
 
 endfunction
 
@@ -134,13 +137,13 @@ IMPLICIT NONE
 DOUBLE PRECISION  kappa,r
 DOUBLE PRECISION  dr
 DOUBLE PRECISION  dOmega
-
 kappa = sqrt(4.d0*Omega(r)**2*(1.d0+r/(2.d0*Omega(r))*dfunc(Omega,r)))
 ENDFUNCTION
 
 FUNCTION Omega(r)
 IMPLICIT NONE
-DOUBLE PRECISION          ::Omega,r
+DOUBLE PRECISION          ::Omega
+DOUBLE PRECISION,INTENT(IN)::r
 !Halo
 DOUBLE PRECISION          ::Lh,rhoh,gHalo,VHalo
 !bulge
@@ -165,7 +168,8 @@ VBulge = sqrt(r*gBulge)
 dM     = 7.0d10
 da     = 2.7
 db     = 0.3
-VDisk  = sqrt(dfunc(pDisk,r)*r)
+!VDisk  = sqrt(dfunc(pDisk,r)*r)
+VDisk  = sqrt(dpDisk(r)*r)
 
 Omega  = sqrt(VHalo**2+VBulge**2+VDisk**2)/r
 CONTAINS
@@ -176,6 +180,14 @@ pDisk  = -GravConst*dM
 pDisk  = pDisk/sqrt(r**2+(da+db)**2)
 ENDFUNCTION
 
+FUNCTION dpDisk(r)
+IMPLICIT NONE
+DOUBLE PRECISION        ::dpDisk
+DOUBLE PRECISION        ::r
+dpDisk = GravConst*dM*r
+dpDisk = dpDisk/((da+db)**2+r**2)**1.5
+ENDFUNCTION
+
 ENDFUNCTION
 
 function dfunc(func,r)
@@ -183,15 +195,28 @@ function dfunc(func,r)
 ! Forward differential
 !
 IMPLICIT NONE
-DOUBLE PRECISION,EXTERNAL       ::func
-DOUBLE PRECISION                ::r,dfunc
-DOUBLE PRECISION                ::dr = 1.d-4
+DOUBLE PRECISION,INTENT(IN)     ::r
+DOUBLE PRECISION,PARAMETER      ::dr = 1.d-7,coe(3)=(/-1.5d0,2.d0,-0.5d0/)
+DOUBLE PRECISION                ::dfunc,ans,funcs(3)
+INTEGER                         ::i
+interface 
+        function func(x)
+        DOUBLE PRECISION        ::func
+        DOUBLE PRECISION        ::x
+        ENDFUNCTION func
+endinterface        
 
-dfunc = 0.d0
-dfunc = dfunc +  -3.d0/2.d0*func(r)
-dfunc = dfunc +        2.d0*func(r+dr)
-dfunc = dfunc +  -1.d0/2.d0*func(r+2*dr)
-dfunc = dfunc/dr
+funcs(1) = func(r)
+funcs(2) = func(r+dr)
+funcs(3) = func(r+2.d0*dr)
+ans = dot_product(funcs,coe)/dr
+dfunc = ans
+
+!ans = 0.d0
+!ans =        -3.d0/2.d0*func(r)
+!ans = ans +        2.d0*func(r+dr)
+!ans = ans +  -1.d0/2.d0*func(r+2.d0*dr)
+!dfunc = ans/dr
 endfunction
 
 function curf(r)
@@ -203,7 +228,6 @@ INTEGER                         ::m=2
 s    = -r/Omega(r)*dfunc(Omega,r)
 curf = 2*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
 curf = curf/sqrt(1.d0/s-0.5d0)
-
 
 ENDFUNCTION
 
