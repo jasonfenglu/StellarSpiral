@@ -79,7 +79,6 @@ DOUBLE PRECISION          ::rr
 k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
          - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
 !print *,r,reappal(k3sqrt)
-print *,r,curf(r)
 
 endfunction
 
@@ -222,12 +221,31 @@ endfunction
 function curf(r)
 IMPLICIT NONE
 DOUBLE PRECISION                ::curf
-DOUBLE PRECISION                ::s,r,tmp
+DOUBLE PRECISION                ::s,r,rr
+DOUBLE PRECISION                ::f2,f1
 INTEGER                         ::m=2
 
-s    = -r/Omega(r)*dfunc(Omega,r)
-curf = 2*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
-curf = curf/sqrt(1.d0/s-0.5d0)
+if(r.gt.0.06d0)then
+        s    = -r/Omega(r)*dfunc(Omega,r)
+        curf = 2.d0*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
+        curf = curf/sqrt(1.d0/s-0.5d0)
+else
+        rr = r
+        r = 0.08
+        s    = -r/Omega(r)*dfunc(Omega,r)
+        curf = 2.d0*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
+        f2 = curf/sqrt(1.d0/s-0.5d0)
+
+        r = 0.06
+        s    = -r/Omega(r)*dfunc(Omega,r)
+        curf = 2.d0*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
+        f1 = curf/sqrt(1.d0/s-0.5d0)
+        
+        curf = f2-(f2-f1)/0.02d0*(0.08d0-rr)
+        r = rr
+endif
+
+print *,r,curf
 
 ENDFUNCTION
 
@@ -242,7 +260,7 @@ INTEGER                         ::n
 u = 0.d0
 n = size(u,2)
 a = 0.001d0
-b = 1.d0*domain
+b = 2.d0*domain
 ui = (/a,1.d0,0.d0/)
 CALL rk4(a,b,N,p,q,p,u,ui)
 contains
