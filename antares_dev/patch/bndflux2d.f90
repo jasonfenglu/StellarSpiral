@@ -29,7 +29,8 @@ end subroutine
 !!!==========================================================
        subroutine bndflux_outgoing_isothermal(U1, Fx, dd)
        use common_params
-       use galaxy
+       use STELLARDISK,only:RC
+       use GALAXY,only:density
        implicit none
        dimension U1(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,nvar)
        dimension Fx(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,nvar)

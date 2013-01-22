@@ -1,6 +1,7 @@
 subroutine init2d(q_loc)
 use common_params
-use galaxy
+use STELLARDISK,only:RC
+use GALAXY,only:density
 implicit none
 double precision::q_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR)
 integer::i,j
