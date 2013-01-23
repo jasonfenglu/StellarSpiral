@@ -8,7 +8,9 @@ DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
+DOUBLE PRECISION                ::tmp
 INTEGER,PARAMETER               ::n=100
+
 
 CALL INIT_STELLARDISK(n,domain)
 
@@ -58,7 +60,8 @@ DO j = 1, n*2
         r = sqrt(xcoord(i)**2+ycoord(j)**2)
         th = atan2(ycoord(j),xcoord(i))
         call FindForce(force(i,j,:),r,th)
-        write(*,'(5(1XE15.6))')r,force(i,j,1),force(i,j,2),Omega(r)**2*r
+        tmp = sqrt(force(i,j,1)**2+force(i,j,2)**2)
+        write(*,'(5(1XE15.6))')r,tmp,tmp/(Omega(r)**2*r),tmp/(Omegadisk(r)**2*r)
 ENDDO
 ENDDO
 

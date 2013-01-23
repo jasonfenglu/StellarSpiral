@@ -5,6 +5,7 @@ DOUBLE PRECISION,PARAMETER::g = 4.3d0
 DOUBLE PRECISION,PARAMETER::pi=4.d0*atan(1.d0)
 !DOUBLE PRECISION,PARAMETER::wr=57.102d0
 !DOUBLE PRECISION,PARAMETER::wi=-2.182d0
+DOUBLE PRECISION,POINTER,SAVE  ::para(:)=>null()
 !Pspd without curF
 DOUBLE PRECISION,PARAMETER::wr=63.444d0
 DOUBLE PRECISION,PARAMETER::wi=-1.048d0
@@ -16,11 +17,33 @@ SUBROUTINE INIT_STELLARDISK(n,domain)
 IMPLICIT NONE
 DOUBLE PRECISION        ::domain
 INTEGER                 ::n
+!Halo
+DOUBLE PRECISION                ::Lh,rhoh,gHalo,VHalo
+!bulge
+DOUBLE PRECISION                ::rb,Mb,gBulge,VBulge
+!disk
+DOUBLE PRECISION                ::dM,da,db,VDisk
+!Toomre Q
+DOUBLE PRECISION                ::Q,Qod,rq
 
 !!Allocate
 ALLOCATE(u(3,4*n))
 ALLOCATE(h1(4*n))
 ALLOCATE(phi1r(2*n))
+ALLOCATE(para(10))
+
+Lh   = 2.8d0
+rhoh = 4.0e7
+Mb   = 10.0d7
+rb   = 2.0d0
+dM   = 7.0d10
+da   = 2.7
+db   = 0.3
+Qod  = 1.d0
+q    = 1.2d0
+rq   = 2.8d0
+
+para = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq/)
 
 
 !find EigenFunction
@@ -47,9 +70,12 @@ ENDSUBROUTINE
 function ToomreQ(r)
 DOUBLE PRECISION  Q,r,Qod,ToomreQ,rq
 
-Qod = 1.d0
-q   = 1.2d0
-rq  = 2.8d0
+!Qod = 1.d0
+!q   = 1.2d0
+!rq  = 2.8d0
+Qod = para(8)
+q   = para(9)
+rq  = para(10)
 ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2))
 endfunction
 
@@ -72,12 +98,13 @@ DOUBLE PRECISION,INTENT(in)::r
 DOUBLE PRECISION          ::rr
 
 
-!k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
-!         - 1.d0 + nu(r)**2)
+k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
+         - 1.d0 + nu(r)**2)
 
-k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
-         - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
-!print *,r,reappal(k3sqrt)
+!k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
+!         - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
+!print *,r,real(k3sqrt)
+!print *,r,curf(r)
 
 endfunction
 
@@ -100,9 +127,13 @@ INTEGER                   ::NEVAL,IERR,LIMIT,LENW,LAST,INF
 DOUBLE PRECISION,ALLOCATABLE ::WORK(:)
 INTEGER,ALLOCATABLE       ::IWORK(:)
 
-M     = 7.0d10
-a     = 2.7
-b     = 0.3
+!M     = 7.0d10
+!a     = 2.7
+!b     = 0.3
+
+M     = para(5)
+a     = para(6)
+b     = para(7)
 
 BOUND = 0.d0
 INF   = 2
@@ -149,27 +180,59 @@ DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
 !disk
 DOUBLE PRECISION          ::dM,da,db,VDisk
 !Halo
-Lh   = 2.8d0
-rhoh = 4.0e7
+Lh   = para(1)
+rhoh = para(2)
 gHalo = 4.d0*Lh**2.d0*pi*rhoh*(r - Lh*atan(r/Lh))
 gHalo = GravConst/(r**2)*gHalo
 VHalo = sqrt(r*gHalo)
 
 !Bulge
-Mb   = 10.0d7
-rb   = 2.0d0
+Mb   = para(3)
+rb   = para(4)
 gBulge = 4*pi*rb**3*Mb*(-r/sqrt(1+r**2/rb**2)/rb+asinh(r/rb))
 gBulge = gBulge*GravConst/r**2
 VBulge = sqrt(r*gBulge)
 
 !Disk
-dM     = 7.0d10
-da     = 2.7
-db     = 0.3
+dM     = para(5)
+da     = para(6)
+db     = para(7)
 !VDisk  = sqrt(dfunc(pDisk,r)*r)
 VDisk  = sqrt(dpDisk(r)*r)
 
 Omega  = sqrt(VHalo**2+VBulge**2+VDisk**2)/r
+CONTAINS
+FUNCTION pDisk(r)
+IMPLICIT NONE
+DOUBLE PRECISION        ::pDisk,r
+pDisk  = -GravConst*dM
+pDisk  = pDisk/sqrt(r**2+(da+db)**2)
+ENDFUNCTION
+
+FUNCTION dpDisk(r)
+IMPLICIT NONE
+DOUBLE PRECISION        ::dpDisk
+DOUBLE PRECISION        ::r
+dpDisk = GravConst*dM*r
+dpDisk = dpDisk/((da+db)**2+r**2)**1.5
+ENDFUNCTION
+
+ENDFUNCTION
+
+FUNCTION Omegadisk(r)
+IMPLICIT NONE
+DOUBLE PRECISION          ::Omegadisk
+DOUBLE PRECISION,INTENT(IN)::r
+!disk
+DOUBLE PRECISION          ::dM,da,db,VDisk
+!Disk
+dM     = para(5)
+da     = para(6)
+db     = para(7)
+!VDisk  = sqrt(dfunc(pDisk,r)*r)
+VDisk  = sqrt(dpDisk(r)*r)
+
+Omegadisk  = VDisk/r
 CONTAINS
 FUNCTION pDisk(r)
 IMPLICIT NONE
@@ -220,30 +283,12 @@ endfunction
 function curf(r)
 IMPLICIT NONE
 DOUBLE PRECISION                ::curf
-DOUBLE PRECISION                ::s,r,rr
-DOUBLE PRECISION                ::f2,f1
+DOUBLE PRECISION                ::s,r,tmp
 INTEGER                         ::m=2
 
-if(r.gt.0.06d0)then
-        s    = -r/Omega(r)*dfunc(Omega,r)
-        curf = 2.d0*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
-        curf = curf/sqrt(1.d0/s-0.5d0)
-else
-        rr = r
-        r = 0.08
-        s    = -r/Omega(r)*dfunc(Omega,r)
-        curf = 2.d0*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
-        f2 = curf/sqrt(1.d0/s-0.5d0)
-
-        r = 0.06
-        s    = -r/Omega(r)*dfunc(Omega,r)
-        curf = 2.d0*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
-        f1 = curf/sqrt(1.d0/s-0.5d0)
-        
-        curf = f2-(f2-f1)/0.02d0*(0.08d0-rr)
-        r = rr
-endif
-
+s    = -r/Omega(r)*dfunc(Omega,r)
+curf = 2*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
+curf = curf/sqrt(1.d0/s-0.5d0)
 
 ENDFUNCTION
 
@@ -258,7 +303,7 @@ INTEGER                         ::n
 u = 0.d0
 n = size(u,2)
 a = 0.001d0
-b = 2.d0*domain
+b = 1.d0*domain
 ui = (/a,1.d0,0.d0/)
 CALL rk4(a,b,N,p,q,p,u,ui)
 contains
@@ -451,6 +496,7 @@ SUBROUTINE ENDSTELLARDISK
 DEALLOCATE(u)
 DEALLOCATE(h1)
 DEALLOCATE(phi1r)
+DEALLOCATE(para)
 
 ENDSUBROUTINE
 
@@ -480,6 +526,19 @@ type    type_stellarspiral
         DOUBLE PRECISION                ::rmin,rmax
 endtype     
 
+type::Q_type
+        DOUBLE PRECISION,POINTER        ::Qod
+        DOUBLE PRECISION,POINTER        ::q
+        DOUBLE PRECISION,POINTER        ::rq
+endtype       
+type::comp_type
+        !Halo
+        DOUBLE PRECISION,POINTER        ::Lh,rhoh,gHalo,VHalo
+        !bulge
+        DOUBLE PRECISION,POINTER        ::rb,Mb,gBulge,VBulge
+        !disk
+        DOUBLE PRECISION,POINTER        ::dM,da,db,VDisk
+endtype
 type(type_stellarspiral)                ::stellarspiral
 ENDSUBROUTINE
 
