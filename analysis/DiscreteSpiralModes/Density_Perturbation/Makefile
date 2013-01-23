@@ -7,10 +7,12 @@ INCL  = -I$(HDF5HOME)/include
 HDF5HOME=$(HDF5_HOME)
 
 
-OBJECT = plot.o rk4.o  Density.o k3sqrt.o
+OBJECT = plot.o rk4.o k3sqrt.o Density.o
+OBJECT2 = plot.o rk4.o k3sqrt.o force.o
 
 all: $(OBJECT) $(OBJECT2)
 	$(F90) -o Density.exe $(OBJECT) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf -openmp
+	$(F90) -o force.exe $(OBJECT2) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf -openmp
 
 %.o:%.f90
 	$(F90) $(FFLAGS)  -c $< -o $@ 
