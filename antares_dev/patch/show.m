@@ -7,13 +7,13 @@ den = hdf5read(filename,'density');
 x = hdf5read(filename,'x');
 y = hdf5read(filename,'y');
 den = den';
-imagesc(x,y,den);
+imagesc(x,y,log10(den));
 title(sprintf('frame %d',i)) 
 axis xy
 axis equal
 axis tight
 colorbar
-%caxis([0.8 1.2])
+%caxis([0 10])
 
 pause(0.001);
 end

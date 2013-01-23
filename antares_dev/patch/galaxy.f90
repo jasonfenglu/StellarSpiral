@@ -120,7 +120,8 @@
         !---------------------------
 
         rho = 1.d0
-        a   = 7.d0
+!       a   = 7.d0
+        a   = 10.d0
 
         GaussianDensity = rho * dexp(-r**2/2.d0/a)
 

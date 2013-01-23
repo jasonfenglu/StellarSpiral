@@ -10,12 +10,14 @@ type(simcon_type),SAVE                  ::simcon
 CONTAINS
 
 SUBROUTINE      init_simcon(dtout,tend)
-USE STELLARDISK,only:pspd=>wr
+USE STELLARDISK,only:wr
 IMPLICIT NONE
 DOUBLE PRECISION                        ::pi
 DOUBLE PRECISION                        ::dtout,tend
+DOUBLE PRECISION                        ::pspd
 pi = atan(1.d0)*4.d0
 
+pspd = wr/2.d0
 simcon%ncir   = 10
 simcon%nframe = 800
 simcon%tend   = 2.d0*pi/pspd*dble(simcon%ncir)
