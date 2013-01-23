@@ -58,7 +58,7 @@ CALL PGSUBP(4,3)
 
 !start interation to all components
 ALLOCATE(dat(3,N))
-do iter = 1,10
+do iter = 5,7
         CALL iteration(iter,stdpara,dat,std,N)
 enddo
 
@@ -115,7 +115,7 @@ IMPLICIT NONE
 DOUBLE PRECISION                ::dat(3,N),std(3,N)
 DOUBLE PRECISION                ::stdpara(10)
 DOUBLE PRECISION,TARGET         ::sstdpara(10)
-DOUBLE PRECISION,PARAMETER      ::div = 0.5d0
+DOUBLE PRECISION,PARAMETER      ::div = 1.0d0
 DOUBLE PRECISION                ::tmp,r
 INTEGER                         ::iter,N,i,j,k
 

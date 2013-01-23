@@ -77,11 +77,11 @@ DOUBLE PRECISION,INTENT(in)::r
 DOUBLE PRECISION          ::rr
 
 
-k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
-         - 1.d0 + nu(r)**2)
+!k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
+!         - 1.d0 + nu(r)**2)
 
-!k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
-!         - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
+k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
+         - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
 !print *,r,reappal(k3sqrt)
 !print *,r,curf(r)
 
@@ -106,9 +106,13 @@ INTEGER                   ::NEVAL,IERR,LIMIT,LENW,LAST,INF
 DOUBLE PRECISION,ALLOCATABLE ::WORK(:)
 INTEGER,ALLOCATABLE       ::IWORK(:)
 
-M     = 7.0d10
-a     = 2.7
-b     = 0.3
+!M     = 7.0d10
+!a     = 2.7
+!b     = 0.3
+
+M     = para(5)
+a     = para(6)
+b     = para(7)
 
 BOUND = 0.d0
 INF   = 2
