@@ -13,6 +13,7 @@ axis xy
 axis equal
 axis tight
 colorbar
+%caxis([0.8 1.2])
 
-pause(0.1);
+pause(0.001);
 end

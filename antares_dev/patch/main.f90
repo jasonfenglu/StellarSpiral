@@ -65,7 +65,7 @@ close(1)
 
 !!init by ccfeng
 call init_simcon(dtout,tend)
-call INIT_STELLARDISK(ncell(1),xrange(1))
+call INIT_STELLARDISK(ncell(2),xrange(2))
 if(myid .eq. 0)CALL k3sqrtlog
 
 

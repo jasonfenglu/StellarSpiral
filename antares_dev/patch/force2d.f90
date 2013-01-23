@@ -1,6 +1,7 @@
 subroutine force2d(q_loc,fx,fy)
 use common_params
 use STELLARDISK
+use simcontroll
 implicit none
 double precision::q_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR)
 double precision::fx(1:ncell_loc(1),1:ncell_loc(2)),fy(1:ncell_loc(1),1:ncell_loc(2))
@@ -11,6 +12,8 @@ double precision::r_loc,CV,Orsq
 double precision::pspd,bfam,a1,p0,rsq,p1,psi,dpsi
 double precision::cs2s,sn2s,cs2t,sn2t,cs2st,sn2st
 double precision::px,py
+!spiral potential
+double precision::fspi(2),th
 integer::i,j
 ! implement your external force here !!
   do j=1, ncell_loc(2)
@@ -20,6 +23,19 @@ integer::i,j
        Orsq= (CV/r_loc)**2.d0
        fx(i,j)=-x_loc(i)*Orsq
        fy(i,j)=-y_loc(j)*Orsq
+    enddo
+  enddo
+
+!spiral potential
+  do j=1, ncell_loc(2)
+    do i=1, ncell_loc(1)
+       r_loc = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
+       th    = atan2(y_loc(j),x_loc(i))
+        CALL FindForce(fspi,r_loc,th-wr*t/2.d0)
+        !force is 10%
+        fspi = fspi * dmin1(t/tend*dble(simcon%ncir),1.d0) *167.d0
+      fx(i,j)= fspi(1) + fx(i,j)
+      fy(i,j)= fspi(2) + fy(i,j)
     enddo
   enddo
 

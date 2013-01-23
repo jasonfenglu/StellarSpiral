@@ -87,6 +87,7 @@
         DOUBLE PRECISION,OPTIONAL       ::z
 
         density = GaussianDensity(r,z)
+        !density = UniDensity(r,z)
 
         ENDFUNCTION
 
@@ -121,7 +122,7 @@
         rho = 1.d0
         a   = 7.d0
 
-        GaussianDensity = rho * dexp(-r**2/2/a)
+        GaussianDensity = rho * dexp(-r**2/2.d0/a)
 
         ENDFUNCTION
 
