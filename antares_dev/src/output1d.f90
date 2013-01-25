@@ -101,6 +101,7 @@ call h5dcreate_f(file_id,dsetname,H5T_NATIVE_DOUBLE,filespace, dset_id,error)
 
 
 call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,q_temp,dimsf_loc,error, file_space_id=filespace,mem_space_id=mspace_id,xfer_prp=plist_id)
+!call h5dwrite_f(dset_id,H5T_NATIVE_DOUBLE,q_temp,dimsf_loc,error)
 call h5dclose_f(dset_id,error)
 call h5pclose_f(plist_id,error)
 

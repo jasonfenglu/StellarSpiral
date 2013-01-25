@@ -18,7 +18,7 @@ FFTWHOME=$(FFTW_HOME)
 HDF5HOME=$(HDF5_HOME)
 AntaresHOME=$(PWD)
  
-FFLAGS= -cpp -O2 -DNDIM=$(NDIM) -DVERBOSE -DISOTHERMAL -DFORCE -D$(Rie_type) -module bin -DRK2  -prec-div -prec-sqrt
+FFLAGS= -cpp -O2 -DNDIM=$(NDIM) -DVERBOSE -DISOTHERMAL -DFORCE -D$(Rie_type) -module bin -DRK2  -prec-div -prec-sqrt -g
 
 LIB = -L$(MPIHOME)/lib -lmpi -lz -L$(FFTWHOME)/lib -ldrfftw_mpi -ldfftw_mpi -ldrfftw -ldfftw -L$(HDF5HOME)/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5 -fPIC -lm -limf -L./src -lslatec 
 INCL=-I$(MPIHOME)/include -I$(FFTWHOME)/include -I$(HDF5HOME)/include
@@ -26,7 +26,7 @@ INCL=-I$(MPIHOME)/include -I$(FFTWHOME)/include -I$(HDF5HOME)/include
 vpath *.o bin
 
 VPATH = ./src
-OBJECT= rk4.o k3sqrt.o simcontroll.o  galaxy.o common_params.o main.o init2d.o output1d.o output2d.o bdry2d.o write_collective2d.o dt_loc2d.o dt_all.o sendbdry2d.o sloplimiter.o riemann2d.o bndflux2d.o fluxRieIso2d.o fluxHLLC2d.o force2d.o sgkernel2d.o selfgravity2d.o write_gravity2d.o read_collective2d.o read1d.o read2d.o
+OBJECT= common_params.o exceptions.o rk4.o k3sqrt.o simcontroll.o  galaxy.o  find_dt.o main.o init2d.o output1d.o output2d.o bdry2d.o write_collective2d.o dt_loc2d.o dt_all.o sendbdry2d.o sloplimiter.o riemann2d.o bndflux2d.o fluxRieIso2d.o fluxHLLC2d.o force2d.o sgkernel2d.o selfgravity2d.o write_gravity2d.o read_collective2d.o read1d.o read2d.o
 
 antares.exe: $(addprefix bin/,$(OBJECT))
 	$(F90) -o $(EXEC)$(NDIM)d $(addprefix bin/,$(OBJECT)) $(LIB)

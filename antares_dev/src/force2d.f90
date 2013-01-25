@@ -27,17 +27,17 @@ integer::i,j
   enddo
 
 !spiral potential
-  do j=1, ncell_loc(2)
-    do i=1, ncell_loc(1)
-       r_loc = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
-       th    = atan2(y_loc(j),x_loc(i))
-        CALL FindForce(fspi,r_loc,th-wr*t/2.d0)
-        !force is 1%
-        fspi = fspi * dmin1(t/tend*dble(simcon%ncir),1.d0) *2.5d0
-      fx(i,j)= fspi(1) + fx(i,j)
-      fy(i,j)= fspi(2) + fy(i,j)
-    enddo
-  enddo
+! do j=1, ncell_loc(2)
+!   do i=1, ncell_loc(1)
+!      r_loc = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
+!      th    = atan2(y_loc(j),x_loc(i))
+!       CALL FindForce(fspi,r_loc,th-wr*t/2.d0)
+!       !force is 1%
+!       fspi = fspi * dmin1(t/tend*dble(simcon%ncir),1.d0) *2.5d0
+!     fx(i,j)= fspi(1) + fx(i,j)
+!     fy(i,j)= fspi(2) + fy(i,j)
+!   enddo
+! enddo
 
 #ifdef GRAVITY
  allocate(den(1:ncell_loc(1),1:ncell_loc(2)))

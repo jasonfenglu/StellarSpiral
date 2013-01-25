@@ -6,7 +6,7 @@ implicit none
 include 'mpif.h'
 include 'fftw_f77.i'
 
-character(len=20)::infile='src/para.nml' ! filename of namelist
+character(len=20)::infile='patch/para.nml' ! filename of namelist
 character(len=8)::flnm
 character(len=20)::dsetname
 integer::ierr ! error flag for MPI
@@ -274,6 +274,13 @@ endif
 
 call dt_loc2d(q_loc,dt_loc)
 call dt_all(dt_loc)
+!!add by ccfeng
+if(dt.lt.1d-10)then
+        if(myid.eq.0)print *,'dt too small, quit'
+        call write_collective2d(q_loc,fnum+1)
+        call MPI_BARRIER(MPI_COMM_WORLD)
+        exit
+endif
 
 if(t+dt .ge. toutput) then
    dt = toutput-t
