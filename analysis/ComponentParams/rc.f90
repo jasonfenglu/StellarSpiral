@@ -61,14 +61,14 @@ CALL ENDSTELLARDISK
 
 
 !set pgplot
-IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
+IF (PGBEG(0,'/ps',1,1) .NE. 1) STOP
 CALL PGSVP(0.3,0.70,0.3,0.70)
 CALL PGSUBP(4,3)
 
 
 !start interation to all components
 ALLOCATE(dat(3,N))
-do iter = 1,1 
+do iter = 1,10
         print *,'iter:',iter
         CALL iteration(iter,stdpara,dat,std,N)
 enddo
@@ -87,10 +87,10 @@ para => set_para
 ENDSUBROUTINE
 
 SUBROUTINE plot(dat,std,N,num,iter)
-use STELLARDISK,only:u,h1
+use STELLARDISK,only:u,h1,wr,wi
 IMPLICIT NONE
 CHARACTER(len=10),DIMENSION(10)  ::lab
-CHARACTER(len=20)               ::ch
+CHARACTER(len=30)               ::ch
 DOUBLE PRECISION                ::dat(3,N),std(3,N)
 DOUBLE PRECISION,PARAMETER      ::ri = 0.d0
 DOUBLE PRECISION,PARAMETER      ::rf = 20.d0
@@ -109,7 +109,7 @@ lab(9) = 'q  '
 lab(10)= 'rq ' 
 
 !print *,'!!!!!!!!',lab(1)
-write(ch,'(A6,E9.3E2)'),lab(iter),num
+write(ch,'(A6,E9.3E2,F5.1,F5.1)'),lab(iter),num,wr,wi
 !print *,maxval(dat(3,:)),minval(dat(3,:))
 CALL PGENV(REAL(ri),12.,-1e-2,1e-2,0,1)
 CALL PGLINE(N,real(dat(1,:)),real(dat(3,:)))
@@ -149,6 +149,7 @@ DO tmp = sstdpara(iter)*(1.d0-div),sstdpara(iter)*(1.d0+div),sstdpara(iter)*(div
 !        print *,tmp
         sstdpara(iter) = tmp
         para=>sstdpara
+        CALL findpspsd(wr,wi)
         CALL INIT_STELLARDISK(N,20.d0)
         !fill in data
         do i = 1,N
@@ -161,14 +162,13 @@ DO tmp = sstdpara(iter)*(1.d0-div),sstdpara(iter)*(1.d0+div),sstdpara(iter)*(div
                 do l = 1,4*N
                         if(real(u(1,l)).gt.r)then
                                 dat(3,i) = &
-                                real(h1(l))*sigma0(r)/snsd(r)**2/sigma0(r)
+                                real(h1(l))
                                 exit
                         endif
                 enddo
         enddo
         !plot using pgplot
         CALL plot(dat,std,N,tmp,iter)
-        print *,error()
         CALL ENDSTELLARDISK
         j = j + 1
 !       print *,j

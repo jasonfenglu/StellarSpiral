@@ -3,12 +3,12 @@ IMPLICIT NONE
 DOUBLE PRECISION,PARAMETER::GravConst = 4.3d-6 
 DOUBLE PRECISION,PARAMETER::g = 4.3d0
 DOUBLE PRECISION,PARAMETER::pi=4.d0*atan(1.d0)
-DOUBLE PRECISION,PARAMETER::wr=57.102d0
-DOUBLE PRECISION,PARAMETER::wi=-2.182d0
+!DOUBLE PRECISION          ::wr=57.102d0
+!DOUBLE PRECISION          ::wi=-2.182d0
 DOUBLE PRECISION,POINTER  ::para(:)=>null()
 !Pspd without curF
-!DOUBLE PRECISION,PARAMETER::wr=63.444d0
-!DOUBLE PRECISION,PARAMETER::wi=-1.048d0
+DOUBLE PRECISION          ::wr=63.444d0
+DOUBLE PRECISION          ::wi=-1.048d0
 !solved wave
 DOUBLE COMPLEX,ALLOCATABLE,SAVE         ::u(:,:),h1(:),phi1r(:)
 CONTAINS
@@ -78,11 +78,11 @@ DOUBLE PRECISION,INTENT(in)::r
 DOUBLE PRECISION          ::rr
 
 
-!k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
-!         - 1.d0 + nu(r)**2)
+k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
+         - 1.d0 + nu(r)**2)
 
-k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
-         - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
+!k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
+!         - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
 !print *,r,reappal(k3sqrt)
 !print *,r,curf(r)
 
@@ -241,6 +241,7 @@ curf = curf/sqrt(1.d0/s-0.5d0)
 ENDFUNCTION
 
 SUBROUTINE findu(u,domain)
+USE RK
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::u(:,:)
 DOUBLE COMPLEX                  ::ui(3)
@@ -457,11 +458,11 @@ INTEGER                 ::l,IFLAG
 
 B = 6.d0
 C = 12.d0
-R = 8.d0
+RR = 8.d0
 RE = 1d-8
 AE = 1d-8
 call DFZERO(four21,B,C,RR,RE,AE,IFLAG)
-
+r = B
 do l = 1,size(u,2)
         if(real(u(1,l)).gt.r)then
                 uu(:) = u(:,l)
@@ -473,6 +474,8 @@ error  = error -                           &
 0.5d0/sqrt(k3sqrt(r))*               &                
 (sqrt(k3sqrt(r+h))-sqrt(k3sqrt(r-h)))/(2.d0*h)
 
+error = uu(3)/uu(2) -error
+
 CONTAINS
 function four21(r)
 IMPLICIT NONE
@@ -482,6 +485,65 @@ ENDFUNCTION
         
 endfunction
 
+SUBROUTINE single_grid(l,wri,wii,err)
+IMPLICIT NONE
+type searchgrid_type
+        DOUBLE PRECISION::coord(12,12,2)
+        DOUBLE PRECISION::error(12,12)
+endtype
+type(searchgrid_type)            ::searchgrid
+DOUBLE PRECISION                ::dr,wri,wii,di,err
+INTEGER                         ::l,i,j,p(2)
+
+
+dr = 1.d0/10.0d0**(l-1)
+di = 0.5d0/10.0d0**(l-1)
+wri = wri +(-6.d0+0.5d0)*dr
+wii = wii +(-6.d0+0.5d0)*dr
+!CALL INIT_STELLARDISK(100,15.d0)
+!print*,  abs(error())
+!CALL ENDSTELLARDISK
+!stop
+DO i = 1,12
+        searchgrid%coord(:,i,2) = dble(i-1)*dr + wii
+        searchgrid%coord(i,:,1) = dble(i-1)*dr + wri
+enddo
+
+DO i = 1,12
+DO j = 1,12
+        wr = searchgrid%coord(i,j,1)
+        wi = searchgrid%coord(i,j,2)
+        CALL INIT_STELLARDISK(100,20.d0)
+        searchgrid%error(i,j) = abs(error())
+        CALL ENDSTELLARDISK
+ENDDO
+ENDDO
+
+p = MINLOC(searchgrid%error(:,:))
+i = p(1)
+j = p(2)
+wri = searchgrid%coord(i,j,1)
+wii = searchgrid%coord(i,j,2)
+err = searchgrid%error(i,j)
+!if(j.eq.1 .or. j.eq.12 .or. i.eq.1 .or. i.eq.12)l = l -1
+!DO i = 1,12
+!DO j = 1,12
+!        print *,searchgrid%coord(i,j,:),searchgrid%error(i,j)
+!ENDDO
+!ENDDO
+
+ENDSUBROUTINE
+
+SUBROUTINE findpspsd(wri,wii)
+IMPLICIT NONE
+DOUBLE PRECISION                ::wri,wii,err
+INTEGER                         ::l
+do l = 1,5
+        CALL single_grid(l,wri,wii,err)
+enddo
+print *,'error on pspd search',err,wr,wi
+
+ENDSUBROUTINE 
 
 SUBROUTINE TEMP
 type    type_u

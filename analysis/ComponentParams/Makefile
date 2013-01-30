@@ -6,8 +6,7 @@ FFLAGS =-O2 -L. -lslatec -g
 PGPLOT =-L$(PGPLOT_DIR) -lpgplot  -limf -lm -lX11 -lpng
 
 
-OBJECT2 = k3sqrt.o rc.o rk4.o
-
+OBJECT2 =  rk4.o k3sqrt.o rc.o
 all: $(OBJECT) $(OBJECT2)
 	$(F90) -o rc.exe $(OBJECT2) $(FFLAGS) $(PGPLOT)
 
