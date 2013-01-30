@@ -135,6 +135,7 @@ DOUBLE PRECISION,ALLOCATABLE    ::a(:,:)
 wri = 60.d0
 wii = -0.5d0
 CALL findpspsd(wri,wii)
+print *,wri,wii
 
 STOP
 !FUNCTION p(r)
@@ -183,62 +184,3 @@ STOP
 
 END PROGRAM
 
-SUBROUTINE single_grid(l,wri,wii)
-USE STELLARDISK
-IMPLICIT NONE
-type searchgrid_type
-        DOUBLE PRECISION::coord(12,12,2)
-        DOUBLE PRECISION::error(12,12)
-endtype
-type(searchgrid_type)            ::searchgrid
-DOUBLE PRECISION                ::dr,wri,wii,di
-INTEGER                         ::l,i,j,p(2)
-
-
-dr = 1.d0/10.0d0**(l-1)
-di = 0.5d0/10.0d0**(l-1)
-wri = wri +(-6.d0+0.5d0)*dr
-wii = wii +(-6.d0+0.5d0)*dr
-!CALL INIT_STELLARDISK(100,15.d0)
-!print*,  abs(error())
-!CALL ENDSTELLARDISK
-!stop
-DO i = 1,12
-        searchgrid%coord(:,i,2) = dble(i-1)*dr + wii
-        searchgrid%coord(i,:,1) = dble(i-1)*dr + wri
-enddo
-
-DO i = 1,12
-DO j = 1,12
-        wr = searchgrid%coord(i,j,1)
-        wi = searchgrid%coord(i,j,2)
-        CALL INIT_STELLARDISK(100,20.d0)
-        searchgrid%error(i,j) = abs(error())
-        CALL ENDSTELLARDISK
-ENDDO
-ENDDO
-
-p = MINLOC(searchgrid%error(:,:))
-i = p(1)
-j = p(2)
-wri = searchgrid%coord(i,j,1)
-wii = searchgrid%coord(i,j,2)
-!if(j.eq.1 .or. j.eq.12 .or. i.eq.1 .or. i.eq.12)l = l -1
-!DO i = 1,12
-!DO j = 1,12
-!        print *,searchgrid%coord(i,j,:),searchgrid%error(i,j)
-!ENDDO
-!ENDDO
-print *,wri,wii,searchgrid%error(i,j)
-
-ENDSUBROUTINE
-
-SUBROUTINE findpspsd(wri,wii)
-IMPLICIT NONE
-DOUBLE PRECISION                ::wri,wii
-INTEGER                         ::l
-do l = 1,5
-        CALL single_grid(l,wri,wii)
-enddo
-
-ENDSUBROUTINE 
