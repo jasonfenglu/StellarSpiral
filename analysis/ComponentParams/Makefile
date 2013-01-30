@@ -1,7 +1,7 @@
 F90=ifort
 FCC=icc
 
-FFLAGS =-O2 -L. -lslatec
+FFLAGS =-O2 -L. -lslatec -g
 
 PGPLOT =-L$(PGPLOT_DIR) -lpgplot  -limf -lm -lX11 -lpng
 

@@ -26,11 +26,12 @@ ALLOCATE(phi1r(2*n))
 
 !find EigenFunction
 CALL findu(u,domain)
-stop
 !find h1
 CALL findh1(u,h1)
 !!Find phi1 along r
 CALL FindPhi1(phi1r)
+
+CALL k3sqrtlog
 
 ENDSUBROUTINE
 
@@ -204,7 +205,7 @@ function dfunc(func,r)
 !
 IMPLICIT NONE
 DOUBLE PRECISION,INTENT(IN)     ::r
-DOUBLE PRECISION,PARAMETER      ::dr = 1.d-7,coe(3)=(/-1.5d0,2.d0,-0.5d0/)
+DOUBLE PRECISION,PARAMETER      ::dr = 1.d-4,coe(3)=(/-1.5d0,2.d0,-0.5d0/)
 DOUBLE PRECISION                ::dfunc,ans,funcs(3)
 INTEGER                         ::i
 interface 
@@ -445,6 +446,42 @@ DEALLOCATE(h1)
 DEALLOCATE(phi1r)
 
 ENDSUBROUTINE
+
+function error()
+IMPLICIT NONE          
+DOUBLE COMPLEX          ::error
+DOUBLE COMPLEX          ::uu(3)
+DOUBLE PRECISION        ::h=10d-5   ,r
+DOUBLE PRECISION        ::RE,AE,B,C,RR
+INTEGER                 ::l,IFLAG
+
+B = 6.d0
+C = 12.d0
+R = 8.d0
+RE = 1d-8
+AE = 1d-8
+call DFZERO(four21,B,C,RR,RE,AE,IFLAG)
+
+do l = 1,size(u,2)
+        if(real(u(1,l)).gt.r)then
+                uu(:) = u(:,l)
+                exit
+        endif
+enddo
+error  = -(0.d0,1.d0)*sqrt(k3sqrt(r))
+error  = error -                           &
+0.5d0/sqrt(k3sqrt(r))*               &                
+(sqrt(k3sqrt(r+h))-sqrt(k3sqrt(r-h)))/(2.d0*h)
+
+CONTAINS
+function four21(r)
+IMPLICIT NONE
+DOUBLE PRECISION                ::four21,r
+four21 = (wr - 2.d0*Omega(r))/kappa(r) - 0.5d0
+ENDFUNCTION
+        
+endfunction
+
 
 SUBROUTINE TEMP
 type    type_u
