@@ -134,10 +134,7 @@ DOUBLE PRECISION,ALLOCATABLE    ::a(:,:)
 
 wri = 60.d0
 wii = -0.5d0
-do l = 1,5
-        CALL init_grid(l,wri,wii)
-        print *,wri,wii,l
-enddo
+CALL findpspsd(wri,wii)
 
 STOP
 !FUNCTION p(r)
@@ -186,7 +183,7 @@ STOP
 
 END PROGRAM
 
-SUBROUTINE init_grid(l,wri,wii)
+SUBROUTINE single_grid(l,wri,wii)
 USE STELLARDISK
 IMPLICIT NONE
 type searchgrid_type
@@ -232,6 +229,16 @@ wii = searchgrid%coord(i,j,2)
 !        print *,searchgrid%coord(i,j,:),searchgrid%error(i,j)
 !ENDDO
 !ENDDO
+print *,wri,wii,searchgrid%error(i,j)
 
 ENDSUBROUTINE
 
+SUBROUTINE findpspsd(wri,wii)
+IMPLICIT NONE
+DOUBLE PRECISION                ::wri,wii
+INTEGER                         ::l
+do l = 1,5
+        CALL single_grid(l,wri,wii)
+enddo
+
+ENDSUBROUTINE 
