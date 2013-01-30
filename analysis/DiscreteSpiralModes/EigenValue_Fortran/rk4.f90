@@ -22,6 +22,9 @@
 !   121122   DATE WRITTEN
 !***END PROLOGUE  RK4
 
+MODULE RK
+IMPLICIT NONE
+CONTAINS
 SUBROUTINE rk45(ri,rf,N,p,q,s,u,ui)
 IMPLICIT NONE
 DOUBLE COMPLEX          ::u(3,N),ui(3),uu(3)
@@ -236,3 +239,5 @@ ENDSUBROUTINE
 !        r = r + h
 !
 !enddo
+
+ENDMODULE RK

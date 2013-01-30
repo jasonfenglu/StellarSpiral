@@ -108,114 +108,130 @@
 PROGRAM find_all
 USE PLOTTING
 USE OMP_LIB
+USE STELLARDISK
 IMPLICIT NONE
-DOUBLE PRECISION,ALLOCATABLE    ::table(:,:,:)
-DOUBLE PRECISION                ::wr,wi,rstep,istep,wrr,wii
-INTEGER                         ::i,j,n,error,threadid
-DOUBLE PRECISION                ::domain(4)
+type searchgrid_type
+        DOUBLE PRECISION::coord(4,4,2)
+        DOUBLE PRECISION::error(4,4)
+endtype
+type(searchgrid_type)            ::searchgrid
+DOUBLE PRECISION                  ::wri,wii
+INTEGER                          ::l
 
-!integer(HID_T)    ::file_id
-!integer(HID_T)    ::dset_id
-!integer(HID_T)    ::filespace
-!integer(HID_T)    ::mspace_id
-!integer(HID_T)    ::plist_id
-!integer(HSIZE_T),dimension(2) :: dimsf
-!integer(HSIZE_T),dimension(2) :: dimsf_loc
-!integer(HSIZE_T),dimension(2) :: istart, istride, icount, iblock
-!character(len=8)                ::flnm
+DOUBLE PRECISION,ALLOCATABLE    ::a(:,:)
+
+!!$OMP PARALLEL DEFAULT(NONE),PRIVATE(a)
+!!$OMP DO
+!DO l = 1,4
+!        ALLOCATE(a(2,2))
+!        print *,'jer',l
+!        DEALLOCATE(a)
+!ENDDO
+!!$OMP END DO
+!!$OMP END PARALLEL
+!stop
 
 
-
-domain = (/20.d0,60.0d0,-6.d0,-0.0d0/)
-
-n = 1000
-ALLOCATE(table(n,n,3))
-
-rstep = (domain(2)-domain(1))/real(n)
-istep = (domain(4)-domain(3))/real(n)
-
-do i = 1,n
-        wr = domain(1) + dble(i)*rstep
-        !$OMP BARRIER
-        !$OMP PARALLEL DO PRIVATE(wi)
-        do j = 1,n
-        wi = domain(3) + dble(j)*istep
-        table(i,j,1) = wr
-        table(i,j,2) = wi
-        call search(wr,wi,table(i,j,3))
-        enddo
-        !$OMP END PARALLEL DO
-        !$OMP BARRIER
+wri = 60.d0
+wii = -0.5d0
+do l = 1,5
+        CALL init_grid(l,wri,wii)
+        print *,wri,wii,l
 enddo
 
-write(*,*)minloc(table(:,:,3)),minval(table(:,:,3))
-CALL plot2d(table,n,n,domain)
-
-!CALL h5open_f(error)
-!CALL h5pcreate_f(H5P_FILE_ACCESS_F,plist_id,error)
-!flnm='data.h5'
-!CALL h5fcreate_f(flnm,H5F_ACC_TRUNC_F,file_id, error, access_prp=plist_id)
-!CALL h5fopen_f(flnm,H5F_ACC_RDWR_F,file_id, error, access_prp=plist_id)
-!CALL h5pclose_f(plist_id, error)
-!
-!dimsf = (/n,n/)
-!dimsf_loc = (/n,n/)
-!CALL h5screate_simple_f(2,dimsf,filespace,error)
-!CALL h5screate_simple_f(2,dimsf_loc,mspace_id,error)
-!
-!CALL h5sselect_hyperslab_f(filespace,H5S_SELECT_SET_F,istart
-
-
-
-        
-DEALLOCATE(table)
 STOP
-
-CONTAINS
-
-FUNCTION p(r)
-IMPLICIT NONE
-DOUBLE COMPLEX                  ::p
-DOUBLE PRECISION                ::r
-p = (0.d0,0.d0)
-ENDFUNCTION
-
-FUNCTION q(r)
-IMPLICIT NONE
-DOUBLE COMPLEX                  ::q
-DOUBLE COMPLEX,EXTERNAL         ::k3sqrt
-DOUBLE PRECISION                ::r
-q = k3sqrt(r,wr,wi)
-ENDFUNCTION
-
-SUBROUTINE search(wr,wi,err)
-IMPLICIT NONE
-DOUBLE COMPLEX,ALLOCATABLE      ::u(:,:),ui(:)
-DOUBLE COMPLEX,EXTERNAL         ::error
-DOUBLE PRECISION,EXTERNAL       ::find_b
-DOUBLE PRECISION                ::a,b
-DOUBLE PRECISION                ::h,r
-DOUBLE PRECISION,INTENT(IN)     ::wr,wi
-DOUBLE PRECISION                ::err
-INTEGER                         ::N=1000
-INTEGER                         ::i
-
-
-ALLOCATE(u(3,N))
-ALLOCATE(ui(3))
-a = 0.d0
-b = find_b(wr)
-ui = (/a,1.d0,0.d0/)
-h = (b-a)/REAL(n)
-CALL rk4(a,b,N,p,q,p,u,ui)
-err = dble(ABS(u(3,N)/u(2,N)-error(b,wr,wi)))
-write(*,*)wr,wi,err
-
-DEALLOCATE(u)
-DEALLOCATE(ui)
-
-
-ENDSUBROUTINE
+!FUNCTION p(r)
+!IMPLICIT NONE
+!DOUBLE COMPLEX                  ::p
+!DOUBLE PRECISION                ::r
+!p = (0.d0,0.d0)
+!ENDFUNCTION
+!
+!FUNCTION q(r)
+!IMPLICIT NONE
+!DOUBLE COMPLEX                  ::q
+!DOUBLE COMPLEX,EXTERNAL         ::k3sqrt
+!DOUBLE PRECISION                ::r
+!q = k3sqrt(r,wr,wi)
+!ENDFUNCTION
+!
+!SUBROUTINE search(wr,wi,err)
+!IMPLICIT NONE
+!DOUBLE COMPLEX,ALLOCATABLE      ::u(:,:),ui(:)
+!DOUBLE COMPLEX,EXTERNAL         ::error
+!DOUBLE PRECISION,EXTERNAL       ::find_b
+!DOUBLE PRECISION                ::a,b
+!DOUBLE PRECISION                ::h,r
+!DOUBLE PRECISION,INTENT(IN)     ::wr,wi
+!DOUBLE PRECISION                ::err
+!INTEGER                         ::N=1000
+!INTEGER                         ::i
+!
+!
+!ALLOCATE(u(3,N))
+!ALLOCATE(ui(3))
+!a = 0.d0
+!b = find_b(wr)
+!ui = (/a,1.d0,0.d0/)
+!h = (b-a)/REAL(n)
+!CALL rk4(a,b,N,p,q,p,u,ui)
+!err = dble(ABS(u(3,N)/u(2,N)-error(b,wr,wi)))
+!write(*,*)wr,wi,err
+!
+!DEALLOCATE(u)
+!DEALLOCATE(ui)
+!
+!
+!ENDSUBROUTINE
 
 END PROGRAM
+
+SUBROUTINE init_grid(l,wri,wii)
+USE STELLARDISK
+IMPLICIT NONE
+type searchgrid_type
+        DOUBLE PRECISION::coord(12,12,2)
+        DOUBLE PRECISION::error(12,12)
+endtype
+type(searchgrid_type)            ::searchgrid
+DOUBLE PRECISION                ::dr,wri,wii,di
+INTEGER                         ::l,i,j,p(2)
+
+
+dr = 1.d0/10.0d0**(l-1)
+di = 0.5d0/10.0d0**(l-1)
+wri = wri +(-6.d0+0.5d0)*dr
+wii = wii +(-6.d0+0.5d0)*dr
+!CALL INIT_STELLARDISK(100,15.d0)
+!print*,  abs(error())
+!CALL ENDSTELLARDISK
+!stop
+DO i = 1,12
+        searchgrid%coord(:,i,2) = dble(i-1)*dr + wii
+        searchgrid%coord(i,:,1) = dble(i-1)*dr + wri
+enddo
+
+DO i = 1,12
+DO j = 1,12
+        wr = searchgrid%coord(i,j,1)
+        wi = searchgrid%coord(i,j,2)
+        CALL INIT_STELLARDISK(100,20.d0)
+        searchgrid%error(i,j) = abs(error())
+        CALL ENDSTELLARDISK
+ENDDO
+ENDDO
+
+p = MINLOC(searchgrid%error(:,:))
+i = p(1)
+j = p(2)
+wri = searchgrid%coord(i,j,1)
+wii = searchgrid%coord(i,j,2)
+!if(j.eq.1 .or. j.eq.12 .or. i.eq.1 .or. i.eq.12)l = l -1
+!DO i = 1,12
+!DO j = 1,12
+!        print *,searchgrid%coord(i,j,:),searchgrid%error(i,j)
+!ENDDO
+!ENDDO
+
+ENDSUBROUTINE
 
