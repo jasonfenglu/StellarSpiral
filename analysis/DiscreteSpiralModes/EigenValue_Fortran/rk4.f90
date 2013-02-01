@@ -112,6 +112,7 @@ ENDSUBROUTINE
 
 SUBROUTINE rk4(ri,rf,N,p,q,s,u,ui)
 IMPLICIT NONE
+include 'omp_lib.h'
 DOUBLE COMPLEX          ::u(3,N),ui(3),uu(3)
 DOUBLE COMPLEX          ::K(3,4)
 DOUBLE COMPLEX,EXTERNAL ::p,q,s
@@ -122,7 +123,6 @@ DOUBLE PRECISION        ::r
 DOUBLE PRECISION        ::ri,rf,h
 INTEGER                 ::N
 INTEGER                 ::I,J,L
-
 
 !init boundary
 h = (rf-ri)/REAL(N)
@@ -170,16 +170,16 @@ enddo
 
 
 contains
-FUNCTION f(ui,p,q,s)
+RECURSIVE FUNCTION f(ui,p,q,s) result(ans)
 IMPLICIT NONE
-DOUBLE COMPLEX          ::f(3)
+DOUBLE COMPLEX          ::ans(3)
 DOUBLE COMPLEX          ::ui(3)
 DOUBLE COMPLEX,EXTERNAL::p,q,s
 DOUBLE PRECISION        ::r
 r = ui(1)
-f(1) = 1.d0
-f(2) = ui(3)
-f(3) = s(r)-p(r)*ui(3)-q(r)*ui(2)
+ans(1) = 1.d0
+ans(2) = ui(3)
+ans(3) = s(r)-p(r)*ui(3)-q(r)*ui(2)
 ENDFUNCTION
 
 ENDSUBROUTINE

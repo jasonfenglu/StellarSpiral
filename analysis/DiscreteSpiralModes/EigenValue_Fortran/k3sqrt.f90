@@ -3,6 +3,7 @@ IMPLICIT NONE
 DOUBLE PRECISION,PARAMETER::GravConst = 4.3d-6 
 DOUBLE PRECISION,PARAMETER::g = 4.3d0
 DOUBLE PRECISION,PARAMETER::pi=4.d0*atan(1.d0)
+DOUBLE PRECISION          ::domain
 !DOUBLE PRECISION          ::wr=57.102d0
 !DOUBLE PRECISION          ::wi=-2.182d0
 DOUBLE PRECISION,POINTER  ::para(:)=>null()
@@ -10,12 +11,12 @@ DOUBLE PRECISION,POINTER  ::para(:)=>null()
 DOUBLE PRECISION          ::wr=63.444d0
 DOUBLE PRECISION          ::wi=-1.048d0
 !solved wave
-DOUBLE COMPLEX,ALLOCATABLE,SAVE         ::u(:,:),h1(:),phi1r(:)
+DOUBLE COMPLEX,ALLOCATABLE              ::u(:,:),h1(:),phi1r(:)
 CONTAINS
 
-SUBROUTINE INIT_STELLARDISK(n,domain)
+SUBROUTINE INIT_STELLARDISK(n,ddomain)
 IMPLICIT NONE
-DOUBLE PRECISION        ::domain
+DOUBLE PRECISION        ::ddomain
 INTEGER                 ::n
 DOUBLE PRECISION,TARGET         ::stdpara(10)
 !Halo
@@ -46,15 +47,22 @@ ALLOCATE(u(3,4*n))
 ALLOCATE(h1(4*n))
 ALLOCATE(phi1r(2*n))
 
+domain = ddomain
+
+ENDSUBROUTINE INIT_STELLARDISK
+
+SUBROUTINE CALSPIRAL(i,j)
+IMPLICIT NONE
+include 'omp_lib.h'
+integer i,j
 
 !find EigenFunction
-CALL findu(u,domain)
+CALL findu(u)
 !find h1
 CALL findh1(u,h1)
-!!Find phi1 along r
-CALL FindPhi1(phi1r)
-
-CALL k3sqrtlog
+!!!Find phi1 along r
+!CALL FindPhi1()
+!CALL k3sqrtlog
 
 ENDSUBROUTINE
 
@@ -119,7 +127,7 @@ snsd = ToomreQ(r)*pi*g*sigma0(r)/kappa(r)
 
 ENDFUNCTION
 
-function Sigma0(r)
+recursive function Sigma0(r)
 IMPLICIT NONE
 DOUBLE PRECISION          ::Sigma0,r
 DOUBLE PRECISION          ::m,a,b
@@ -150,7 +158,7 @@ CALL DQAGI(FUN,BOUND,INF,EPSABS,EPSREL,ANS,ABSERR,NEVAL,IERR,  &
            LIMIT,LENW,LAST,IWORK,WORK)
 DEALLOCATE(WORK)
 DEALLOCATE(IWORK)
-Sigma0 = ans/10d5
+Sigma0 = ans/10.d5
 contains 
 function FUN(z)
 IMPLICIT NONE
@@ -263,16 +271,16 @@ curf = curf/sqrt(1.d0/s-0.5d0)
 
 ENDFUNCTION
 
-SUBROUTINE findu(u,domain)
-USE RK
+SUBROUTINE findu(u)
+USE RK,only:rk4
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::u(:,:)
 DOUBLE COMPLEX                  ::ui(3)
-DOUBLE PRECISION                ::a,b,domain
+DOUBLE PRECISION                ::a,b
+!DOUBLE PRECISION                ::domain
 INTEGER                         ::n
 
-
-u = 0.d0
+u = (1.d0,0.d0)*0.d0
 n = size(u,2)
 a = 0.001d0
 b = 1.d0*domain
@@ -280,49 +288,52 @@ ui = (/a,1.d0,0.d0/)
 CALL rk4(a,b,N,p,q,p,u,ui)
 contains
 
-FUNCTION p(r)
+RECURSIVE FUNCTION p(r)
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::p
-DOUBLE PRECISION                ::r
+DOUBLE PRECISION,INTENT(IN)     ::r
 p = (0.d0,0.d0)
 ENDFUNCTION
 
-FUNCTION q(r)
+RECURSIVE FUNCTION q(r)
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::q
-DOUBLE PRECISION                ::r
+DOUBLE PRECISION,INTENT(IN)     ::r
 q = k3sqrt(r)
-!q = +1.d0
+!q = dsin(r)
 ENDFUNCTION
 
 ENDSUBROUTINE
 
 SUBROUTINE findh1(u,h1)
 IMPLICIT NONE
+include 'omp_lib.h'
 DOUBLE COMPLEX                  ::u(:,:),h1(:)
 DOUBLE COMPLEX                  ::rad
 DOUBLE PRECISION                ::h,r
 INTEGER                         ::i,n
-
 n = size(u,2)
 do i = 1, N 
 !find h1 by the interploted u
         r   = u(1,i)
         rad = sqrt(kappa(r)**2*(1.d0-nu(r)**2)/sigma0(r)/r)
-        h1(i) = u(2,i)*rad*exp(-0.5*(0.d0,1.d0)*ExpPart(r))
+        h1(i) = u(2,i)*rad*exp(-0.5d0*(0.d0,1.d0)*ExpPart(r))
 enddo
 
 CALL refineh1(u,h1)
 
 CONTAINS
-        Function ExpPart(r)
+Function ExpPart(r)
         IMPLICIT NONE
-        DOUBLE PRECISION                ::ExpPart,r
-        DOUBLE PRECISION                ::err = 10.d-10
+        DOUBLE PRECISION,INTENT(IN)     ::r
+        DOUBLE PRECISION                ::rr
+        DOUBLE PRECISION                ::ExpPart
+        DOUBLE PRECISION                ::err = 10.d-8
         INTEGER                         ::IERR
-        CALL DGAUS8(Sigma,0.d0,r,ERR,ExpPart,IERR)
+        rr = r
+        CALL DGAUS8(Sigma,0.d0,rr,ERR,ExpPart,IERR)
 
-        ENDFUNCTION ExpPart
+ENDFUNCTION ExpPart
 
 ENDSUBROUTINE findh1
 
@@ -343,23 +354,24 @@ enddo
 
 ENDSUBROUTINE refineh1
 
-SUBROUTINE FindPhi1(phi1)
+SUBROUTINE FindPhi1()
 IMPLICIT NONE
-DOUBLE COMPLEX                  ::phi1(:),k(4)
+DOUBLE COMPLEX                  ::k(4)
+!DOUBLE COMPLEX                  ::phi1r(:)
 DOUBLE PRECISION                ::r,h
 INTEGER                         ::i,j,l,n
 
 n = size(u,2)
 !!Solve ODE of phi from density by RK4
 h = u(1,3)-u(1,1)
-phi1(1) = (0.d0,0.d0)
+phi1r(1) = (0.d0,0.d0)
 DO i = 2,N-2,2
         r = u(1,i-1)
-        k(1) = h*dsimplifiedPoisson(r           ,phi1(i/2)                ,h1(i-1))
-        k(2) = h*dsimplifiedPoisson(r+h/2.d0    ,phi1(i/2)+k(1)/2.d0      ,h1(i))
-        k(3) = h*dsimplifiedPoisson(r+h/2.d0    ,phi1(i/2)+k(2)/2.d0      ,h1(i))
-        k(4) = h*dsimplifiedPoisson(r+h         ,phi1(i/2)+k(3)           ,h1(i+1))
-        phi1(i/2+1) = phi1(i/2) + (k(1)+2.d0*k(2)+2.d0*k(3)+k(4))/6.d0
+        k(1) = h*dsimplifiedPoisson(r           ,phi1r(i/2)                ,h1(i-1))
+        k(2) = h*dsimplifiedPoisson(r+h/2.d0    ,phi1r(i/2)+k(1)/2.d0      ,h1(i))
+        k(3) = h*dsimplifiedPoisson(r+h/2.d0    ,phi1r(i/2)+k(2)/2.d0      ,h1(i))
+        k(4) = h*dsimplifiedPoisson(r+h         ,phi1r(i/2)+k(3)           ,h1(i+1))
+        phi1r(i/2+1) = phi1r(i/2) + (k(1)+2.d0*k(2)+2.d0*k(3)+k(4))/6.d0
 ENDDO
 
 
@@ -382,11 +394,12 @@ dsimplifiedPoisson = -phi/(2.d0*r)+(0.d0,1.d0)*cmplx(Sigma(r),0)*h
 !!dsimplifiedPoisson = -phi*r
 ENDFUNCTION
 
-function Sigma(r)
+recursive function Sigma(r) RESULT(ans)
 !This is NOT related to density
 IMPLICIT NONE
-DOUBLE PRECISION                ::Sigma,r
-Sigma = 2.d0*pi*G*sigma0(r)/snsd(r)**2
+DOUBLE PRECISION                ::ans
+DOUBLE PRECISION,INTENT(IN)     ::r
+ans = 2.d0*pi*G*sigma0(r)/snsd(r)**2
 ENDFUNCTION
 
 SUBROUTINE FindForce(force,r,th)
@@ -509,39 +522,39 @@ ENDFUNCTION
 endfunction
 
 SUBROUTINE single_grid(l,wri,wii)
+!USE OMP_LIB
 IMPLICIT NONE
+include 'omp_lib.h'
 type searchgrid_type
+sequence
         DOUBLE PRECISION::coord(12,12,2)
         DOUBLE PRECISION::error(12,12)
 endtype
-type(searchgrid_type)            ::searchgrid
+type(searchgrid_type)           ::searchgrid,recvgrid
 DOUBLE PRECISION                ::dr,wri,wii,di
 INTEGER                         ::l,i,j,p(2)
 
 
+
 dr = 1.d0/10.0d0**(l-1)
 di = 0.5d0/10.0d0**(l-1)
+!most left and upper grid
 wri = wri +(-6.d0+0.5d0)*dr
 wii = wii +(-6.d0+0.5d0)*dr
-!CALL INIT_STELLARDISK(100,15.d0)
-!print*,  abs(error())
-!CALL ENDSTELLARDISK
-!stop
+
 DO i = 1,12
         searchgrid%coord(:,i,2) = dble(i-1)*dr + wii
         searchgrid%coord(i,:,1) = dble(i-1)*dr + wri
 enddo
-
-DO i = 1,12
 DO j = 1,12
+CALL INIT_STELLARDISK(100,20.d0)
+DO i = 1,12
         wr = searchgrid%coord(i,j,1)
         wi = searchgrid%coord(i,j,2)
-        CALL INIT_STELLARDISK(100,20.d0)
-        searchgrid%error(i,j) = abs(error())
-        CALL ENDSTELLARDISK
+        CALL CALSPIRAL(i,j)
 ENDDO
 ENDDO
-
+        
 p = MINLOC(searchgrid%error(:,:))
 i = p(1)
 j = p(2)
@@ -556,12 +569,71 @@ wii = searchgrid%coord(i,j,2)
 
 ENDSUBROUTINE
 
+SUBROUTINE omp_single_grid(l,wri,wii,err)
+!USE OMP_LIB
+IMPLICIT NONE
+include 'omp_lib.h'
+type searchgrid_type
+sequence
+        DOUBLE PRECISION::coord(12,12,2)
+        DOUBLE PRECISION::error(12,12)
+endtype
+type(searchgrid_type)           ::searchgrid,recvgrid
+DOUBLE PRECISION                ::dr,wri,wii,di,err
+INTEGER                         ::l,i,j,p(2)
+
+INTEGER                 ::ipc
+
+
+dr = 1.d0/10.0d0**(l-1)
+di = 0.5d0/10.0d0**(l-1)
+!most left and upper grid
+wri = wri +(-6.d0+0.5d0)*dr
+wii = wii +(-6.d0+0.5d0)*di
+DO i = 1,12
+!       searchgrid%coord(:,i,2) = dble(i-1)*dr + wii
+!       searchgrid%coord(i,:,1) = dble(i-1)*dr + wri
+        searchgrid%coord(:,i,2) =                wii
+        searchgrid%coord(i,:,1) =                wri
+enddo
+CALL INIT_STELLARDISK(100,20.d0)
+!$OMP PARALLEL DO PRIVATE(wi,wr,u,h1) SHARED(searchgrid)
+!OMP DO        
+DO i = 1,12
+DO j = 1,12
+        wr = searchgrid%coord(i,j,1)
+        wi = searchgrid%coord(i,j,2)
+!       print *,OMP_GET_THREAD_NUM(),wr,wi,j
+        CALL CALSPIRAL(i,j)
+!       searchgrid%error(i,j) = abs(error())
+ENDDO
+ENDDO
+!OMP END DO
+!$OMP END PARALLEL DO
+CALL ENDSTELLARDISK
+        
+p = MINLOC(searchgrid%error(:,:))
+i = p(1)
+j = p(2)
+wri = searchgrid%coord(i,j,1)
+wii = searchgrid%coord(i,j,2)
+err = searchgrid%error(i,j)
+!if(j.eq.1 .or. j.eq.12 .or. i.eq.1 .or. i.eq.12)l = l -1
+!DO i = 1,12
+!DO j = 1,12
+!        print *,searchgrid%coord(i,j,:),searchgrid%error(i,j)
+!ENDDO
+!ENDDO
+
+ENDSUBROUTINE
+
 SUBROUTINE findpspsd(wri,wii)
 IMPLICIT NONE
-DOUBLE PRECISION                ::wri,wii
+DOUBLE PRECISION                ::wri,wii,err
 INTEGER                         ::l
-do l = 1,5
-        CALL single_grid(l,wri,wii)
+do l = 1,8
+        CALL omp_single_grid(l,wri,wii,err)
+!       print *,wri,wii,err
 enddo
 
 ENDSUBROUTINE 
@@ -606,6 +678,89 @@ type::comp_type
         DOUBLE PRECISION,POINTER        ::dM,da,db,VDisk
 endtype
 type(type_stellarspiral)                ::stellarspiral
+!SUBROUTINE mpi_single_grid(l,wri,wii)
+!IMPLICIT NONE
+!include 'mpif.h'
+!type searchgrid_type
+!sequence
+!        DOUBLE PRECISION::coord(12,12,2)
+!        DOUBLE PRECISION::error(12,12)
+!endtype
+!type(searchgrid_type)           ::searchgrid,recvgrid
+!DOUBLE PRECISION                ::dr,wri,wii,di
+!INTEGER                         ::l,i,j,p(2)
+!!!mpi
+!INTEGER                         ::ierr,nprocs,myid,trunknum
+!integer                         ::mpi_grid_type,dextent
+!integer                         ::oldtypes(0:1), blockcounts(0:1), &
+!                                  offsets(0:1),itag,istat
+!dr = 1.d0/10.0d0**(l-1)
+!di = 0.5d0/10.0d0**(l-1)
+!!most left and upper grid
+!wri = wri +(-6.d0+0.5d0)*dr
+!wii = wii +(-6.d0+0.5d0)*dr
+!
+!DO i = 1,12
+!        searchgrid%coord(:,i,2) = dble(i-1)*dr + wii
+!        searchgrid%coord(i,:,1) = dble(i-1)*dr + wri
+!enddo
+!call MPI_INIT(ierr)
+!call MPI_COMM_RANK(MPI_COMM_WORLD,myid,ierr)
+!call MPI_COMM_SIZE(MPI_COMM_WORLD,nprocs,ierr)
+!
+!call MPI_TYPE_EXTENT(MPI_DOUBLE_PRECISION,dextent,ierr)
+!offsets(0) = 0
+!oldtypes(0) = MPI_DOUBLE_PRECISION
+!blockcounts(0) = 12*12*2
+!offsets(1) = 12*12*2*dextent
+!oldtypes(1) = MPI_DOUBLE_PRECISION 
+!blockcounts(1) = 12*12
+!call MPI_TYPE_STRUCT(2,blockcounts,offsets,oldtypes,mpi_grid_type,ierr)
+!
+!call MPI_TYPE_CONTIGUOUS(12*12*2,MPI_DOUBLE_PRECISION,mpi_grid_type,ierr)
+!call MPI_TYPE_COMMIT(mpi_grid_type,ierr)
+!
+!trunknum = 12/nprocs + 1
+!if(myid.ne.0)then
+!!print *,myid,min0(trunknum*myid+trunknum,12)
+!DO j = 1,12
+!!DO i = 1,12
+!DO i = 1+trunknum*myid,min0(trunknum*myid+trunknum,12)
+!        wr = searchgrid%coord(i,j,1)
+!        wi = searchgrid%coord(i,j,2)
+!        !CALL INIT_STELLARDISK(10,20.d0)
+!        !searchgrid%error(i,j) = abs(error())
+!        !CALL ENDSTELLARDISK
+!ENDDO
+!ENDDO
+!endif
+!itag = 2000
+!if(myid.ne.0)then
+!        CALL MPI_SEND(searchgrid,1,mpi_grid_type,0,itag,MPI_COMM_WORLD,ierr)
+!elseif(myid.eq.0)then
+!        DO i = 1,nprocs-1
+!        CALL MPI_RECV(recvgrid  ,1,mpi_grid_type,i,itag,MPI_COMM_WORLD,istat,ierr)
+!        searchgrid%coord(1+trunknum*i:min0(trunknum*myid+trunknum,12),:,:) &
+!       =  recvgrid%coord(1+trunknum*i:min0(trunknum*myid+trunknum,12),:,:) 
+!        searchgrid%error(1+trunknum*i:min0(trunknum*myid+trunknum,12),:) &
+!       =  recvgrid%error(1+trunknum*i:min0(trunknum*myid+trunknum,12),:) 
+!        ENDDO
+!endif
+!CALL MPI_FINALIZE(ierr)
+!        
+!p = MINLOC(searchgrid%error(:,:))
+!i = p(1)
+!j = p(2)
+!wri = searchgrid%coord(i,j,1)
+!wii = searchgrid%coord(i,j,2)
+!!if(j.eq.1 .or. j.eq.12 .or. i.eq.1 .or. i.eq.12)l = l -1
+!DO i = 1,12
+!DO j = 1,12
+!        print *,searchgrid%coord(i,j,:),searchgrid%error(i,j)
+!ENDDO
+!ENDDO
+!
+!ENDSUBROUTINE
 ENDSUBROUTINE
 
 ENDMODULE STELLARDISK
