@@ -111,8 +111,8 @@ ENDFUNCTION
 ENDSUBROUTINE
 
 SUBROUTINE rk4(ri,rf,N,p,q,s,u,ui)
+USE OMP_LIB
 IMPLICIT NONE
-include 'omp_lib.h'
 DOUBLE COMPLEX          ::u(3,N),ui(3),uu(3)
 DOUBLE COMPLEX          ::K(3,4)
 DOUBLE COMPLEX,EXTERNAL ::p,q,s
@@ -123,6 +123,12 @@ DOUBLE PRECISION        ::r
 DOUBLE PRECISION        ::ri,rf,h
 INTEGER                 ::N
 INTEGER                 ::I,J,L
+
+!check input condition
+if(n.eq.0)then
+        print *,'u has no length'
+        stop
+endif
 
 !init boundary
 h = (rf-ri)/REAL(N)

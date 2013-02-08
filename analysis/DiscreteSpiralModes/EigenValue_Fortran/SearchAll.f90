@@ -1,33 +1,78 @@
-PROGRAM find_all
-USE PLOTTING
+program test
 USE STELLARDISK
+USE OMP_LIB
+
 IMPLICIT NONE
 type searchgrid_type
-        DOUBLE PRECISION::coord(4,4,2)
-        DOUBLE PRECISION::error(4,4)
+sequence
+        DOUBLE PRECISION,ALLOCATABLE::coord(:,:,:)
+        DOUBLE PRECISION,ALLOCATABLE::error(:,:)
+        DOUBLE PRECISION,ALLOCATABLE::lcoord(:,:)
+        DOUBLE PRECISION,ALLOCATABLE::lerror(:)
 endtype
-type(searchgrid_type)            ::searchgrid
-DOUBLE PRECISION                  ::wri,wii
-INTEGER                          ::l
+type(searchgrid_type)           ::searchgrid,recvgrid
+DOUBLE PRECISION                ::dr,wri,wii,di,err
+DOUBLE PRECISION                ::domain(4) = (/20d0,70d0,0d0,-70d0/)
+INTEGER                         ::l,i,j,p(1),n
+INTEGER                         ::ipc
+INTEGER                         ::now(3)
 
-DOUBLE PRECISION,ALLOCATABLE    ::a(:,:)
+n = 100
 
-!!$OMP PARALLEL DEFAULT(NONE),PRIVATE(a)
-!!$OMP DO
-!DO l = 1,4
-!        ALLOCATE(a(2,2))
-!        print *,'jer',l
-!        DEALLOCATE(a)
+ALLOCATE(searchgrid.coord(n,n,2))
+ALLOCATE(searchgrid.lcoord(n*n,2))
+ALLOCATE(searchgrid.lerror(n*n))
+
+dr = (domain(2)-domain(1))/dble(n)
+di = (domain(4)-domain(3))/dble(n)
+!most left and upper grid
+wri = domain(1)
+wii = domain(3)
+DO i = 1,n
+        searchgrid%coord(:,i,2) = dble(i-1)*dr + wii
+        searchgrid%coord(i,:,1) = dble(i-1)*dr + wri
+!       searchgrid%coord(:,i,2) =                wii
+!       searchgrid%coord(i,:,1) =                wri
+enddo
+
+searchgrid.lcoord = reshape(searchgrid.coord,(/n*n,2/))
+!searchgrid.lerror = reshape(searchgrid.error,(/144/))
+
+!$OMP PARALLEL 
+CALL INIT_STELLARDISK(100,20.d0)
+!$OMP BARRIER
+!$OMP DO 
+DO j = 1,n*n
+        wr = searchgrid%lcoord(j,1)
+        wi = searchgrid%lcoord(j,2)
+!       ipc = omp_get_thread_num()
+!       print *,'!!!',j,ipc
+        CALL FindSpiral
+        searchgrid%lerror(j) = abs(error())
+ENDDO
+!$OMP END DO
+!$OMP END PARALLEL
+CALL ENDSTELLARDISK
+!p = MINLOC(searchgrid%lerror(:))
+!wri = searchgrid%lcoord(p(1),1)
+!wii = searchgrid%lcoord(p(1),2)
+!err = searchgrid%lerror(p(1))
+
+searchgrid.coord = reshape(searchgrid.coord,(/n,n,2/))
+searchgrid.error = reshape(searchgrid.lerror,(/n,n/))
+DO i = 1, N
+DO j = 1, N
+        print *,searchgrid.coord(i,j,:),searchgrid.error(i,j)
+ENDDO
+ENDDO
+
+!if(j.eq.1 .or. j.eq.12 .or. i.eq.1 .or. i.eq.12)l = l -1
+!DO i = 1,12
+!DO j = 1,12
+!        print *,searchgrid%coord(i,j,:),searchgrid%error(i,j)
 !ENDDO
-!!$OMP END DO
-!!$OMP END PARALLEL
-!stop
+!ENDDO
 
 
-wri = 63.d0
-wii = -0.5d0
-CALL findpspsd(wri,wii)
-print *,wri,wii
 
-STOP
-END PROGRAM
+endprogram
