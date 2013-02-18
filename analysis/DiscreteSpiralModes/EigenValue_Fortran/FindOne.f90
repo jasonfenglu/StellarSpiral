@@ -11,8 +11,8 @@ INTEGER                          ::l
 
 DOUBLE PRECISION,ALLOCATABLE    ::a(:,:)
 
-wri = 63.d0
-wii = -0.5d0
+wri = 35.00
+wii = -0.2
 CALL findpspsd(wri,wii)
 print *,wri,wii
 

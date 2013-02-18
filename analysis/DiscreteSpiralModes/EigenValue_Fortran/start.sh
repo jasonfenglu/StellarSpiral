@@ -7,7 +7,7 @@
 ###### Number of nodes and cores ######
 #PBS -l nodes=1:ppn=12:dl
 ###### Queue name ######
-#PBS -q debug
+#PBS -q serial
 ###### Specific the shell types ######
 #PBS -S /bin/bash
 
@@ -17,7 +17,7 @@ cd $PBS_O_WORKDIR
 ###### Load modules to setup environment ######
 . /etc/profile.d/modules.sh
 module purge
-module load torque ifc/13.0 pgplot
+module load torque ifc/13.0 icc/13.0 pgplot
 OMP_NUM_THREADS=$PBS_NUM_PPN
 export OMP_NUM_THREADS
 

@@ -36,20 +36,26 @@ DOUBLE PRECISION                ::rb,Mb,gBulge,VBulge
 DOUBLE PRECISION                ::dM,da,db,VDisk
 !Toomre Q
 DOUBLE PRECISION                ::Q,Qod,rq
+!Lau Disk
+DOUBLE PRECISION                ::a1,a2,M1,M2
 
 Lh   = 2.8d0
 rhoh = 4.0e7
-Mb   = 10.0d7
-rb   = 2.0d0
+Mb   = 1.2d8
+rb   = 1.8d0
 dM   = 7.0d10
-da   = 2.7
-db   = 0.3
+da   = 2.7d0
+db   = 0.3d0
 Qod  = 1.d0
-q    = 1.2d0
-rq   = 2.8d0
+q    = 1.8d0
+rq   = 1.0d0
+a1   = 8.d0
+a2   = 5.7d0
+M1   = 8.0d10
+M2   = 2.6d10
 
-if(.not.allocated(stdpara))ALLOCATE(stdpara(10))
-stdpara = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq/)
+if(.not.allocated(stdpara))ALLOCATE(stdpara(14))
+stdpara = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2/)
 para => stdpara
 
 !!Allocate
@@ -144,7 +150,7 @@ endfunction
 function snsd(r)
 IMPLICIT NONE
 DOUBLE PRECISION          ::r,snsd
-snsd = ToomreQ(r)*pi*g*sigma0(r)/kappa(r)
+snsd = ToomreQ(r)*pi*GravConst*sigma0(r)/kappa(r)
 ENDFUNCTION
  
 function Sigma0(rr)
@@ -160,6 +166,7 @@ DOUBLE PRECISION,ALLOCATABLE ::WORK(:)
 INTEGER,ALLOCATABLE       ::IWORK(:)
 
 r = rr
+goto 10
 M     = para(5)
 a     = para(6)
 b     = para(7)
@@ -177,6 +184,10 @@ CALL DQAGI(FUN,BOUND,INF,EPSABS,EPSREL,ANS,ABSERR,NEVAL,IERR,  &
 DEALLOCATE(WORK)
 DEALLOCATE(IWORK)
 Sigma0 = ans/10.d5
+
+10 sigma0 = LauDiskSigma0(r)
+
+
 contains 
 function FUN(z)
 IMPLICIT NONE
@@ -188,6 +199,39 @@ fun =  &
 
 ENDFUNCTION
 
+ENDFUNCTION
+
+FUNCTION LauDiskSigma0(r)
+IMPLICIT NONE
+DOUBLE PRECISION                ::LauDiskSigma0
+DOUBLE PRECISION                ::r
+!Lau Disk
+DOUBLE PRECISION                ::x1,x2
+DOUBLE PRECISION                ::a1,a2,M1,M2
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+x1 = sqrt(1.d0+(r/a1)**2)
+x2 = sqrt(1.d0+(r/a2)**2)
+
+LauDiskSigma0 = 4.5d0*M1/pi/a1**2/x1**11
+LauDiskSigma0 = LauDiskSigma0 - 4.5d0*M2/pi/a2**2/x2**11 
+
+CONTAINS
+
+FUNCTION H(x)
+IMPLICIT NONE
+DOUBLE PRECISION                ::H,x
+
+H = 0.d0
+H = 59.0625/x**11 + H
+H = 26.25  /x**9  + H
+H = 16.875 /x**7  + H
+H = 11.25  /x**5  + H
+H = 6.5625 /x**3  + H
+
+ENDFUNCTION
 ENDFUNCTION
 
 function kappa(rr)
@@ -237,12 +281,16 @@ gBulge = 4.d0*pi*rb**3*Mb*(-r/sqrt(1.d0+r**2/rb**2)/rb+dasinh(r/rb))
 gBulge = gBulge*GravConst/r**2
 VBulge = sqrt(r*gBulge)
 
-!Disk
-dM     = para(5)
-da     = para(6)
-db     = para(7)
-!VDisk  = sqrt(dfunc(pDisk,r)*r)
-VDisk  = sqrt(dpDisk(r)*r)
+!!Disk
+!dM     = para(5)
+!da     = para(6)
+!db     = para(7)
+!!VDisk  = sqrt(dfunc(pDisk,r)*r)
+!VDisk  = sqrt(dpDisk(r)*r)
+
+!LauDisk 
+VDisk  = VLauDisk(r)
+
 
 Omega  = sqrt(VHalo**2+VBulge**2+VDisk**2)/r
 
@@ -271,6 +319,40 @@ errormsg = trim(errormsg)
 errormsg = 'Omega nan.@r = '//errormsg
 if(isnan(Omega))CALL XERMSG('k3sqrt','Omega',errormsg,-99,2)
 ENDSUBROUTINE
+
+FUNCTION VLauDisk(r)
+IMPLICIT NONE
+DOUBLE PRECISION                ::VLauDisk
+DOUBLE PRECISION                ::r
+DOUBLE PRECISION                ::x1,x2
+DOUBLE PRECISION                ::a1,a2,M1,M2
+
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+x1 = sqrt(1.d0+(r/a1)**2)
+x2 = sqrt(1.d0+(r/a2)**2)
+
+VLauDisk = (M1*GravConst/a1**3*H(x1))
+VLauDisk = VLauDisk - (M2*GravConst/a2**3*H(x2))
+VLauDisk = sqrt(16.d0/105.d0*VLauDisk)
+VLauDisk = VLauDisk*r
+
+ENDFUNCTION
+
+FUNCTION H(x)
+IMPLICIT NONE
+DOUBLE PRECISION                ::H,x
+
+H = 0.d0
+H = 59.0625/x**11 + H
+H = 26.25  /x**9  + H
+H = 16.875 /x**7  + H
+H = 11.25  /x**5  + H
+H = 6.5625 /x**3  + H
+
+ENDFUNCTION
 
 ENDFUNCTION
 
@@ -629,43 +711,53 @@ wii = searchgrid%coord(i,j,2)
 
 ENDSUBROUTINE
 
-SUBROUTINE omp_single_grid(l,wri,wii,err)
+SUBROUTINE omp_single_grid(l,wri,wii,err,r)
 USE OMP_LIB
 IMPLICIT NONE
 type searchgrid_type
 sequence
-        DOUBLE PRECISION::coord(12,12,2)
-!       DOUBLE PRECISION::error(12,12)
-        DOUBLE PRECISION::lcoord(144,2)
-        DOUBLE PRECISION::lerror(144)
+        DOUBLE PRECISION,ALLOCATABLE::coord(:,:,:)
+        DOUBLE PRECISION,ALLOCATABLE::error(:,:)
+        DOUBLE PRECISION,ALLOCATABLE::lcoord(:,:)
+        DOUBLE PRECISION,ALLOCATABLE::lerror(:)
 endtype
 type(searchgrid_type)           ::searchgrid,recvgrid
 DOUBLE PRECISION                ::dr,wri,wii,di,err
-INTEGER                         ::l,i,j,p(1)
+DOUBLE PRECISION                ::r
+INTEGER                         ::n
+INTEGER                         ::l,i,j,p(2)
 INTEGER                         ::ipc
 INTEGER                         ::now(3)
 
+r  = 2.d0**(1.d0-dble(l))
+n  = 8
+dr = r/dble(n)
+di = dr
+ALLOCATE(searchgrid.coord(n,n,2))
+ALLOCATE(searchgrid.error(n,n))
+ALLOCATE(searchgrid.lcoord(n*n,2))
+ALLOCATE(searchgrid.lerror(n*n))
 
-dr = 1.d0/10.0d0**(l-1)
-di = 0.5d0/10.0d0**(l-1)
 !most left and upper grid
-wri = wri +(-6.d0+0.5d0)*dr
-wii = wii +(-6.d0+0.5d0)*di
-DO i = 1,12
+wri  = wri - r/2.d0
+wii  = wii - r/2.d0
+!wri = wri +(-r/2.d0+0.5d0)*dr
+!wii = wii +(-r/2.d0+0.5d0)*di
+DO i = 1,n
         searchgrid%coord(:,i,2) = dble(i-1)*dr + wii
         searchgrid%coord(i,:,1) = dble(i-1)*dr + wri
 !       searchgrid%coord(:,i,2) =                wii
 !       searchgrid%coord(i,:,1) =                wri
 enddo
 
-searchgrid.lcoord = reshape(searchgrid.coord,(/144,2/))
+searchgrid.lcoord = reshape(searchgrid.coord,(/n*n,2/))
 !searchgrid.lerror = reshape(searchgrid.error,(/144/))
 
 !$OMP PARALLEL 
-CALL INIT_STELLARDISK(500,20.d0)
+CALL INIT_STELLARDISK(200,20.d0)
 !$OMP BARRIER
-!$OMP DO 
-DO j = 1,144
+!$OMP DO ORDERED
+DO j = 1,n**2
         wr = searchgrid%lcoord(j,1)
         wi = searchgrid%lcoord(j,2)
 !       ipc = omp_get_thread_num()
@@ -676,15 +768,17 @@ ENDDO
 !$OMP END DO
 !$OMP END PARALLEL
 CALL ENDSTELLARDISK
-p = MINLOC(searchgrid%lerror(:))
-wri = searchgrid%lcoord(p(1),1)
-wii = searchgrid%lcoord(p(1),2)
-err = searchgrid%lerror(p(1))
+searchgrid.error = reshape(searchgrid.lerror,(/n,n/))
+p = MINLOC(searchgrid%error(:,:))
+i = p(1)
+j = p(2)
+wri = searchgrid%coord(i,j,1)
+wii = searchgrid%coord(i,j,2)
+err = searchgrid%error(i,j)
 
-
-if(j.eq.1 .or. j.eq.12 .or. i.eq.1 .or. i.eq.12)then
+if(j.eq.1 .or. j.eq.n .or. i.eq.1 .or. i.eq.n)then
         l = l - 2
-        CALL XERMSG('k3sqrt','Omega Finding','Eigenvalue at boundary, going up.',-95,-1)
+        CALL XERMSG('k3sqrt','Omega Finding','Eigenvalue at boundary, giving up.',-95,-1)
 endif
 !DO i = 1,12
 !DO j = 1,12
@@ -696,12 +790,13 @@ ENDSUBROUTINE
 
 SUBROUTINE findpspsd(wri,wii)
 IMPLICIT NONE
-DOUBLE PRECISION                ::wri,wii,err
+DOUBLE PRECISION                ::wri,wii,err,r
 INTEGER                         ::l
 l = 1
-do while (l.le.12)
-        CALL omp_single_grid(l,wri,wii,err)
-        print *,l,wri,wii,err
+write(*,'(I2,3X,F7.4,3X,F7.4,3X,E10.3)')0,wri,wii
+do while (l.le.20)
+        CALL omp_single_grid(l,wri,wii,err,r)
+        write(*,'(I2,3X,F7.4,3X,F7.4,3X,E10.3,3X,D10.3)')l,wri,wii,err,r
         if(abs(err).le.1d-6)exit
         l = l + 1
 enddo
