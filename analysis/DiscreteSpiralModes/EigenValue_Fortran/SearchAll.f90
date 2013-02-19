@@ -13,13 +13,12 @@ sequence
 endtype
 type(searchgrid_type)           ::searchgrid,recvgrid
 DOUBLE PRECISION                ::dr,wri,wii,di,err
-DOUBLE PRECISION                ::domain(4) = (/15d0,65d0,0d0,-2d0/)
+DOUBLE PRECISION                ::domain(4) = (/15d0,70d0,0d0,-4d0/)
 INTEGER                         ::l,i,j,p(1),n
 INTEGER                         ::ipc
 INTEGER                         ::now(3)
 
 n = 100
-
 ALLOCATE(searchgrid.coord(n,n,2))
 ALLOCATE(searchgrid.error(n,n))
 ALLOCATE(searchgrid.lcoord(n*n,2))
@@ -37,8 +36,6 @@ DO i = 1,n
 !       searchgrid%coord(:,i,2) =                wii
 enddo
 searchgrid.lcoord = reshape(searchgrid.coord,(/n*n,2/))
-!searchgrid.lerror = reshape(searchgrid.error,(/144/))
-
 !$OMP PARALLEL 
 CALL INIT_STELLARDISK(200,20.d0)
 !$OMP BARRIER
@@ -60,29 +57,21 @@ CALL ENDSTELLARDISK
 !err = searchgrid%lerror(p(1))
 searchgrid.coord = reshape(searchgrid.coord,(/n,n,2/))
 searchgrid.error = reshape(searchgrid.lerror,(/n,n/))
-DO i = 1, N
-DO j = 1, N
-        print *,searchgrid.coord(i,j,:),searchgrid.error(i,j)
-ENDDO
-ENDDO
-
-
-
-!if(j.eq.1 .or. j.eq.12 .or. i.eq.1 .or. i.eq.12)l = l -1
-!DO i = 1,12
-!DO j = 1,12
-!        print *,searchgrid%coord(i,j,:),searchgrid%error(i,j)
+!DO i = 1, N
+!DO j = 1, N
+!        print *,searchgrid.coord(i,j,:),searchgrid.error(i,j)
 !ENDDO
 !ENDDO
+
 
 CALL plot2d(searchgrid.error,n,n,domain)
 
-100 CALL INIT_STELLARDISK(100,40.d0)
-wr = 10
-wi = 10
+1000 CALL INIT_STELLARDISK(100,40.d0)
+wr = 60.d0
+wi = -1.d0
 CALL FindSpiral
 DO i = 1, 100
-        write(10,*)spiral.r(i),real(Sigma0(spiral.r(i)))
+        write(10,*)spiral.r(i),real(k3sqrt(spiral.r(i)))
 enddo
 
 

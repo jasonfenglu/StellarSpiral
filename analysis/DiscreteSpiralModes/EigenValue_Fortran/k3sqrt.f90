@@ -3,7 +3,7 @@ IMPLICIT NONE
 DOUBLE PRECISION,PARAMETER::GravConst   = 4.3d-6 
 DOUBLE PRECISION,PARAMETER::g           = 4.3d0
 DOUBLE PRECISION,PARAMETER::pi          = 4.d0*atan(1.d0)
-LOGICAL,PARAMETER         ::withf       = .false.
+LOGICAL,PARAMETER         ::withf       = .true.
 DOUBLE PRECISION,POINTER,SAVE           ::para(:)=>null()
 DOUBLE PRECISION,SAVE     ::wr          
 DOUBLE PRECISION,SAVE     ::wi          
@@ -40,7 +40,7 @@ DOUBLE PRECISION                ::Q,Qod,rq
 DOUBLE PRECISION                ::a1,a2,M1,M2
 
 Lh   = 2.8d0
-rhoh = 4.0e7
+rhoh = 4.0d7
 Mb   = 1.2d8
 rb   = 1.8d0
 dM   = 7.0d10
@@ -144,7 +144,20 @@ else
         k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
                  - 1.d0 + nu(r)**2)
 endif
-if(isnan(real(k3sqrt)))CALL XERMSG('k3sqrt','k3sqrt','k3sqrt is nan.',-98,2)
+!if(isnan(real(k3sqrt)))CALL XERMSG('k3sqrt','k3sqrt','k3sqrt is nan.',-98,2)
+CALL CheckResult
+
+CONTAINS
+
+SUBROUTINE CheckResult
+IMPLICIT NONE
+CHARACTER(len=72)                       ::errormsg
+write(errormsg,"(E10.3)")r
+errormsg = trim(errormsg)
+errormsg = 'k3sqrt nan.@r = '//errormsg
+if(isnan(real(k3sqrt)))CALL XERMSG('k3sqrt','k3sqrt',errormsg,-98,2)
+ENDSUBROUTINE
+
 endfunction
 
 function snsd(r)
@@ -383,19 +396,29 @@ dfunc = ans
 !ans = ans +        2.d0*func(r+dr)
 !ans = ans +  -1.d0/2.d0*func(r+2.d0*dr)
 !dfunc = ans/dr
+if(isnan(dfunc))CALL XERMSG('k3sqrt','dfunc','dfunc is nan.',-94,0)
 endfunction
  
 function curf(r)
 IMPLICIT NONE
-DOUBLE PRECISION                ::curf
+DOUBLE COMPLEX                  ::curf
 DOUBLE PRECISION                ::s,r,tmp
 INTEGER                         ::m=2
 
 s    = -r/Omega(r)*dfunc(Omega,r)
-curf = 2.d0*dble(m)*(pi*g*sigma0(r))/kappa(r)**2/r
-curf = curf/sqrt(1.d0/s-0.5d0)
-if(isnan(curf))CALL XERMSG('k3sqrt','curf','curf is nan.',-96,0)
-
+curf = 2.d0*dble(m)*(pi*GravConst*sigma0(r))/kappa(r)**2/r
+curf = curf/sqrt(dcmplx(1.d0/s-0.5d0))
+!if(isnan(curf))CALL XERMSG('k3sqrt','curf','curf is nan.',-96,0)
+CALL CheckResult
+CONTAINS
+SUBROUTINE CheckResult
+IMPLICIT NONE
+CHARACTER(len=72)                       ::errormsg
+write(errormsg,"(E10.3)")s
+errormsg = trim(errormsg)
+errormsg = 'curf real nan.@s = '//errormsg
+if(isnan(real(curf)))CALL XERMSG('k3sqrt','curf',errormsg,-96,2)
+ENDSUBROUTINE
 ENDFUNCTION
  
 SUBROUTINE findu

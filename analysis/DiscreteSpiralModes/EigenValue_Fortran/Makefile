@@ -1,7 +1,7 @@
 F90=ifort
 FCC=icc
 
-FFLAGS=  -L. -lslatec -openmp -limf -fp-model precise -O3
+FFLAGS=  -L. -lslatec -openmp -fp-model precise -O3
 #INCL  = -I$(HDF5HOME)/include -I$(MPI_HOME)/include
 
 HDF5HOME=$(HDF5_HOME)
