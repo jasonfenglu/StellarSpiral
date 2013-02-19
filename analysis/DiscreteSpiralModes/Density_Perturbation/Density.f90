@@ -1,4 +1,4 @@
-PROGRAM spiral
+PROGRAM caldensity
 USE PLOTTING
 USE STELLARDISK
 IMPLICIT NONE
@@ -11,7 +11,7 @@ DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 INTEGER,PARAMETER               ::n=500
 
 CALL INIT_STELLARDISK(n,domain)
-
+CALL FindSpiral
 dx = domain/dble(n)
 dy = domain/dble(n)
 
@@ -35,11 +35,13 @@ ENDDO
 
 
 open(10,file='r-dep.dat')
-DO i = 2, n*4,2
-         r = real(u(1,i))
-        write(10,'(5(1XE15.6))')real(u(1,i)),real(u(2,i)),real(h1(i))/snsd(r)**2*sigma0(r),real(phi1r(i/2)),real(h1(i))
+DO i = 2, spiral.n,2
+        r = spiral.r(i)
+        write(10,'(5(1XE15.6))')spiral.r(i),real(spiral.u(2,i)),real(spiral.h1(i))/snsd(r)**2*sigma0(r),real(spiral.phi1r(i/2)),real(spiral.h1(i))
+        !r, u, sigma1,potential1
 enddo
 close(10)
+
 
 !!Find 2d Potential
 ALLOCATE(potential(2*n,2*n))
@@ -68,10 +70,6 @@ DEALLOCATE(ycoord)
 DEALLOCATE(density)
 CALL ENDSTELLARDISK
 STOP
-
-
-
-
 
 
 END PROGRAM

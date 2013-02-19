@@ -1,4 +1,4 @@
-PROGRAM spiral
+PROGRAM calforce
 USE PLOTTING
 USE STELLARDISK
 IMPLICIT NONE
@@ -38,8 +38,8 @@ ENDDO
 
 open(10,file='r-dep.dat')
 DO i = 2, n*4,2
-         r = real(u(1,i))
-        write(10,'(5(1XE15.6))')real(u(1,i)),real(u(2,i)),real(h1(i))/snsd(r)**2*sigma0(r),real(phi1r(i/2)),real(h1(i))
+         r = spiral.r(i)
+        write(10,'(5(1XE15.6))')spiral.r(i),real(spiral.u(2,i)),real(spiral.h1(i))/snsd(r)**2*sigma0(r),real(spiral.phi1r(i/2)),real(spiral.h1(i))
 enddo
 close(10)
 
@@ -61,7 +61,7 @@ DO j = 1, n*2
         th = atan2(ycoord(j),xcoord(i))
         call FindForce(force(i,j,:),r,th)
         tmp = sqrt(force(i,j,1)**2+force(i,j,2)**2)
-        write(*,'(5(1XE15.6))')r,tmp,tmp/(Omega(r)**2*r),tmp/(Omegadisk(r)**2*r)
+        write(*,'(5(1XE15.6))')r,tmp,tmp/(Omega(r)**2*r)
 ENDDO
 ENDDO
 

@@ -35,13 +35,14 @@
         !!Density
         vmax = real(MAXVAL(F(:,:)))
         vmin = real(MINVAL(F(:,:)))
-!       vmax = 7.
-!       vmin =-7.
+        vmax = 8.e20
+        vmin =-8.e20
+        print *,vmax,vmin
         CALL PALETT(2,CONTRA,Bright)
         CALL PGBBUF
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
         CALL PGIMAG(REAL(F(:,:)),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-        CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, '')
+        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
         CALL PGSCH(1.0)
         CALL PGLAB('kpc','kpc','Density')
 

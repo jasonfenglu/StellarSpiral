@@ -108,11 +108,11 @@ set urange [ * : * ] noreverse nowriteback  # (currently [-5.00000:5.00000] )
 set vrange [ * : * ] noreverse nowriteback  # (currently [-5.00000:5.00000] )
 set xlabel "" 0.000000,0.000000  font ""
 set x2label "" 0.000000,0.000000  font ""
-set xrange [ 0.00000 : 17.0000 ] noreverse nowriteback
+set xrange [ 0.00000 : 14.0000 ] noreverse nowriteback
 set x2range [ * : * ] noreverse nowriteback  # (currently [-10.0000:10.0000] )
 set ylabel "" 0.000000,0.000000  font ""
 set y2label "" 0.000000,0.000000  font ""
-set yrange [ * : * ] noreverse nowriteback  # (currently [-10.0000:10.0000] )
+set yrange [ -20 : 20 ] noreverse nowriteback  # (currently [-10.0000:10.0000] )
 set y2range [ * : * ] noreverse nowriteback  # (currently [-10.0000:10.0000] )
 set zlabel "" 0.000000,0.000000  font ""
 set zrange [ * : * ] noreverse nowriteback  # (currently [-10.0000:10.0000] )
@@ -133,6 +133,7 @@ set colorbox vertical origin 0.9,0.2 size 0.1,0.63 bdefault
 set loadpath 
 set fontpath 
 set fit noerrorvariables
-plot 'r-dep.dat' using 1:2 title 'u','r-dep.dat' using 1:3 title 'sigma1','r-dep.dat' using 1:4 title 'phi1','LoweA.dat' using 1:($2*7)title 'Lowea','r-dep.dat' using 1:5 title 'h1',0
+#plot 'r-dep.dat' using 1:2 title 'u','r-dep.dat' using 1:($3) title 'sigma1','r-dep.dat' using 1:($4) title 'phi1','LoweA.dat' using 1:($2)title 'Lowea','r-dep.dat' using 1:($5) title 'h1',0
+plot 'r-dep.dat' using 1:($2/1E12) title 'u','r-dep.dat' using 1:($3/1E20) title 'sigma1','r-dep.dat' using 1:($4/1E21) title 'phi1','LoweA.dat' using 1:($2)title 'Lowea','r-dep.dat' using 1:($5/1E15) title 'h1',0
 pause -1
 #    EOF
