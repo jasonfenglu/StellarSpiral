@@ -69,11 +69,11 @@ spiral%N    = 4*n
 
 !!choose pspd
 if(withf)then
-        wr = 57.102d0
-        wi = -2.182d0        
+        wr = 66.086052d0
+        wi = -2.919605d0     
 else
-        wr = 63.444d0
-        wi = -1.048d0
+        wr = 62.2930245d0
+        wi = -0.2307928d0
 endif
 
 ENDSUBROUTINE INIT_STELLARDISK
