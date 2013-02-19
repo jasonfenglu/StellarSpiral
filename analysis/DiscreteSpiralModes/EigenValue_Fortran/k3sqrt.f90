@@ -3,7 +3,7 @@ IMPLICIT NONE
 DOUBLE PRECISION,PARAMETER::GravConst   = 4.3d-6 
 DOUBLE PRECISION,PARAMETER::g           = 4.3d0
 DOUBLE PRECISION,PARAMETER::pi          = 4.d0*atan(1.d0)
-LOGICAL,PARAMETER         ::withf       = .true.
+LOGICAL,PARAMETER         ::withf       = .false.
 DOUBLE PRECISION,POINTER,SAVE           ::para(:)=>null()
 DOUBLE PRECISION,SAVE     ::wr          
 DOUBLE PRECISION,SAVE     ::wi          
@@ -15,6 +15,7 @@ type   spiral_type
        DOUBLE PRECISION,ALLOCATABLE     ::r(:)
        DOUBLE PRECISION                 ::rmax
        DOUBLE PRECISION                 ::rmin
+       DOUBLE PRECISION                 ::fortoone
        INTEGER                          ::N
        LOGICAL                          ::ucaled    = .false.
        LOGICAL                          ::h1caled   = .false.
@@ -401,7 +402,7 @@ endfunction
  
 function curf(r)
 IMPLICIT NONE
-DOUBLE COMPLEX                  ::curf
+DOUBLE PRECISION                ::curf
 DOUBLE PRECISION                ::s,r,tmp
 INTEGER                         ::m=2
 
@@ -666,6 +667,7 @@ RE = 1d-8
 AE = 1d-8
 call DFZERO(four21,B,C,RR,RE,AE,IFLAG)
 r = B
+spiral.fortoone = r
 do l = 1,spiral.n
         if(spiral.r(l).gt.r)then
                 uu(:) = spiral.u(:,l)
@@ -819,7 +821,7 @@ l = 1
 write(*,'(I2,3X,F7.4,3X,F7.4,3X,E10.3)')0,wri,wii
 do while (l.le.20)
         CALL omp_single_grid(l,wri,wii,err,r)
-        write(*,'(I2,3X,F7.4,3X,F7.4,3X,E10.3,3X,D10.3)')l,wri,wii,err,r
+        write(*,'(I2,3X,F7.4,3X,F7.4,3X,E10.3,3X,D10.3,3X,F7.4)')l,wri,wii,err,r,spiral.fortoone
         if(abs(err).le.1d-6)exit
         l = l + 1
 enddo

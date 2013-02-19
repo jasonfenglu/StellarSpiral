@@ -18,7 +18,7 @@ INTEGER                         ::l,i,j,p(1),n
 INTEGER                         ::ipc
 INTEGER                         ::now(3)
 
-n = 100
+n = 300
 ALLOCATE(searchgrid.coord(n,n,2))
 ALLOCATE(searchgrid.error(n,n))
 ALLOCATE(searchgrid.lcoord(n*n,2))
