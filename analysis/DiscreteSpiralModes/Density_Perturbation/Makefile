@@ -24,4 +24,4 @@ all: $(OBJECT) $(OBJECT2)
 	$(FCC) $(FFLAGS)  -c $< -o $@ 
 
 clean:
-	rm -rf *.o *.exe
+	rm -rf *.o *.exe *.mod

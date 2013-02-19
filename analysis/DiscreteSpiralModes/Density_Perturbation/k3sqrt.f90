@@ -448,7 +448,7 @@ RECURSIVE FUNCTION q(r)
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::q
 DOUBLE PRECISION,INTENT(IN)     ::r
-q = k3sqrt(r)
+q = dcmplx(k3sqrt(r))
 !q = dsin(r)
 ENDFUNCTION
 
@@ -471,6 +471,7 @@ do i = 1, spiral.n
 enddo
 
 CALL refineh1
+spiral.h1caled = .true.
 
 CONTAINS
 !Function ExpPart(r)
@@ -540,7 +541,6 @@ DO i = 2,N-2,2
         spiral.phi1r(i/2+1) = spiral.phi1r(i/2) + (k(1)+2.d0*k(2)+2.d0*k(3)+k(4))/6.d0
 ENDDO
 
-spiral.h1caled = .true.
 
 ENDSUBROUTINE
 
@@ -607,11 +607,11 @@ INTEGER                         ::i,j,k,l,n
 n = spiral.n
 do i = 1, n
         if(spiral.r(i).gt.r)then
+                hh1 =(r-spiral.u(1,i-1))/(spiral.u(1,i)-spiral.u(1,i-1))*(spiral.h1(i)-spiral.h1(i-1)) + spiral.h1(i-1)
                 exit
         endif
 enddo
 !uu = (r-u(1,i-1))/(u(1,i)-u(1,i-1))*(u(2,i)-u(2,i-1)) + u(2,i-1)
-hh1 =(r-spiral.u(1,i-1))/(spiral.u(1,i)-spiral.u(1,i-1))*(spiral.h1(i)-spiral.h1(i-1)) + spiral.h1(i-1)
 
 
 !find density

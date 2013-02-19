@@ -8,7 +8,7 @@ DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
-INTEGER,PARAMETER               ::n=500
+INTEGER,PARAMETER               ::n=1000
 
 CALL INIT_STELLARDISK(n,domain)
 CALL FindSpiral

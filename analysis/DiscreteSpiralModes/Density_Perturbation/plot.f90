@@ -29,14 +29,14 @@
         TR(6) = dy
 
         BRIGHT = 0.5
-        CONTRA = -0.9
+        CONTRA = 0.9
 
 
         !!Density
         vmax = real(MAXVAL(F(:,:)))
         vmin = real(MINVAL(F(:,:)))
-        vmax = 8.e20
-        vmin =-8.e20
+        vmax = 1.5e21
+        vmin =-1.5e21
         print *,vmax,vmin
         CALL PALETT(2,CONTRA,Bright)
         CALL PGBBUF
@@ -47,15 +47,15 @@
         CALL PGLAB('kpc','kpc','Density')
 
         !!Potential
-        vmax = real(MAXVAL(F2(:,:)))
-        vmin = real(MINVAL(F2(:,:)))
+!       vmax = real(MAXVAL(F2(:,:)))
+!       vmin = real(MINVAL(F2(:,:)))
 !       vmax = 100.
 !       vmin = -100.
-        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
-        CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-        CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, '')
-        CALL PGSCH(1.0)
-        CALL PGLAB('kpc','kpc','Potential')
+!       CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+!       CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+!       CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, '')
+!       CALL PGSCH(1.0)
+!       CALL PGLAB('kpc','kpc','Potential')
 
         !!Force
 !       TR2 = 0.
