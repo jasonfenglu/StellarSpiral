@@ -5,11 +5,12 @@
 #PBS -o bc.out
 #PBS -e bc.err
 ###### Number of nodes and cores ######
-#PBS -l nodes=1:ppn=1
+#PBS -l nodes=1:ppn=12:dl
 ###### Queue name ######
-#PBS -q serial
+#PBS -q small
 ###### Specific the shell types ######
 #PBS -S /bin/bash
+#PBS -M ccfeng@tiara.sinica.edu.tw
 
 ###### Enter this job's working directory ######
 cd $PBS_O_WORKDIR
@@ -17,7 +18,7 @@ cd $PBS_O_WORKDIR
 ###### Load modules to setup environment ######
 . /etc/profile.d/modules.sh
 module purge
-module load torque intel pgplot fftw
+module load torque ifc/13.0 icc/13.0 pgplot
 OMP_NUM_THREADS=$PBS_NUM_PPN
 export OMP_NUM_THREADS
 
@@ -25,5 +26,5 @@ rm -rf bc.log bc.err
 rm -rf pgplot.png
 ###### Run your jobs with parameters ######
 ./Density.exe 
-#./FindOne.exe 44.68 -1.784
-
+./SearchAll.exe
+#./FindOne.exe

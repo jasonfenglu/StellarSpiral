@@ -15,6 +15,7 @@ type   spiral_type
        DOUBLE PRECISION,ALLOCATABLE     ::r(:)
        DOUBLE PRECISION                 ::rmax
        DOUBLE PRECISION                 ::rmin
+       DOUBLE PRECISION                 ::fortoone
        INTEGER                          ::N
        LOGICAL                          ::ucaled    = .false.
        LOGICAL                          ::h1caled   = .false.
@@ -25,6 +26,7 @@ type(spiral_type)         ::spiral
 CONTAINS
 
 SUBROUTINE INIT_STELLARDISK(n,domain)
+USE OMP_LIB
 IMPLICIT NONE
 DOUBLE PRECISION                ::domain
 INTEGER                         ::n
@@ -41,39 +43,45 @@ DOUBLE PRECISION                ::a1,a2,M1,M2
 
 Lh   = 2.8d0
 rhoh = 4.0d7
-Mb   = 1.2d8
-rb   = 1.8d0
+Mb   = 1.8d8
+rb   = 1.6d0
 dM   = 7.0d10
 da   = 2.7d0
 db   = 0.3d0
 Qod  = 1.d0
 q    = 1.8d0
 rq   = 1.0d0
-a1   = 8.d0
-a2   = 5.7d0
-M1   = 8.0d10
-M2   = 2.6d10
+a1   = 7.7d0
+a2   = 5.0d0
+M1   = 6.8d10
+M2   = 1.6d10
 
 if(.not.allocated(stdpara))ALLOCATE(stdpara(14))
 stdpara = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2/)
 para => stdpara
 
-!!Allocate
+!Allocate
 if(.not.allocated(spiral.u))ALLOCATE(spiral.u(3,4*n))
 if(.not.allocated(spiral.h1))ALLOCATE(spiral.h1(4*n))
 if(.not.allocated(spiral.phi1r))ALLOCATE(spiral.phi1r(2*n))
 if(.not.allocated(spiral.r))ALLOCATE(spiral.r(4*n))
+
+!ALLOCATE(spiral.u(3,4*n))
+!ALLOCATE(spiral.h1(4*n))
+!ALLOCATE(spiral.phi1r(2*n))
+!ALLOCATE(spiral.r(4*n))
+
 spiral%rmin = 1d-8
 spiral%rmax = 2.d0*domain
 spiral%N    = 4*n
 
 !!choose pspd
 if(withf)then
-        wr = 66.086052d0
-        wi = -2.919605d0     
+        wr = 55.3746409416199
+        wi = -1.36515319347382
 else
-        wr = 62.2930245d0
-        wi = -1.074395d0
+        wr = 55.8299615383148
+        wi = -1.14654242992401
 endif
 
 ENDSUBROUTINE INIT_STELLARDISK
@@ -145,8 +153,8 @@ else
                  - 1.d0 + nu(r)**2)
 endif
 !if(isnan(real(k3sqrt)))CALL XERMSG('k3sqrt','k3sqrt','k3sqrt is nan.',-98,2)
-CALL CheckResult
 
+CALL CheckResult
 CONTAINS
 
 SUBROUTINE CheckResult
@@ -199,7 +207,6 @@ DEALLOCATE(IWORK)
 Sigma0 = ans/10.d5
 
 10 sigma0 = LauDiskSigma0(r)
-
 
 contains 
 function FUN(z)
@@ -306,7 +313,6 @@ VDisk  = VLauDisk(r)
 
 
 Omega  = sqrt(VHalo**2+VBulge**2+VDisk**2)/r
-
 CALL CheckResult
 CONTAINS
 FUNCTION pDisk(r)
@@ -401,7 +407,7 @@ endfunction
  
 function curf(r)
 IMPLICIT NONE
-DOUBLE COMPLEX                  ::curf
+DOUBLE PRECISION                ::curf
 DOUBLE PRECISION                ::s,r,tmp
 INTEGER                         ::m=2
 
@@ -448,7 +454,7 @@ RECURSIVE FUNCTION q(r)
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::q
 DOUBLE PRECISION,INTENT(IN)     ::r
-q = dcmplx(k3sqrt(r))
+q = k3sqrt(r)
 !q = dsin(r)
 ENDFUNCTION
 
@@ -598,16 +604,16 @@ ENDSUBROUTINE
 FUNCTION sigma1(r,th)
 !This is to find density perturbation by solve the k3sqr ODE
 IMPLICIT NONE
+DOUBLE COMPLEX                  ::uu,hh1
 DOUBLE PRECISION                ::sigma1
 DOUBLE PRECISION,INTENT(IN)     ::r,th
-DOUBLE COMPLEX                  ::uu,hh1
 DOUBLE PRECISION                ::rad
 INTEGER                         ::i,j,k,l,n
 !interploting u at non-grid point r
 n = spiral.n
 do i = 1, n
         if(spiral.r(i).gt.r)then
-                hh1 =(r-spiral.u(1,i-1))/(spiral.u(1,i)-spiral.u(1,i-1))*(spiral.h1(i)-spiral.h1(i-1)) + spiral.h1(i-1)
+                hh1 =(r-spiral.r(i-1))/(spiral.r(i)-spiral.r(i-1))*(spiral.h1(i)-spiral.h1(i-1)) + spiral.h1(i-1)
                 exit
         endif
 enddo
@@ -649,6 +655,7 @@ SUBROUTINE ENDSTELLARDISK
 DEALLOCATE(spiral.u)
 DEALLOCATE(spiral.h1)
 DEALLOCATE(spiral.phi1r)
+DEALLOCATE(spiral.r)
 ENDSUBROUTINE
 
 function error()
@@ -666,6 +673,7 @@ RE = 1d-8
 AE = 1d-8
 call DFZERO(four21,B,C,RR,RE,AE,IFLAG)
 r = B
+spiral.fortoone = r
 do l = 1,spiral.n
         if(spiral.r(l).gt.r)then
                 uu(:) = spiral.u(:,l)
@@ -685,146 +693,6 @@ four21 = (wr - 2.d0*Omega(r))/kappa(r) - 0.5d0
 ENDFUNCTION
         
 endfunction
-
-SUBROUTINE single_grid(l,wri,wii)
-IMPLICIT NONE
-type searchgrid_type
-sequence
-        DOUBLE PRECISION::coord(12,12,2)
-        DOUBLE PRECISION::error(12,12)
-endtype
-type(searchgrid_type)           ::searchgrid,recvgrid
-DOUBLE PRECISION                ::dr,wri,wii,di
-INTEGER                         ::l,i,j,p(2)
-
-
-
-dr = 1.d0/10.0d0**(l-1)
-di = 0.5d0/10.0d0**(l-1)
-!most left and upper grid
-wri = wri +(-6.d0+0.5d0)*dr
-wii = wii +(-6.d0+0.5d0)*dr
-
-DO i = 1,12
-        searchgrid%coord(:,i,2) = dble(i-1)*dr + wii
-        searchgrid%coord(i,:,1) = dble(i-1)*dr + wri
-enddo
-DO j = 1,12
-CALL INIT_STELLARDISK(500,20.d0)
-DO i = 1,12
-        wr = searchgrid%coord(i,j,1)
-        wi = searchgrid%coord(i,j,2)
-        CALL FindSpiral
-ENDDO
-ENDDO
-        
-p = MINLOC(searchgrid%error(:,:))
-i = p(1)
-j = p(2)
-wri = searchgrid%coord(i,j,1)
-wii = searchgrid%coord(i,j,2)
-
-!!Print search grid for debug
-!if(j.eq.1 .or. j.eq.12 .or. i.eq.1 .or. i.eq.12)l = l -1
-!DO i = 1,12
-!DO j = 1,12
-!        print *,searchgrid%coord(i,j,:),searchgrid%error(i,j)
-!ENDDO
-!ENDDO
-
-ENDSUBROUTINE
-
-SUBROUTINE omp_single_grid(l,wri,wii,err,r)
-USE OMP_LIB
-IMPLICIT NONE
-type searchgrid_type
-sequence
-        DOUBLE PRECISION,ALLOCATABLE::coord(:,:,:)
-        DOUBLE PRECISION,ALLOCATABLE::error(:,:)
-        DOUBLE PRECISION,ALLOCATABLE::lcoord(:,:)
-        DOUBLE PRECISION,ALLOCATABLE::lerror(:)
-endtype
-type(searchgrid_type)           ::searchgrid,recvgrid
-DOUBLE PRECISION                ::dr,wri,wii,di,err
-DOUBLE PRECISION                ::r
-INTEGER                         ::n
-INTEGER                         ::l,i,j,p(2)
-INTEGER                         ::ipc
-INTEGER                         ::now(3)
-
-r  = 2.d0**(1.d0-dble(l))
-n  = 8
-dr = r/dble(n)
-di = dr
-ALLOCATE(searchgrid.coord(n,n,2))
-ALLOCATE(searchgrid.error(n,n))
-ALLOCATE(searchgrid.lcoord(n*n,2))
-ALLOCATE(searchgrid.lerror(n*n))
-
-!most left and upper grid
-wri  = wri - r/2.d0
-wii  = wii - r/2.d0
-!wri = wri +(-r/2.d0+0.5d0)*dr
-!wii = wii +(-r/2.d0+0.5d0)*di
-DO i = 1,n
-        searchgrid%coord(:,i,2) = dble(i-1)*dr + wii
-        searchgrid%coord(i,:,1) = dble(i-1)*dr + wri
-!       searchgrid%coord(:,i,2) =                wii
-!       searchgrid%coord(i,:,1) =                wri
-enddo
-
-searchgrid.lcoord = reshape(searchgrid.coord,(/n*n,2/))
-!searchgrid.lerror = reshape(searchgrid.error,(/144/))
-
-!$OMP PARALLEL 
-CALL INIT_STELLARDISK(200,20.d0)
-!$OMP BARRIER
-!$OMP DO ORDERED
-DO j = 1,n**2
-        wr = searchgrid%lcoord(j,1)
-        wi = searchgrid%lcoord(j,2)
-!       ipc = omp_get_thread_num()
-!       print *,'!!!',j,ipc
-        CALL FindSpiral
-        searchgrid%lerror(j) = abs(error())
-ENDDO
-!$OMP END DO
-!$OMP END PARALLEL
-CALL ENDSTELLARDISK
-searchgrid.error = reshape(searchgrid.lerror,(/n,n/))
-p = MINLOC(searchgrid%error(:,:))
-i = p(1)
-j = p(2)
-wri = searchgrid%coord(i,j,1)
-wii = searchgrid%coord(i,j,2)
-err = searchgrid%error(i,j)
-
-if(j.eq.1 .or. j.eq.n .or. i.eq.1 .or. i.eq.n)then
-        l = l - 2
-        CALL XERMSG('k3sqrt','Omega Finding','Eigenvalue at boundary, giving up.',-95,-1)
-endif
-!DO i = 1,12
-!DO j = 1,12
-!        print *,searchgrid%coord(i,j,:),searchgrid%error(i,j)
-!ENDDO
-!ENDDO
-
-ENDSUBROUTINE
-
-SUBROUTINE findpspsd(wri,wii)
-IMPLICIT NONE
-DOUBLE PRECISION                ::wri,wii,err,r
-INTEGER                         ::l
-l = 1
-write(*,'(I2,3X,F7.4,3X,F7.4,3X,E10.3)')0,wri,wii
-do while (l.le.20)
-        CALL omp_single_grid(l,wri,wii,err,r)
-        write(*,'(I2,3X,F7.4,3X,F7.4,3X,E10.3,3X,D10.3)')l,wri,wii,err,r
-        if(abs(err).le.1d-6)exit
-        l = l + 1
-enddo
-
-ENDSUBROUTINE 
 
 SUBROUTINE TEMP
 !type    type_u

@@ -115,9 +115,8 @@ ENDFUNCTION
 ENDSUBROUTINE
 
 SUBROUTINE rk4(ri,rf,N,p,q,s,u,ui)
-USE OMP_LIB
 IMPLICIT NONE
-DOUBLE COMPLEX          ::u(3,N),ui(3),uu(3)
+DOUBLE COMPLEX          ::u(:,:),ui(3),uu(3)
 DOUBLE COMPLEX          ::K(3,4)
 DOUBLE COMPLEX,EXTERNAL ::p,q,s
 DOUBLE PRECISION        ::a(4,5)
@@ -127,6 +126,15 @@ DOUBLE PRECISION        ::r
 DOUBLE PRECISION        ::ri,rf,h
 INTEGER                 ::N
 INTEGER                 ::I,J,L
+
+
+!INTERFACE
+!        DOUBLE PRECISION FUNCTION f(ui,p,q,s)
+!        IMPLICIT NONE
+!        DOUBLE COMPLEX,INTENT(IN)          ::ui(3)
+!        DOUBLE COMPLEX,EXTERNAL            ::p,q,s
+!        END FUNCTION
+!ENDINTERFACE
 
 !check input condition
 if(n.eq.0)then
@@ -177,14 +185,12 @@ do l = 2,n
 enddo
 
 
-
-
 contains
-RECURSIVE FUNCTION f(ui,p,q,s) result(ans)
+FUNCTION f(ui,p,q,s)result(ans)
 IMPLICIT NONE
-DOUBLE COMPLEX          ::ans(3)
-DOUBLE COMPLEX          ::ui(3)
-DOUBLE COMPLEX,EXTERNAL::p,q,s
+        DOUBLE COMPLEX                     ::ans(3)
+        DOUBLE COMPLEX,INTENT(IN)          ::ui(3)
+        DOUBLE COMPLEX,EXTERNAL            ::p,q,s
 DOUBLE PRECISION        ::r
 r    = real(ui(1))
 ans(1) = 1.d0

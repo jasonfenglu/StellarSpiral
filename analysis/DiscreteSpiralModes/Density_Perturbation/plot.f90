@@ -1,6 +1,6 @@
         module plotting
         CONTAINS
-        SUBROUTINE plot2d(F,F2,force,n,domain)
+        SUBROUTINE plotdensity(F,F2,force,n,domain)
         IMPLICIT NONE
         DOUBLE PRECISION,ALLOCATABLE,INTENT(IN) ::F(:,:),F2(:,:)!plotting data
         DOUBLE PRECISION                        ::force(:,:,:)
@@ -14,7 +14,7 @@
         REAL                                    ::dx,dy
 
 
-        IF (PGBEG(0,'/png',1,1) .NE. 1) STOP
+        IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
         CALL PGSVP(0.0,0.95,0.0,0.95)
 
         m = n
@@ -35,9 +35,9 @@
         !!Density
         vmax = real(MAXVAL(F(:,:)))
         vmin = real(MINVAL(F(:,:)))
-        vmax = 1.5e21
-        vmin =-1.5e21
-        print *,vmax,vmin
+!       print *,vmax,vmin
+        vmax = 1.0e10
+        vmin =-1.0e10
         CALL PALETT(2,CONTRA,Bright)
         CALL PGBBUF
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
@@ -75,6 +75,52 @@
 !                   2,n/4-2, &
 !                   2,n/4-2, &
 !                   0.02,2,TR2,-1.E10)
+        CALL PGCLOS
+        ENDSUBROUTINE
+
+        SUBROUTINE plotpspdsearch(F,n,m,domain)
+        IMPLICIT NONE
+        DOUBLE PRECISION                        ::F(:,:)!plotting data
+        DOUBLE PRECISION                        ::domain(4)!plot range
+        REAL                                    ::TR(6) !plot geometry
+        REAL                                    ::TR2(6) !plot geometry
+        REAL                                    ::vmax,vmin
+        REAL                                    ::BRIGHT,CONTRA
+        INTEGER                                 ::m,n   !dimentsion
+        INTEGER                                 ::PGBEG
+        REAL                                    ::dx,dy
+
+
+        IF (PGBEG(0,'/png',1,1) .NE. 1) STOP
+        CALL PGSVP(0.0,0.95,0.0,0.95)
+
+        dx = real(domain(2)-domain(1))/real(n)
+        dy = real(domain(4)-domain(3))/real(m)
+
+        TR(3) = 0.
+        TR(5) = 0.
+        TR(2) = REAL(domain(2)-domain(1))/REAL(n-1)
+        TR(1) = REAL(domain(1))-TR(2)
+        TR(6) = REAL(domain(4)-domain(3))/REAL(m-1)
+        TR(4) = REAL(domain(3))-TR(6)
+
+        BRIGHT = 0.5
+        CONTRA = -0.9
+
+
+!       vmax = real(MAXVAL(F(:,:)))
+!       vmin = real(MINVAL(F(:,:)))
+        vmax = 0.5
+        vmin = 0.
+        CALL PALETT(2,CONTRA,Bright)
+        CALL PGBBUF
+        CALL PGENV(real(domain(1)),real(domain(2)),real(domain(3)),real(domain(4)),0,0)
+        CALL PGIMAG(REAL(F(:,:)),n,m,1,n,1,m,vmin,vmax,TR)
+        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+        CALL PGSCH(1.0)
+        CALL PGLAB('kpc','kpc','Absolute Value of Error')
+
+
         CALL PGCLOS
         ENDSUBROUTINE
 

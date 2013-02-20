@@ -33,7 +33,6 @@ DO j = 1, n*2
 ENDDO
 ENDDO
 
-
 open(10,file='r-dep.dat')
 DO i = 2, spiral.n,2
         r = spiral.r(i)
@@ -63,7 +62,7 @@ ALLOCATE(force(n/4,n/4,2))
 !ENDDO
 !ENDDO
 
-CALL plot2d(density,potential,force,n,domain)
+CALL plotdensity(density,potential,force,n,domain)
 DEALLOCATE(potential)
 DEALLOCATE(xcoord)
 DEALLOCATE(ycoord)
