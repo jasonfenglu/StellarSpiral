@@ -3,7 +3,7 @@ IMPLICIT NONE
 DOUBLE PRECISION,PARAMETER::GravConst   = 4.3d-6 
 DOUBLE PRECISION,PARAMETER::g           = 4.3d0
 DOUBLE PRECISION,PARAMETER::pi          = 4.d0*atan(1.d0)
-LOGICAL,PARAMETER         ::withf       = .true.
+LOGICAL,PARAMETER         ::withf       = .false.
 DOUBLE PRECISION,POINTER,SAVE           ::para(:)=>null()
 DOUBLE PRECISION,SAVE     ::wr          
 DOUBLE PRECISION,SAVE     ::wi          

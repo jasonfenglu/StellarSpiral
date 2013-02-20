@@ -14,7 +14,7 @@
         REAL                                    ::dx,dy
 
 
-        IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
+        IF (PGBEG(0,'/png',1,1) .NE. 1) STOP
         CALL PGSVP(0.0,0.95,0.0,0.95)
 
         m = n
@@ -36,8 +36,8 @@
         vmax = real(MAXVAL(F(:,:)))
         vmin = real(MINVAL(F(:,:)))
 !       print *,vmax,vmin
-        vmax = 1.0e10
-        vmin =-1.0e10
+        vmax = 2.0e10
+        vmin =-2.0e10
         CALL PALETT(2,CONTRA,Bright)
         CALL PGBBUF
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
