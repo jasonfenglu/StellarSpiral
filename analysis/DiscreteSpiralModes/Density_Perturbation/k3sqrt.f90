@@ -78,10 +78,10 @@ spiral%N    = 4*n
 !!choose pspd
 if(withf)then
         wr = 55.3746409416199
-        wi = -1.36515319347382
+        wi = -1.36514937877655
 else
-        wr = 55.8299615383148
-        wi = -1.14654242992401
+        wr = 67.5729591369629
+        wi = -1.17948741912842
 endif
 
 ENDSUBROUTINE INIT_STELLARDISK
@@ -471,8 +471,8 @@ do i = 1, spiral.n
         u   = spiral.u(2,i)
         rad = sqrt(kappa(r)**2*(1.d0-nu(r)**2)/sigma0(r)/r)
         expp= ExpPart(r)
-!       spiral.h1(i) = u*rad*exp(-0.5d0*(0.d0,1.d0)*ExpPart(r))
-        spiral.h1(i) = u*rad*exp(-0.5d0*(0.d0,1.d0))*cmplx(expp,0.d0)
+        spiral.h1(i) = u*rad*exp(-0.5d0*(0.d0,1.d0)*ExpPart(r))
+!       spiral.h1(i) = u*rad*exp(-0.5d0*(0.d0,1.d0)*cmplx(expp,0.d0))
 enddo
 
 CALL refineh1
@@ -492,7 +492,7 @@ CONTAINS
 !
 !ENDFUNCTION ExpPart
 
-RECURSIVE Function ExpPart(r) result(ans)
+Function ExpPart(r) result(ans)
         IMPLICIT NONE
         DOUBLE PRECISION,INTENT(IN)     ::r
         DOUBLE PRECISION                ::a,rr
@@ -566,13 +566,12 @@ dsimplifiedPoisson = dsimplifiedPoisson + 3.75d0/(0.d0,1.d0)/Sigma(r)/r**2*phi
 !!dsimplifiedPoisson = -phi*r
 ENDFUNCTION
 
-recursive function Sigma(r) RESULT(ans)
+function Sigma(r) RESULT(ans)
 !This is NOT related to density
 IMPLICIT NONE
 DOUBLE PRECISION                ::ans
 DOUBLE PRECISION,INTENT(IN)     ::r
-ans = 2.d0*pi*G*sigma0(r)/snsd(r)**2
-return
+ans = 2.d0*pi*GravConst*sigma0(r)/snsd(r)**2
 ENDFUNCTION
 
 SUBROUTINE FindForce(force,r,th)

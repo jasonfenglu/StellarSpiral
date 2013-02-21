@@ -8,7 +8,7 @@ DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
-INTEGER,PARAMETER               ::n=1000
+INTEGER,PARAMETER               ::n=500
 type(spiral_type)               ::shared_spiral
 
 CALL INIT_STELLARDISK(n,domain)
@@ -33,7 +33,7 @@ ALLOCATE(shared_spiral.r(4*n))
 shared_spiral = spiral
 !$OMP PARALLEL SHARED(density,shared_spiral) PRIVATE(j,r,th)
 spiral = shared_spiral
-!$OMP DO 
+!$OMP DO PRIVATE(spiral)
 DO i = 1, n*2
 DO j = 1, n*2
         r = sqrt(xcoord(i)**2+ycoord(j)**2)

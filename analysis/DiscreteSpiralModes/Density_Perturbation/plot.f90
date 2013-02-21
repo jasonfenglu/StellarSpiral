@@ -35,9 +35,9 @@
         !!Density
         vmax = real(MAXVAL(F(:,:)))
         vmin = real(MINVAL(F(:,:)))
-!       print *,vmax,vmin
-        vmax = 2.0e10
-        vmin =-2.0e10
+        print *,vmax,vmin
+        vmax = 2.0e3
+        vmin =-2.0e3
         CALL PALETT(2,CONTRA,Bright)
         CALL PGBBUF
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)

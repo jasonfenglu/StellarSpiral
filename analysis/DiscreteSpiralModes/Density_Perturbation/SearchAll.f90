@@ -18,7 +18,7 @@ INTEGER                         ::l,i,j,p(1),n,m
 INTEGER                         ::ipc
 INTEGER                         ::now(3)
 
-m = 500
+m = 200
 n = m/5
 
 ALLOCATE(searchgrid.coord(m,n,2))
@@ -61,11 +61,11 @@ ENDDO
 !err = searchgrid%lerror(p(1))
 searchgrid.coord = reshape(searchgrid.coord,(/m,n,2/))
 searchgrid.error = reshape(searchgrid.lerror,(/m,n/))
-DO i = 1, N
-DO j = 1, N
-        print *,searchgrid.coord(i,j,:),searchgrid.error(i,j)
-ENDDO
-ENDDO
+!DO i = 1, N
+!DO j = 1, N
+!        print *,searchgrid.coord(i,j,:),searchgrid.error(i,j)
+!ENDDO
+!ENDDO
 
 
 CALL plotpspdsearch(searchgrid.error,m,n,domain)
