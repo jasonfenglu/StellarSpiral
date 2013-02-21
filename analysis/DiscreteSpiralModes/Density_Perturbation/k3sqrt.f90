@@ -5,8 +5,8 @@ DOUBLE PRECISION,PARAMETER::g           = 4.3d0
 DOUBLE PRECISION,PARAMETER::pi          = 4.d0*atan(1.d0)
 LOGICAL,PARAMETER         ::withf       = .false.
 DOUBLE PRECISION,POINTER,SAVE           ::para(:)=>null()
-DOUBLE PRECISION,SAVE     ::wr          
-DOUBLE PRECISION,SAVE     ::wi          
+DOUBLE PRECISION          ::wr          
+DOUBLE PRECISION          ::wi          
 DOUBLE PRECISION,TARGET ,SAVE,ALLOCATABLE::stdpara(:)
 type   spiral_type
        DOUBLE COMPLEX,ALLOCATABLE       ::u(:,:) 
@@ -22,7 +22,7 @@ type   spiral_type
        LOGICAL                          ::phi1rcaled= .false.
 endtype
 type(spiral_type)         ::spiral
-!$OMP THREADPRIVATE(spiral)
+!$OMP THREADPRIVATE(spiral,wr,wi)
 CONTAINS
 
 SUBROUTINE INIT_STELLARDISK(n,domain)
@@ -433,7 +433,6 @@ IMPLICIT NONE
 DOUBLE COMPLEX                  ::ui(3)
 DOUBLE PRECISION                ::a,b
 INTEGER                         ::n
-
 spiral.u = (1.d0,0.d0)*0.d0
 a = spiral.rmin
 b = spiral.rmax

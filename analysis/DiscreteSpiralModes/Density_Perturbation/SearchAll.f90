@@ -13,12 +13,12 @@ sequence
 endtype
 type(searchgrid_type)           ::searchgrid,recvgrid
 DOUBLE PRECISION                ::dr,wri,wii,di,err
-DOUBLE PRECISION                ::domain(4) = (/15d0,70d0,0d0,-4d0/)
+DOUBLE PRECISION                ::domain(4) = (/60d0,70d0,0d0,-4d0/)
 INTEGER                         ::l,i,j,p(1),n,m
 INTEGER                         ::ipc
 INTEGER                         ::now(3)
 
-m = 1000
+m = 500
 n = m/5
 
 ALLOCATE(searchgrid.coord(m,n,2))
@@ -41,20 +41,20 @@ DO i = 1,n
 enddo
 
 searchgrid.lcoord = reshape(searchgrid.coord,(/m*n,2/))
-!$OMP PARALLEL 
-CALL INIT_STELLARDISK(200,15.d0)
-!$OMP DO PRIVATE(spiral) 
+!$OMP PARALLEL SHARED(searchgrid) 
+!$OMP DO 
 DO j = 1,m*n
+        CALL INIT_STELLARDISK(200,15.d0)
         wr = searchgrid%lcoord(j,1)
         wi = searchgrid%lcoord(j,2)
-!       ipc = omp_get_thread_num()
+        ipc = omp_get_thread_num()
 !       print *,'!!!',j,ipc
         CALL Findu
         searchgrid%lerror(j) = abs(error())
+        CALL ENDSTELLARDISK
 ENDDO
 !$OMP END DO
 !$OMP END PARALLEL
-CALL ENDSTELLARDISK
 !p = MINLOC(searchgrid%lerror(:))
 !wri = searchgrid%lcoord(p(1),1)
 !wii = searchgrid%lcoord(p(1),2)

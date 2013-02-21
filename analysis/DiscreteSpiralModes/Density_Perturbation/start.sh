@@ -10,7 +10,7 @@
 #PBS -q small
 ###### Specific the shell types ######
 #PBS -S /bin/bash
-#PBS -M ccfeng@tiara.sinica.edu.tw
+#PBS -m ccfeng@tiara.sinica.edu.tw
 
 ###### Enter this job's working directory ######
 cd $PBS_O_WORKDIR
