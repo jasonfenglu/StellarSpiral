@@ -25,6 +25,6 @@ export OMP_NUM_THREADS
 rm -rf bc.log bc.err
 rm -rf pgplot.png
 ###### Run your jobs with parameters ######
-./Density.exe 
+#./Density.exe 
 ./SearchAll.exe
 #./FindOne.exe

@@ -1,17 +1,54 @@
+module projections
+        DOUBLE PRECISION                ::pi_n = atan(1.d0)*4.d0
+        DOUBLE PRECISION                ::aline
+        DOUBLE PRECISION                ::apitc
+        DOUBLE PRECISION                ::aolin
+CONTAINS 
+FUNCTION R(th)
+IMPLICIT NONE
+DOUBLE PRECISION                ::R(2,2)
+DOUBLE PRECISION                ::th
+R(1,1) = cos(th)
+R(1,2) = -sin(th)
+R(2,1) = sin(th)
+R(2,2) = cos(th)
+ENDFUNCTION
+
+FUNCTION C(th)
+IMPLICIT NONE
+DOUBLE PRECISION                ::C(2,2)
+DOUBLE PRECISION                ::th
+C      = 0.d0
+C(1,1) = cos(th)
+C(2,2) = 1.d0
+ENDFUNCTION
+
+FUNCTION INVC(th)
+IMPLICIT NONE
+DOUBLE PRECISION                ::INVC(2,2)
+DOUBLE PRECISION                ::th
+INVC      = 0.d0
+INVC(1,1) = 1.d0/cos(th)
+INVC(2,2) = 1.d0
+ENDFUNCTION
+endmodule
+
 PROGRAM caldensity
 USE PLOTTING
-USE STELLARDISK
+USE STELLARDISK,pi_n=>pi
 IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
-DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th
+DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th,pf(2),pi(2)
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
-INTEGER,PARAMETER               ::n=500
+INTEGER,PARAMETER               ::n=1000
 type(spiral_type)               ::shared_spiral
 
-CALL INIT_STELLARDISK(n,domain)
+
+
+CALL INIT_STELLARDISK(n,2.d0*domain)
 CALL FindSpiral
 dx = domain/dble(n)
 dy = domain/dble(n)
@@ -31,14 +68,20 @@ ALLOCATE(shared_spiral.phi1r(2*n))
 ALLOCATE(shared_spiral.r(4*n))
 
 shared_spiral = spiral
-!$OMP PARALLEL SHARED(density,shared_spiral) PRIVATE(j,r,th)
+!$OMP PARALLEL SHARED(density,shared_spiral) PRIVATE(j,r,th,pi,pf)
 spiral = shared_spiral
 !$OMP DO PRIVATE(spiral)
 DO i = 1, n*2
 DO j = 1, n*2
-        r = sqrt(xcoord(i)**2+ycoord(j)**2)
-        th = atan2(ycoord(j),xcoord(i))
+        pf = (/xcoord(i),ycoord(j)/)
+        CALL projection(pi,pf)
+        r = sqrt(pi(1)**2+pi(2)**2)
+        th = atan2(pi(2),pi(1))
+!       r = sqrt(xcoord(i)**2+ycoord(j)**2)
+!       th = atan2(ycoord(j),xcoord(i))
         density(i,j) = sigma1(r,th)
+        if(isnan(density(i,j)))density(i,j) = 0.d0
+        if(abs(density(i,j)).gt.1d10)density(i,j) = 0.d0
 !       density(i,j) = sigma0(r)
 ENDDO
 ENDDO
@@ -53,16 +96,16 @@ DO i = 2, spiral.n,2
 enddo
 close(10)
 
-
-!!Find 2d Potential
-ALLOCATE(potential(2*n,2*n))
-DO i = 1, n*2
-DO j = 1, n*2
-        r = sqrt(xcoord(i)**2+ycoord(j)**2)
-        th = atan2(ycoord(j),xcoord(i))
-        potential(i,j) = phi1(r,th)
-ENDDO
-ENDDO
+!
+!!!Find 2d Potential
+ ALLOCATE(potential(2*n,2*n))
+!DO i = 1, n*2
+!DO j = 1, n*2
+!        r = sqrt(xcoord(i)**2+ycoord(j)**2)
+!        th = atan2(ycoord(j),xcoord(i))
+!        potential(i,j) = phi1(r,th)
+!ENDDO
+!ENDDO
 
 !!Find Force
 ALLOCATE(force(n/4,n/4,2))
@@ -74,6 +117,9 @@ ALLOCATE(force(n/4,n/4,2))
 !ENDDO
 !ENDDO
 
+points(1,:) = (/0.0,5.0/)
+points(2,:) = (/0.0,-5.0/)
+CALL dprojection(points)
 CALL plotdensity(density,potential,force,n,domain)
 DEALLOCATE(potential)
 DEALLOCATE(xcoord)
@@ -85,3 +131,80 @@ STOP
 
 END PROGRAM
 
+SUBROUTINE projection(pi,pf)
+USE projections
+IMPLICIT NONE
+DOUBLE PRECISION                ::pi(2),pf(2)
+!!BLAS
+CHARACTER(1)                    ::TRANS
+DOUBLE PRECISION                ::ALPHA = 1.d0
+DOUBLE PRECISION                ::A(2,2)
+DOUBLE PRECISION                ::X(2),Y(2)
+DOUBLE PRECISION                ::BETA  = 0.d0
+INTEGER                         ::M = 2
+INTEGER                         ::N = 2
+INTEGER                         ::LDA = 2
+INTEGER                         ::INCX = 1
+INTEGER                         ::INCY = 1
+
+CALL set_angles
+
+X = pf
+A = R(-aolin)
+TRANS  = 'n'
+CALL DGEMV (TRANS, M, N, ALPHA, A, LDA, X, INCX, BETA, Y, INCY)
+X = Y
+A = INVC(apitc)
+TRANS  = 'n'
+CALL DGEMV (TRANS, M, N, ALPHA, A, LDA, X, INCX, BETA, Y, INCY)
+X = Y
+A = R(-aline)
+TRANS  = 'n'
+CALL DGEMV (TRANS, M, N, ALPHA, A, LDA, X, INCX, BETA, Y, INCY)
+
+pi = y
+ENDSUBROUTINE
+
+SUBROUTINE dprojection(p)
+USE projections
+USE plotting,only:points
+IMPLICIT NONE
+DOUBLE PRECISION                ::pi(2),pf(2)
+REAL                            ::p(2,2)
+INTEGER                         ::i
+!!BLAS
+CHARACTER(1)                    ::TRANS
+DOUBLE PRECISION                ::ALPHA = 1.d0
+DOUBLE PRECISION                ::A(2,2)
+DOUBLE PRECISION                ::X(2),Y(2)
+DOUBLE PRECISION                ::BETA  = 0.d0
+INTEGER                         ::M = 2
+INTEGER                         ::N = 2
+INTEGER                         ::LDA = 2
+INTEGER                         ::INCX = 1
+INTEGER                         ::INCY = 1
+
+call set_angles
+
+DO i = 1,2
+        X = points(i,:)
+        A = R(aolin)
+        TRANS  = 'n'
+        CALL DGEMV (TRANS, M, N, ALPHA, A, LDA, X, INCX, BETA, Y, INCY)
+        p(i,:) = y
+ENDDO
+
+
+
+ENDSUBROUTINE
+
+SUBROUTINE set_angles
+USE projections
+IMPLICIT NONE
+!observed angle of line of node 28 degree
+aolin = -28.d0/180.d0*pi_n
+!pitch angle is 55 degree ?
+apitc = 55.d0/180.d0*pi_n
+!tuned angle of line of node
+aline = 30.d0/180.d0*pi_n
+ENDSUBROUTINE

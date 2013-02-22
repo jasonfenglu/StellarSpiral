@@ -1,4 +1,5 @@
         module plotting
+        REAL,SAVE                               ::points(2,2)
         CONTAINS
         SUBROUTINE plotdensity(F,F2,force,n,domain)
         IMPLICIT NONE
@@ -45,6 +46,13 @@
         CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
         CALL PGSCH(1.0)
         CALL PGLAB('kpc','kpc','Density')
+        CALL PGSFS(2)
+        CALL PGSCI(0)
+        CALL PGPT(2,points(:,1),points(:,2),2)
+!       CALL PGCIRC(0.,0.,1.26)
+!       CALL PGCIRC(0.,0.,2.36)
+!       CALL PGCIRC(0.,0.,4.72)
+!       CALL PGCIRC(0.,0.,10.636)
 
         !!Potential
 !       vmax = real(MAXVAL(F2(:,:)))
