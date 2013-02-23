@@ -13,18 +13,19 @@ sequence
 endtype
 type(searchgrid_type)           ::searchgrid,recvgrid
 DOUBLE PRECISION                ::dr,wri,wii,di,err
-DOUBLE PRECISION                ::domain(4) = (/60d0,70d0,0d0,-4d0/)
+DOUBLE PRECISION                ::domain(4) = (/30d0,60d0,0d0,-4d0/)
 INTEGER                         ::l,i,j,p(1),n,m
 INTEGER                         ::ipc
 INTEGER                         ::now(3)
+INTEGER                         ::complete_count = 0
 
-m = 200
+m = 500
 n = m/5
 
-ALLOCATE(searchgrid.coord(m,n,2))
-ALLOCATE(searchgrid.error(m,n))
-ALLOCATE(searchgrid.lcoord(m*n,2))
-ALLOCATE(searchgrid.lerror(m*n))
+if(.not.allocated(searchgrid.coord))ALLOCATE(searchgrid.coord(m,n,2))
+if(.not.allocated(searchgrid.error))ALLOCATE(searchgrid.error(m,n))
+if(.not.allocated(searchgrid.lcoord))ALLOCATE(searchgrid.lcoord(m*n,2))
+if(.not.allocated(searchgrid.lerror))ALLOCATE(searchgrid.lerror(m*n))
 
 dr = (domain(2)-domain(1))/dble(m)
 di = (domain(4)-domain(3))/dble(n)
@@ -41,20 +42,26 @@ DO i = 1,n
 enddo
 
 searchgrid.lcoord = reshape(searchgrid.coord,(/m*n,2/))
-!$OMP PARALLEL SHARED(searchgrid) 
-!$OMP DO 
+!$OMP PARALLEL SHARED(searchgrid,complete_count)
+CALL INIT_STELLARDISK(200,15.d0)
+!$OMP BARRIER
+!$OMP DO PRIVATE(spiral)
 DO j = 1,m*n
-        CALL INIT_STELLARDISK(200,15.d0)
         wr = searchgrid%lcoord(j,1)
         wi = searchgrid%lcoord(j,2)
-        ipc = omp_get_thread_num()
+!       ipc = omp_get_thread_num()
 !       print *,'!!!',j,ipc
         CALL Findu
         searchgrid%lerror(j) = abs(error())
-        CALL ENDSTELLARDISK
+        !$OMP ATOMIC
+                complete_count = complete_count + 1
+        !$OMP END ATOMIC
+        print *,real(complete_count)/real(m*n)*100.
 ENDDO
 !$OMP END DO
+CALL ENDSTELLARDISK
 !$OMP END PARALLEL
+
 !p = MINLOC(searchgrid%lerror(:))
 !wri = searchgrid%lcoord(p(1),1)
 !wii = searchgrid%lcoord(p(1),2)
@@ -66,6 +73,7 @@ searchgrid.error = reshape(searchgrid.lerror,(/m,n/))
 !        print *,searchgrid.coord(i,j,:),searchgrid.error(i,j)
 !ENDDO
 !ENDDO
+print *,'min error',minval(searchgrid.error(:,:))
 
 
 CALL plotpspdsearch(searchgrid.error,m,n,domain)
