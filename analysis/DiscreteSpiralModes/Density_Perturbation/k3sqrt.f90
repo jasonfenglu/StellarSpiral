@@ -1,4 +1,5 @@
 MODULE STELLARDISK
+USE PLOTTING
 IMPLICIT NONE
 DOUBLE PRECISION,PARAMETER::GravConst   = 4.3d-6 
 DOUBLE PRECISION,PARAMETER::g           = 4.3d0
@@ -44,17 +45,17 @@ DOUBLE PRECISION                ::a1,a2,M1,M2
 Lh   = 2.8d0
 rhoh = 4.0d7
 Mb   = 1.8d8
-rb   = 1.6d0
+rb   = 1.65d0
 dM   = 7.0d10
 da   = 2.7d0
 db   = 0.3d0
-Qod  = 1.d0
-q    = 1.8d0
-rq   = 1.0d0
-a1   = 7.7d0
+Qod  = 1.00d0
+q    = 0.4d0
+rq   = 3.5d0
+a1   = 9.0d0
 a2   = 5.0d0
-M1   = 6.8d10
-M2   = 1.6d10
+M1   = 6.0d10
+M2   = 8.0d09
 
 if(.not.allocated(stdpara))ALLOCATE(stdpara(14))
 stdpara = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2/)
@@ -65,6 +66,7 @@ if(.not.allocated(spiral.u))ALLOCATE(spiral.u(3,4*n))
 if(.not.allocated(spiral.h1))ALLOCATE(spiral.h1(4*n))
 if(.not.allocated(spiral.phi1r))ALLOCATE(spiral.phi1r(2*n))
 if(.not.allocated(spiral.r))ALLOCATE(spiral.r(4*n))
+!$OMP BARRIER
 
 !ALLOCATE(spiral.u(3,4*n))
 !ALLOCATE(spiral.h1(4*n))
@@ -78,7 +80,7 @@ spiral%N    = 4*n
 !!choose pspd
 if(withf)then
         wr = 55.3746409416199
-        wi = -1.36514937877655
+        wi = -0.315928816795349
 else
         wr = 67.5729591369629
         wi = -1.17948741912842
@@ -95,7 +97,7 @@ CALL findh1
 !!!Find phi1 along r
 CALL FindPhi1
 !Save calculation results
-!CALL k3sqrtlog
+CALL k3sqrtlog
 
 ENDSUBROUTINE
 
@@ -111,13 +113,39 @@ ALLOCATE(phi1r(spiral.N))
 u       = spiral.u
 h1      = spiral.h1
 phi1r   = spiral.phi1r
-
 open(10,file='r-dep.dat')
-DO i = 2, size(u,2),2
-         r = real(u(1,i))
-        write(10,'(5(1XE15.6))')real(u(1,i)),real(u(2,i)),real(h1(i))/snsd(r)**2*sigma0(r),real(phi1r(i/2)),real(h1(i))
+DO i = 2, spiral.n,2
+        r = spiral.r(i)
+        write(10,'(5(1XE15.6))')spiral.r(i),real(spiral.u(2,i)),real(spiral.h1(i))/snsd(r)**2*sigma0(r),real(spiral.phi1r(i/2)),real(spiral.h1(i))
+        !r, u, sigma1,potential1
 enddo
 close(10)
+
+CALL rlog
+
+ENDSUBROUTINE
+
+SUBROUTINE rlog
+USE plotting,only:plotlog
+IMPLICIT NONE
+DOUBLE PRECISION,ALLOCATABLE            ::dat(:,:)
+DOUBLE PRECISION                        ::r
+INTEGER                                 ::i,m
+
+!r, rotation, k3, Q
+m = 4
+
+ALLOCATE(dat(4,spiral.n))
+dat(1,:) = spiral.r
+do i = 1, spiral.n
+        r=spiral.r(i)
+        dat(2,i) = Omega(r)
+        dat(3,i) = dble(k3sqrt(r))
+        dat(4,i) = ToomreQ(r)
+enddo
+
+CALL plotlog(dat,m,spiral.n)
+DEALLOCATE(dat)
 ENDSUBROUTINE
 
 function ToomreQ(r)
@@ -153,7 +181,7 @@ else
                  - 1.d0 + nu(r)**2)
 endif
 !if(isnan(real(k3sqrt)))CALL XERMSG('k3sqrt','k3sqrt','k3sqrt is nan.',-98,2)
-
+k3sqrt = k3sqrt
 CALL CheckResult
 CONTAINS
 

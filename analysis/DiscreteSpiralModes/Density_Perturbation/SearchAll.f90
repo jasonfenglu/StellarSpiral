@@ -19,13 +19,13 @@ INTEGER                         ::ipc
 INTEGER                         ::now(3)
 INTEGER                         ::complete_count = 0
 
-m = 500
+m = 800
 n = m/5
 
-if(.not.allocated(searchgrid.coord))ALLOCATE(searchgrid.coord(m,n,2))
-if(.not.allocated(searchgrid.error))ALLOCATE(searchgrid.error(m,n))
-if(.not.allocated(searchgrid.lcoord))ALLOCATE(searchgrid.lcoord(m*n,2))
-if(.not.allocated(searchgrid.lerror))ALLOCATE(searchgrid.lerror(m*n))
+ALLOCATE(searchgrid.coord(m,n,2))
+ALLOCATE(searchgrid.error(m,n))
+ALLOCATE(searchgrid.lcoord(m*n,2))
+ALLOCATE(searchgrid.lerror(m*n))
 
 dr = (domain(2)-domain(1))/dble(m)
 di = (domain(4)-domain(3))/dble(n)
@@ -40,8 +40,9 @@ DO i = 1,n
         searchgrid%coord(:,i,2) = dble(i-1)*di + wii
 !       searchgrid%coord(:,i,2) =                wii
 enddo
-
 searchgrid.lcoord = reshape(searchgrid.coord,(/m*n,2/))
+
+!$OMP BARRIER
 !$OMP PARALLEL SHARED(searchgrid,complete_count)
 CALL INIT_STELLARDISK(200,15.d0)
 !$OMP BARRIER
@@ -53,9 +54,9 @@ DO j = 1,m*n
 !       print *,'!!!',j,ipc
         CALL Findu
         searchgrid%lerror(j) = abs(error())
-        !$OMP ATOMIC
+!       !$OMP ATOMIC
                 complete_count = complete_count + 1
-        !$OMP END ATOMIC
+!       !$OMP END ATOMIC
         print *,real(complete_count)/real(m*n)*100.
 ENDDO
 !$OMP END DO

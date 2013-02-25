@@ -26,5 +26,5 @@ rm -rf bc.log bc.err
 rm -rf pgplot.png
 ###### Run your jobs with parameters ######
 #./Density.exe 
-./SearchAll.exe
+./SearchAll.exe > searchall.log
 #./FindOne.exe

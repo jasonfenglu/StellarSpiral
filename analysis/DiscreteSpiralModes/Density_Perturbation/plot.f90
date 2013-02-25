@@ -1,6 +1,33 @@
         module plotting
-        REAL,SAVE                               ::points(2,2)
+        REAL,SAVE                               ::points(4,2)
         CONTAINS
+
+        SUBROUTINE plotlog(dat,m,n)
+        IMPLICIT NONE
+        DOUBLE PRECISION,INTENT(IN)             ::dat(:,:)
+        DOUBLE PRECISION,ALLOCATABLE            ::plotrange(:,:)
+        INTEGER                                 ::m,n   !dimentsion
+        INTEGER                                 ::PGBEG,i
+        
+        
+        IF (PGBEG(0,'log.png/png',1,1) .NE. 1) STOP
+!       CALL PGSVP(0.0,0.95,0.0,0.95)
+        
+        
+        ALLOCATE(plotrange(m,2))
+        do i = 2, 4
+                plotrange(i,1)=0.
+                plotrange(i,2)=maxval(real(dat(i,:)))
+        enddo
+        plotrange(3,:) = (/-1.d0,5.d0/)
+
+        do i = 2, 4
+              CALL PGENV(0.,real(maxval(dat(1,:)))/2.,real(plotrange(i,1)),real(plotrange(i,2)),0,0)
+              CALL PGLINE(n,real(dat(1,:)),real(dat(i,:)))
+        enddo
+        CALL PGCLOS
+        ENDSUBROUTINE
+
         SUBROUTINE plotdensity(F,F2,force,n,domain)
         IMPLICIT NONE
         DOUBLE PRECISION,ALLOCATABLE,INTENT(IN) ::F(:,:),F2(:,:)!plotting data
@@ -15,7 +42,7 @@
         REAL                                    ::dx,dy
 
 
-        IF (PGBEG(0,'/png',1,1) .NE. 1) STOP
+        IF (PGBEG(0,'density.png/png',1,1) .NE. 1) STOP
         CALL PGSVP(0.0,0.95,0.0,0.95)
 
         m = n
@@ -37,8 +64,8 @@
         vmax = real(MAXVAL(F(:,:)))
         vmin = real(MINVAL(F(:,:)))
         print *,vmax,vmin
-        vmax = 2.0e3
-        vmin =-2.0e3
+        vmax = 1.0e3
+        vmin =-1.0e3
         CALL PALETT(2,CONTRA,Bright)
         CALL PGBBUF
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
@@ -48,7 +75,7 @@
         CALL PGLAB('kpc','kpc','Density')
         CALL PGSFS(2)
         CALL PGSCI(0)
-        CALL PGPT(2,points(:,1),points(:,2),2)
+        CALL PGPT(4,points(:,1),points(:,2),2)
 !       CALL PGCIRC(0.,0.,1.26)
 !       CALL PGCIRC(0.,0.,2.36)
 !       CALL PGCIRC(0.,0.,4.72)
@@ -99,7 +126,7 @@
         REAL                                    ::dx,dy
 
 
-        IF (PGBEG(0,'/png',1,1) .NE. 1) STOP
+        IF (PGBEG(0,'searchall.png/png',1,1) .NE. 1) STOP
         CALL PGSVP(0.0,0.95,0.0,0.95)
 
         dx = real(domain(2)-domain(1))/real(n)

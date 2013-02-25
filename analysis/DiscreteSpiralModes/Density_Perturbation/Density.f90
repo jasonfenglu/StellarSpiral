@@ -48,7 +48,7 @@ type(spiral_type)               ::shared_spiral
 
 
 
-CALL INIT_STELLARDISK(n,2.d0*domain)
+CALL INIT_STELLARDISK(n,domain)
 CALL FindSpiral
 dx = domain/dble(n)
 dy = domain/dble(n)
@@ -75,26 +75,20 @@ DO i = 1, n*2
 DO j = 1, n*2
         pf = (/xcoord(i),ycoord(j)/)
         CALL projection(pi,pf)
+!       pi = pf
         r = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
 !       r = sqrt(xcoord(i)**2+ycoord(j)**2)
 !       th = atan2(ycoord(j),xcoord(i))
         density(i,j) = sigma1(r,th)
         if(isnan(density(i,j)))density(i,j) = 0.d0
-        if(abs(density(i,j)).gt.1d10)density(i,j) = 0.d0
+!       if(abs(density(i,j)).gt.1d10)density(i,j) = 0.d0
 !       density(i,j) = sigma0(r)
 ENDDO
 ENDDO
 !$OMP END DO
 !$OMP END PARALLEL 
 
-open(10,file='r-dep.dat')
-DO i = 2, spiral.n,2
-        r = spiral.r(i)
-        write(10,'(5(1XE15.6))')spiral.r(i),real(spiral.u(2,i)),real(spiral.h1(i))/snsd(r)**2*sigma0(r),real(spiral.phi1r(i/2)),real(spiral.h1(i))
-        !r, u, sigma1,potential1
-enddo
-close(10)
 
 !
 !!!Find 2d Potential
@@ -117,10 +111,14 @@ ALLOCATE(force(n/4,n/4,2))
 !ENDDO
 !ENDDO
 
-points(1,:) = (/0.0,5.0/)
-points(2,:) = (/0.0,-5.0/)
+points(1,:) = (/0.0,10.636/)
+points(2,:) = (/0.0,-10.636/)
+points(3,:) = (/0.0,4.727/)
+points(4,:) = (/0.0,-4.727/)
 CALL dprojection(points)
 CALL plotdensity(density,potential,force,n,domain)
+
+
 DEALLOCATE(potential)
 DEALLOCATE(xcoord)
 DEALLOCATE(ycoord)
@@ -170,7 +168,7 @@ USE projections
 USE plotting,only:points
 IMPLICIT NONE
 DOUBLE PRECISION                ::pi(2),pf(2)
-REAL                            ::p(2,2)
+REAL                            ::p(4,2)
 INTEGER                         ::i
 !!BLAS
 CHARACTER(1)                    ::TRANS
@@ -186,7 +184,7 @@ INTEGER                         ::INCY = 1
 
 call set_angles
 
-DO i = 1,2
+DO i = 1,4
         X = points(i,:)
         A = R(aolin)
         TRANS  = 'n'
@@ -202,9 +200,10 @@ SUBROUTINE set_angles
 USE projections
 IMPLICIT NONE
 !observed angle of line of node 28 degree
-aolin = -28.d0/180.d0*pi_n
+!aolin = -28.d0/180.d0*pi_n
+aolin = -32.d0/180.d0*pi_n
 !pitch angle is 55 degree ?
 apitc = 55.d0/180.d0*pi_n
 !tuned angle of line of node
-aline = 30.d0/180.d0*pi_n
+aline =  0.d0/180.d0*pi_n
 ENDSUBROUTINE
