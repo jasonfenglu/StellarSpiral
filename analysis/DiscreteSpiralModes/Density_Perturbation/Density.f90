@@ -1,8 +1,8 @@
 module projections
-        DOUBLE PRECISION                ::pi_n = atan(1.d0)*4.d0
-        DOUBLE PRECISION                ::aline
-        DOUBLE PRECISION                ::apitc
-        DOUBLE PRECISION                ::aolin
+        DOUBLE PRECISION,PARAMETER      ::pi_n = atan(1.d0)*4.d0
+        DOUBLE PRECISION,SAVE           ::aline
+        DOUBLE PRECISION,SAVE           ::apitc
+        DOUBLE PRECISION,SAVE           ::aolin
 CONTAINS 
 FUNCTION R(th)
 IMPLICIT NONE
@@ -36,6 +36,7 @@ endmodule
 PROGRAM caldensity
 USE PLOTTING
 USE STELLARDISK,pi_n=>pi
+USE projections,only:aline
 IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
@@ -43,9 +44,16 @@ DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th,pf(2),pi(2)
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
+DOUBLE PRECISION                ::limit = 100.d0
 INTEGER,PARAMETER               ::n=1000
 type(spiral_type)               ::shared_spiral
 
+!if(iargc().eq.1)then
+!        CALL getarg(1,arg)
+!        READ(arg,*)aline
+!        else 
+!        aline = 3.d0
+!endif
 
 
 CALL INIT_STELLARDISK(n,domain)
@@ -82,6 +90,7 @@ DO j = 1, n*2
 !       th = atan2(ycoord(j),xcoord(i))
         density(i,j) = sigma1(r,th)
         if(isnan(density(i,j)))density(i,j) = 0.d0
+        if(abs(density(i,j)).lt.limit)density(i,j) = 0.d0
 !       if(abs(density(i,j)).gt.1d10)density(i,j) = 0.d0
 !       density(i,j) = sigma0(r)
 ENDDO
@@ -200,10 +209,11 @@ SUBROUTINE set_angles
 USE projections
 IMPLICIT NONE
 !observed angle of line of node 28 degree
-!aolin = -28.d0/180.d0*pi_n
-aolin = -32.d0/180.d0*pi_n
+ aolin = -28.3d0/180.d0*pi_n
+!aolin = -32.d0/180.d0*pi_n
 !pitch angle is 55 degree ?
 apitc = 55.d0/180.d0*pi_n
 !tuned angle of line of node
-aline =  0.d0/180.d0*pi_n
+aline = 45.d0/180.d0*pi_n
+!aline =  aline/180.d0*pi_n
 ENDSUBROUTINE

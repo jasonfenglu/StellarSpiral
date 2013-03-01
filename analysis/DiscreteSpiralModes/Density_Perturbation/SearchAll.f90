@@ -54,9 +54,9 @@ DO j = 1,m*n
 !       print *,'!!!',j,ipc
         CALL Findu
         searchgrid%lerror(j) = abs(error())
-!       !$OMP ATOMIC
+        !$OMP CRITICAL
                 complete_count = complete_count + 1
-!       !$OMP END ATOMIC
+        !$OMP END CRITICAL
         print *,real(complete_count)/real(m*n)*100.
 ENDDO
 !$OMP END DO

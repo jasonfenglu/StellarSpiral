@@ -79,11 +79,11 @@ spiral%N    = 4*n
 
 !!choose pspd
 if(withf)then
-        wr = 55.3746409416199
-        wi = -0.315928816795349
+        wr = 55.3617529869080
+        wi = -1.14111888408661
 else
-        wr = 67.5729591369629
-        wi = -1.17948741912842
+        wr = 63.4397068023682
+        wi = -0.906908631324768
 endif
 
 ENDSUBROUTINE INIT_STELLARDISK
@@ -507,18 +507,6 @@ CALL refineh1
 spiral.h1caled = .true.
 
 CONTAINS
-!Function ExpPart(r)
-!        IMPLICIT NONE
-!        DOUBLE PRECISION,INTENT(IN)     ::r
-!        DOUBLE PRECISION                ::rr,a=0.d0
-!        DOUBLE PRECISION                ::ExpPart
-!        DOUBLE PRECISION                ::ferr = 10.d-3
-!        INTEGER                         ::IERR,K=1000
-!        rr = r
-!!       CALL DGAUS8(Sigma,a,rr,ferr,ExpPart,IERRj
-!        CALL DQNC79(Sigma,a,rr,fERR,ExpPart,IERR,K)
-!
-!ENDFUNCTION ExpPart
 
 Function ExpPart(r) result(ans)
         IMPLICIT NONE
@@ -540,16 +528,17 @@ ENDFUNCTION ExpPart
 
 SUBROUTINE refineh1
 IMPLICIT NONE
+DOUBLE PRECISION,PARAMETER      ::cutoff = 9.5
 INTEGER                         ::i,f
 DO i =1, spiral.n
-        if(spiral.r(i).gt.9.5d0)then
+        if(spiral.r(i).gt.cutoff)then
                 f = i
                 exit
         endif
 enddo
 
 DO i = f+1, spiral.n
-        spiral.h1(i) = spiral.h1(i)*exp((-spiral.r(i)+9.5d0)/0.5d0)
+        spiral.h1(i) = spiral.h1(i)*exp((-spiral.r(i)+cutoff)/1.0d-1)
 enddo
 
 ENDSUBROUTINE refineh1

@@ -1,4 +1,5 @@
 PROGRAM find_all
+USE STELLARDISK,ONLY:INIT_STELLARDISK,ENDSTELLARDISK,wr,wi
 IMPLICIT NONE
 DOUBLE PRECISION                  ::wri,wii
 CHARACTER(len=32)                 ::arg
@@ -9,9 +10,11 @@ if(iargc().eq.2)then
         CALL getarg(2,arg)
         READ(arg,*)wii
 else 
+        CALL INIT_STELLARDISK(5,20.d0)
         print *,'no input initial finding value, using default'
-        wri = 55.5000
-        wii = -1.400
+        wri = wr
+        wii = wi
+        CALL ENDSTELLARDISK
 endif
 CALL findpspsd(wri,wii)
 print *,wri,wii
@@ -110,7 +113,7 @@ enddo
 
 searchgrid.lcoord = reshape(searchgrid.coord,(/n*n,2/))
 
-!$OMP PARALLEL SHARED(searchgrid)
+!$OMP PARALLEL SHARED(searchgrid) PRIVATE(spiral)
 CALL INIT_STELLARDISK(200,13.d0)
 !$OMP DO PRIVATE(spiral)
 DO j = 1,n**2
