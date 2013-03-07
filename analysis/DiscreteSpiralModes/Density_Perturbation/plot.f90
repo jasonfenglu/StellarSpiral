@@ -10,7 +10,7 @@
         INTEGER                                 ::PGBEG,i
         
         
-        IF (PGBEG(0,'log.png/png',1,1) .NE. 1) STOP
+        IF (PGBEG(0,'./plotlog/log.png/png',1,1) .NE. 1) STOP
 !       CALL PGSVP(0.0,0.95,0.0,0.95)
         
         
@@ -43,6 +43,7 @@
 
 
         IF (PGBEG(0,'density.png/png',1,1) .NE. 1) STOP
+!       IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
         CALL PGSVP(0.0,0.95,0.0,0.95)
 
         m = n
@@ -64,8 +65,8 @@
         vmax = real(MAXVAL(F(:,:)))
         vmin = real(MINVAL(F(:,:)))
         print *,vmax,vmin
-        vmax = 400.
-        vmin =-400.
+        vmax = 300.
+        vmin =-300.
         CALL PALETT(2,CONTRA,Bright)
         CALL PGBBUF
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
@@ -75,11 +76,13 @@
         CALL PGLAB('kpc','kpc','Density')
         CALL PGSFS(2)
         CALL PGSCI(0)
-        CALL PGPT(4,points(:,1),points(:,2),2)
+!       CALL PGPT(4,points(:,1),points(:,2),2)
 !       CALL PGCIRC(0.,0.,1.26)
 !       CALL PGCIRC(0.,0.,2.36)
 !       CALL PGCIRC(0.,0.,4.72)
 !       CALL PGCIRC(0.,0.,10.636)
+
+        CALL PGLINE(2,(/2.,7./),(/-8.,-8/))
 
         !!Potential
 !       vmax = real(MAXVAL(F2(:,:)))

@@ -45,6 +45,7 @@ DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 DOUBLE PRECISION                ::limit = 100.d0
+DOUBLE PRECISION                ::d
 INTEGER,PARAMETER               ::n=1000
 type(spiral_type)               ::shared_spiral
 
@@ -76,7 +77,7 @@ ALLOCATE(shared_spiral.phi1r(2*n))
 ALLOCATE(shared_spiral.r(4*n))
 
 shared_spiral = spiral
-!$OMP PARALLEL SHARED(density,shared_spiral) PRIVATE(j,r,th,pi,pf)
+!$OMP PARALLEL SHARED(density,shared_spiral) PRIVATE(j,r,th,pi,pf,d)
 spiral = shared_spiral
 !$OMP DO PRIVATE(spiral)
 DO i = 1, n*2
@@ -84,15 +85,19 @@ DO j = 1, n*2
         pf = (/xcoord(i),ycoord(j)/)
         CALL projection(pi,pf)
 !       pi = pf
-        r = sqrt(pi(1)**2+pi(2)**2)
+        r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
-!       r = sqrt(xcoord(i)**2+ycoord(j)**2)
-!       th = atan2(ycoord(j),xcoord(i))
-        density(i,j) = sigma1(r,th)
-        if(isnan(density(i,j)))density(i,j) = 0.d0
-        if(abs(density(i,j)).lt.limit)density(i,j) = 0.d0
-!       if(abs(density(i,j)).gt.1d10)density(i,j) = 0.d0
-!       density(i,j) = sigma0(r)
+        d  = sigma1(r,th)
+        !===================
+        !ignore d too high
+        if(r.gt.10.d0)d = 0.d0
+        !ignore inside r=1.26  
+        if(r.lt.2.26)d = d*(1.d0 - cos(r/2.26d0*pi_n/2.d0))
+        !ignore d that is not exist during coordinate transformation
+        if(isnan(d))d = 0.d0
+        !ignore value below detection limit
+        if(abs(d).lt.limit)d = 0.d0
+        density(i,j) = d
 ENDDO
 ENDDO
 !$OMP END DO
