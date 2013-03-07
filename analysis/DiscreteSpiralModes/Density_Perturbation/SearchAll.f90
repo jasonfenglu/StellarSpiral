@@ -42,10 +42,8 @@ DO i = 1,n
 enddo
 searchgrid.lcoord = reshape(searchgrid.coord,(/m*n,2/))
 
-!$OMP BARRIER
 !$OMP PARALLEL SHARED(searchgrid,complete_count)
 CALL INIT_STELLARDISK(200,15.d0)
-!$OMP BARRIER
 !$OMP DO PRIVATE(spiral)
 DO j = 1,m*n
         wr = searchgrid%lcoord(j,1)
