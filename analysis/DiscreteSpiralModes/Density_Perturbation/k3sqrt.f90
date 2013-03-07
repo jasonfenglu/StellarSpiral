@@ -57,6 +57,7 @@ a2   = 5.0d0
 M1   = 6.0d10
 M2   = 8.0d09
 
+!$OMP CRITICAL
 if(.not.allocated(stdpara))ALLOCATE(stdpara(14))
 stdpara = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2/)
 para => stdpara
@@ -66,7 +67,7 @@ if(.not.allocated(spiral.u))ALLOCATE(spiral.u(3,4*n))
 if(.not.allocated(spiral.h1))ALLOCATE(spiral.h1(4*n))
 if(.not.allocated(spiral.phi1r))ALLOCATE(spiral.phi1r(2*n))
 if(.not.allocated(spiral.r))ALLOCATE(spiral.r(4*n))
-!$OMP BARRIER
+!$OMP END CRITICAL
 
 !ALLOCATE(spiral.u(3,4*n))
 !ALLOCATE(spiral.h1(4*n))
