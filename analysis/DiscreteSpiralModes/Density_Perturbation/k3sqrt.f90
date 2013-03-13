@@ -88,11 +88,10 @@ IMPLICIT NONE
 CALL findu
 !find h1
 CALL findh1
-!!!Find phi1 along r
+!Find phi1 along r
 CALL FindPhi1
 !Save calculation results
 CALL k3sqrtlog
-
 ENDSUBROUTINE
 
 SUBROUTINE k3sqrtlog
@@ -110,7 +109,7 @@ phi1r   = spiral.phi1r
 open(10,file='r-dep.dat')
 DO i = 2, spiral.n,2
         r = spiral.r(i)
-        write(10,'(5(1XE15.6))')spiral.r(i),abs(spiral.u(2,i)),abs(spiral.h1(i))/snsd(r)**2*sigma0(r),abs(spiral.phi1r(i/2)),abs(spiral.h1(i))
+        write(10,'(6(1XE15.6))')spiral.r(i),real(spiral.u(2,i)),abs(spiral.h1(i))/snsd(r)**2*sigma0(r),abs(spiral.phi1r(i/2)),abs(spiral.h1(i))
         !r, u, sigma1,potential1,h1
 enddo
 close(10)
