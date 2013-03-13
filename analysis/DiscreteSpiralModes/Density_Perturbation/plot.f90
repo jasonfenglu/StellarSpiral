@@ -65,8 +65,10 @@
         vmax = real(MAXVAL(F(:,:)))
         vmin = real(MINVAL(F(:,:)))
         print *,vmax,vmin
-        vmax = 300.
-        vmin =-300.
+        vmax = vmax * 1.1d0
+        vmin = vmin * 1.1d0
+!       vmax = 4.d8
+!       vmin =-4.d8
         CALL PALETT(2,CONTRA,Bright)
         CALL PGBBUF
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)

@@ -1,6 +1,6 @@
 module projections
         DOUBLE PRECISION,PARAMETER      ::pi_n = atan(1.d0)*4.d0
-        DOUBLE PRECISION,SAVE           ::aline
+        DOUBLE PRECISION,SAVE           ::aline,argaline
         DOUBLE PRECISION,SAVE           ::apitc
         DOUBLE PRECISION,SAVE           ::aolin
 CONTAINS 
@@ -36,7 +36,7 @@ endmodule
 PROGRAM caldensity
 USE PLOTTING
 USE STELLARDISK,pi_n=>pi
-USE projections,only:aline
+USE projections,only:argaline
 IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
@@ -46,15 +46,16 @@ DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
-INTEGER,PARAMETER               ::n=1000
+INTEGER,PARAMETER               ::n=500
 type(spiral_type)               ::shared_spiral
 
-!if(iargc().eq.1)then
-!        CALL getarg(1,arg)
-!        READ(arg,*)aline
-!        else 
-!        aline = 3.d0
-!endif
+if(iargc().eq.1)then
+        CALL getarg(1,arg)
+        READ(arg,*)argaline
+        print *,'read in argaline = ',argaline
+        else 
+        argaline = 3.d0
+endif
 
 
 CALL INIT_STELLARDISK(n,domain)
@@ -83,8 +84,8 @@ spiral = shared_spiral
 DO i = 1, n*2
 DO j = 1, n*2
         pf = (/xcoord(i),ycoord(j)/)
+        pi = pf
         CALL projection(pi,pf)
-!       pi = pf
         r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
         d  = sigma1(r,th)
@@ -92,11 +93,11 @@ DO j = 1, n*2
         !ignore d too high
         if(r.gt.10.d0)d = 0.d0
         !ignore inside r=1.26  
-        if(r.lt.2.26)d = d*(1.d0 - cos(r/2.26d0*pi_n/2.d0))
+!       if(r.lt.2.26)d = d*(1.d0 - cos(r/2.26d0*pi_n/2.d0))
         !ignore d that is not exist during coordinate transformation
         if(isnan(d))d = 0.d0
         !ignore value below detection limit
-        if(abs(d).lt.limit)d = 0.d0
+!       if(abs(d).lt.limit)d = 0.d0
         density(i,j) = d
 ENDDO
 ENDDO
@@ -219,6 +220,6 @@ IMPLICIT NONE
 !pitch angle is 55 degree ?
 apitc = 55.d0/180.d0*pi_n
 !tuned angle of line of node
-aline = 45.d0/180.d0*pi_n
-!aline =  aline/180.d0*pi_n
+!aline = 30.d0/180.d0*pi_n
+aline =  argaline/180.d0*pi_n
 ENDSUBROUTINE

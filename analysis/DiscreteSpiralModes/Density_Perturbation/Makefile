@@ -1,7 +1,7 @@
 F90=ifort
 FCC=icc
 
-FFLAGS=  -O2 -L. -lslatec -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -openmp -g
+FFLAGS=  -O2 -L. -lslatec -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -openmp 
 
 OBJECT = plot.o rk4.o k3sqrt.o Density.o
 OBJECT2= plot.o rk4.o k3sqrt.o force.o

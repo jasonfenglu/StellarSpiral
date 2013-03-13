@@ -41,36 +41,28 @@ DOUBLE PRECISION                ::dM,da,db,VDisk
 DOUBLE PRECISION                ::Q,Qod,rq
 !Lau Disk
 DOUBLE PRECISION                ::a1,a2,M1,M2
+!pspd from readin
+DOUBLE PRECISION                ::w(4)
+!NAME LIST
+namelist /paralist/ Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2,w
 
-Lh   = 2.8d0
-rhoh = 4.0d7
-Mb   = 1.8d8
-rb   = 1.65d0
-dM   = 7.0d10
-da   = 2.7d0
-db   = 0.3d0
-Qod  = 1.00d0
-q    = 0.4d0
-rq   = 3.5d0
-a1   = 9.0d0
-a2   = 5.0d0
-M1   = 6.0d10
-M2   = 8.0d09
 
-if(.not.allocated(stdpara))ALLOCATE(stdpara(14))
+open(10,file='para.list')
+read(10,nml=paralist)
+close(10)
+
+
+ALLOCATE(stdpara(14))
 stdpara = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2/)
 para => stdpara
 
-!Allocate
-if(.not.allocated(spiral.u))ALLOCATE(spiral.u(3,4*n))
-if(.not.allocated(spiral.h1))ALLOCATE(spiral.h1(4*n))
-if(.not.allocated(spiral.phi1r))ALLOCATE(spiral.phi1r(2*n))
-if(.not.allocated(spiral.r))ALLOCATE(spiral.r(4*n))
 
-!ALLOCATE(spiral.u(3,4*n))
-!ALLOCATE(spiral.h1(4*n))
-!ALLOCATE(spiral.phi1r(2*n))
-!ALLOCATE(spiral.r(4*n))
+!Allocate
+
+ALLOCATE(spiral.u(3,4*n))
+ALLOCATE(spiral.h1(4*n))
+ALLOCATE(spiral.phi1r(2*n))
+ALLOCATE(spiral.r(4*n))
 
 spiral%rmin = 1d-8
 spiral%rmax = 2.d0*domain
@@ -78,11 +70,11 @@ spiral%N    = 4*n
 
 !!choose pspd
 if(withf)then
-        wr = 55.3617529869080
-        wi = -1.14111888408661
+        wr = w(1)
+        wi = w(2)
 else
-        wr = 63.4397068023682
-        wi = -0.906908631324768
+        wr = w(3)
+        wi = w(4)
 endif
 
 ENDSUBROUTINE INIT_STELLARDISK
@@ -115,8 +107,8 @@ phi1r   = spiral.phi1r
 open(10,file='r-dep.dat')
 DO i = 2, spiral.n,2
         r = spiral.r(i)
-        write(10,'(5(1XE15.6))')spiral.r(i),real(spiral.u(2,i)),real(spiral.h1(i))/snsd(r)**2*sigma0(r),real(spiral.phi1r(i/2)),real(spiral.h1(i))
-        !r, u, sigma1,potential1
+        write(10,'(5(1XE15.6))')spiral.r(i),abs(spiral.u(2,i)),abs(spiral.h1(i))/snsd(r)**2*sigma0(r),abs(spiral.phi1r(i/2)),abs(spiral.h1(i))
+        !r, u, sigma1,potential1,h1
 enddo
 close(10)
 
@@ -306,10 +298,11 @@ DOUBLE PRECISION          ::Lh,rhoh,gHalo,VHalo
 !bulge
 DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
 !disk
-DOUBLE PRECISION          ::dM,da,db,VDisk
+DOUBLE PRECISION          ::dM,da,db
+DOUBLE COMPLEX            ::VDisk
 
-if(rr.eq.0.d0)then
-        r = 1d-6
+if(rr.lt.1.d-6)then
+        r = 1d-5
 else
         r = rr
 endif      
@@ -339,7 +332,11 @@ VBulge = sqrt(r*gBulge)
 VDisk  = VLauDisk(r)
 
 
-Omega  = sqrt(VHalo**2+VBulge**2+VDisk**2)/r
+if(VHalo**2+VBulge**2+dble(VDisk**2).lt.0.d0)
+        Omega = 0.d0
+else
+        Omega = sqrt(VHalo**2+VBulge**2+dble(VDisk**2))/r
+endif
 CALL CheckResult
 CONTAINS
 FUNCTION pDisk(r)
@@ -368,7 +365,7 @@ ENDSUBROUTINE
 
 FUNCTION VLauDisk(r)
 IMPLICIT NONE
-DOUBLE PRECISION                ::VLauDisk
+DOUBLE COMPLEX                  ::VLauDisk
 DOUBLE PRECISION                ::r
 DOUBLE PRECISION                ::x1,x2
 DOUBLE PRECISION                ::a1,a2,M1,M2
@@ -384,7 +381,6 @@ VLauDisk = (M1*GravConst/a1**3*H(x1))
 VLauDisk = VLauDisk - (M2*GravConst/a2**3*H(x2))
 VLauDisk = sqrt(16.d0/105.d0*VLauDisk)
 VLauDisk = VLauDisk*r
-
 ENDFUNCTION
 
 FUNCTION H(x)
@@ -502,7 +498,7 @@ do i = 1, spiral.n
 !       spiral.h1(i) = u*rad*exp(-0.5d0*(0.d0,1.d0)*cmplx(expp,0.d0))
 enddo
 
-CALL refineh1
+!CALL refineh1
 spiral.h1caled = .true.
 
 CONTAINS
