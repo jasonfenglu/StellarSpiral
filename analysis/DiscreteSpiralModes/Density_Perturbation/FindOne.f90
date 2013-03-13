@@ -113,7 +113,7 @@ enddo
 
 searchgrid.lcoord = reshape(searchgrid.coord,(/n*n,2/))
 
-!$OMP PARALLEL SHARED(searchgrid) PRIVATE(spiral)
+!$OMP PARALLEL SHARED(searchgrid) PRIVATE(spiral,stdpara)
 CALL INIT_STELLARDISK(200,13.d0)
 !$OMP DO PRIVATE(spiral)
 DO j = 1,n**2

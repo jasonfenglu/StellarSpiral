@@ -52,17 +52,18 @@ read(10,nml=paralist)
 close(10)
 
 
-ALLOCATE(stdpara(14))
+!ALLOCATE(stdpara(14))
+if(.not.allocated(stdpara))ALLOCATE(stdpara(14))
 stdpara = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2/)
 para => stdpara
 
 
 !Allocate
+if(.not.allocated(spiral.u))ALLOCATE(spiral.u(3,4*n))
+if(.not.allocated(spiral.h1))ALLOCATE(spiral.h1(4*n))
+if(.not.allocated(spiral.phi1r))ALLOCATE(spiral.phi1r(2*n))
+if(.not.allocated(spiral.r))ALLOCATE(spiral.r(4*n))
 
-ALLOCATE(spiral.u(3,4*n))
-ALLOCATE(spiral.h1(4*n))
-ALLOCATE(spiral.phi1r(2*n))
-ALLOCATE(spiral.r(4*n))
 
 spiral%rmin = 1d-8
 spiral%rmax = 2.d0*domain
@@ -332,7 +333,7 @@ VBulge = sqrt(r*gBulge)
 VDisk  = VLauDisk(r)
 
 
-if(VHalo**2+VBulge**2+dble(VDisk**2).lt.0.d0)
+if(VHalo**2+VBulge**2+dble(VDisk**2).lt.0.d0)then
         Omega = 0.d0
 else
         Omega = sqrt(VHalo**2+VBulge**2+dble(VDisk**2))/r
