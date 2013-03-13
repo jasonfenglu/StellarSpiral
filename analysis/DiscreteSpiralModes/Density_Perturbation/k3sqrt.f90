@@ -47,9 +47,11 @@ DOUBLE PRECISION                ::w(4)
 namelist /paralist/ Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2,w
 
 
+!$OMP CRITICAL
 open(10,file='para.list')
 read(10,nml=paralist)
 close(10)
+!$OMP END CRITICAL
 
 
 !ALLOCATE(stdpara(14))

@@ -42,7 +42,7 @@ DO i = 1,n
 enddo
 searchgrid.lcoord = reshape(searchgrid.coord,(/m*n,2/))
 
-!$OMP PARALLEL SHARED(searchgrid,complete_count)
+!$OMP PARALLEL SHARED(searchgrid,complete_count) PRIVATE(spiral,stdpara)
 CALL INIT_STELLARDISK(200,15.d0)
 !$OMP DO PRIVATE(spiral)
 DO j = 1,m*n
