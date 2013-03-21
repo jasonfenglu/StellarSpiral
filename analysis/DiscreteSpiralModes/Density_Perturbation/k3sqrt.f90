@@ -287,7 +287,12 @@ else
         r = rr
 endif
 kappa = sqrt(4.d0*Omega(r)**2*(1.d0+r/(2.d0*Omega(r))*dfunc(Omega,r)))
-if(isnan(kappa))CALL XERMSG('k3sqrt','kappa','kappa is nan.',-97,2)
+if(isnan(kappa))then
+        print *,'kappa exception catched'
+        print *,'r,Omega,dfunc(Omega,r):'
+        print *,r,Omega(r),dfunc(Omega,r)
+        CALL XERMSG('k3sqrt','kappa','kappa is nan.',-97,2)
+endif       
 ENDFUNCTION
 
 FUNCTION Omega(rr)
@@ -303,11 +308,24 @@ DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
 DOUBLE PRECISION          ::dM,da,db
 DOUBLE COMPLEX            ::VDisk
 
-if(rr.lt.1.d-6)then
-        r = 1d-5
+if(rr.lt.1d-6)then
+        r = 1d-6
 else
         r = rr
 endif      
+
+if (r.lt.1.d-5)then
+        Omega = dfunc(V,r)
+else
+        Omega = V(r)/r
+endif
+
+CALL CheckResult
+CONTAINS
+
+FUNCTION V(r)
+IMPLICIT NONE
+DOUBLE PRECISION        ::V,r
 
 !Halo
 Lh   = para(1)
@@ -332,15 +350,9 @@ VBulge = sqrt(r*gBulge)
 
 !LauDisk 
 VDisk  = VLauDisk(r)
+V = sqrt(VHalo**2+VBulge**2+dble(VDisk**2))
+ENDFUNCTION
 
-
-if(VHalo**2+VBulge**2+dble(VDisk**2).lt.0.d0)then
-        Omega = 0.d0
-else
-        Omega = sqrt(VHalo**2+VBulge**2+dble(VDisk**2))/r
-endif
-CALL CheckResult
-CONTAINS
 FUNCTION pDisk(r)
 IMPLICIT NONE
 DOUBLE PRECISION        ::pDisk,r
@@ -406,7 +418,8 @@ function dfunc(func,r)
 !
 IMPLICIT NONE
 DOUBLE PRECISION,INTENT(IN)     ::r
-DOUBLE PRECISION,PARAMETER      ::dr = 1.d-5,coe(3)=(/-1.5d0,2.d0,-0.5d0/)
+DOUBLE PRECISION                ::dr=1.d-8
+DOUBLE PRECISION,PARAMETER      ::coe(3)=(/-1.5d0,2.d0,-0.5d0/)
 DOUBLE PRECISION                ::dfunc,ans,funcs(3)
 INTEGER                         ::i
 interface 
@@ -415,6 +428,7 @@ interface
         DOUBLE PRECISION        ::x
         ENDFUNCTION func
 endinterface        
+
 
 funcs(1) = func(r)
 funcs(2) = func(r+dr)
@@ -437,9 +451,9 @@ DOUBLE PRECISION                ::s,r,tmp
 INTEGER                         ::m=2
 
 s    = -r/Omega(r)*dfunc(Omega,r)
-curf = 2.d0*dble(m)*(pi*GravConst*sigma0(r))/kappa(r)**2/r
-curf = curf/sqrt(dcmplx(1.d0/s-0.5d0))
+curf = 2.d0*dble(m)*(pi*GravConst*sigma0(r))/kappa(r)**2/r/real(sqrt(dcmplx(1.d0/s-0.5d0)))
 !if(isnan(curf))CALL XERMSG('k3sqrt','curf','curf is nan.',-96,0)
+
 CALL CheckResult
 CONTAINS
 SUBROUTINE CheckResult
@@ -448,7 +462,11 @@ CHARACTER(len=72)                       ::errormsg
 write(errormsg,"(E10.3)")s
 errormsg = trim(errormsg)
 errormsg = 'curf real nan.@s = '//errormsg
-if(isnan(real(curf)))CALL XERMSG('k3sqrt','curf',errormsg,-96,2)
+if(isnan(real(curf)))then
+        print *,'curf exception'
+        print *,r,s,Omega(r),dfunc(Omega,r)
+        CALL XERMSG('k3sqrt','curf',errormsg,-96,2)
+endif
 ENDSUBROUTINE
 ENDFUNCTION
  
@@ -500,7 +518,7 @@ do i = 1, spiral.n
 !       spiral.h1(i) = u*rad*exp(-0.5d0*(0.d0,1.d0)*cmplx(expp,0.d0))
 enddo
 
-!CALL refineh1
+CALL refineh1
 spiral.h1caled = .true.
 
 CONTAINS
