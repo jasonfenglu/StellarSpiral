@@ -1,3 +1,7 @@
+MODULE NUM
+DOUBLE PRECISION,PARAMETER                      ::zerolimit=1.d-6
+ENDMODULE NUM
+
 MODULE STELLARDISK
 USE PLOTTING
 IMPLICIT NONE
@@ -87,9 +91,9 @@ IMPLICIT NONE
 !find EigenFunction
 CALL findu
 !find h1
-CALL findh1
+!CALL findh1
 !Find phi1 along r
-CALL FindPhi1
+!CALL FindPhi1
 !Save calculation results
 CALL k3sqrtlog
 ENDSUBROUTINE
@@ -109,7 +113,7 @@ phi1r   = spiral.phi1r
 open(10,file='r-dep.dat')
 DO i = 2, spiral.n,2
         r = spiral.r(i)
-        write(10,'(6(1XE15.6))')spiral.r(i),real(spiral.u(2,i)),abs(spiral.h1(i))/snsd(r)**2*sigma0(r),abs(spiral.phi1r(i/2)),abs(spiral.h1(i))
+        write(10,'(6(1XE15.6))')spiral.r(i),abs(spiral.u(2,i)),abs(spiral.h1(i))/snsd(r)**2*sigma0(r),abs(spiral.phi1r(i/2)),abs(spiral.h1(i))
         !r, u, sigma1,potential1,h1
 enddo
 close(10)
@@ -275,17 +279,17 @@ H = 6.5625 /x**3  + H
 ENDFUNCTION
 ENDFUNCTION
 
-function kappa(rr)
+function kappa(r)
+USE NUM
 IMPLICIT NONE
-DOUBLE PRECISION  kappa,r
-DOUBLE PRECISION,INTENT(IN)             ::rr
+DOUBLE PRECISION  kappa
+DOUBLE PRECISION,INTENT(IN)             ::r
 DOUBLE PRECISION  dr
 DOUBLE PRECISION  dOmega
-if(rr.eq.0.d0)then
-        r = 1d-8
-else
-        r = rr
-endif
+!if(r.lt.zerolimit)then
+!        kappa = 2.d0*Omega(r)
+!        return
+!endif
 kappa = sqrt(4.d0*Omega(r)**2*(1.d0+r/(2.d0*Omega(r))*dfunc(Omega,r)))
 if(isnan(kappa))then
         print *,'kappa exception catched'
@@ -295,11 +299,11 @@ if(isnan(kappa))then
 endif       
 ENDFUNCTION
 
-FUNCTION Omega(rr)
+FUNCTION Omega(r)
+USE NUM
 IMPLICIT NONE
 DOUBLE PRECISION          ::Omega
-DOUBLE PRECISION,INTENT(IN)::rr
-DOUBLE PRECISION           ::r
+DOUBLE PRECISION,INTENT(IN)::r
 !Halo
 DOUBLE PRECISION          ::Lh,rhoh,gHalo,VHalo
 !bulge
@@ -307,38 +311,48 @@ DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
 !disk
 DOUBLE PRECISION          ::dM,da,db
 DOUBLE COMPLEX            ::VDisk
+DOUBLE PRECISION          ::a1,a2,M1,M2
 
-if(rr.lt.1d-6)then
-        r = 1d-6
-else
-        r = rr
-endif      
+if(.not.associated(para))then
+        print *,'para not init'
+        stop
+endif        
 
-if (r.lt.1.d-5)then
-        Omega = dfunc(V,r)
-else
-        Omega = V(r)/r
-endif
-
-CALL CheckResult
-CONTAINS
-
-FUNCTION V(r)
-IMPLICIT NONE
-DOUBLE PRECISION        ::V,r
 
 !Halo
 Lh   = para(1)
 rhoh = para(2)
-gHalo = 4.d0*Lh**2.d0*pi*rhoh*(r - Lh*atan(r/Lh))
-gHalo = GravConst/(r**2)*gHalo
-VHalo = sqrt(r*gHalo)
-
 !Bulge
 Mb   = para(3)
 rb   = para(4)
-gBulge = 4.d0*pi*rb**3*Mb*(-r/sqrt(1.d0+r**2/rb**2)/rb+dasinh(r/rb))
-gBulge = gBulge*GravConst/r**2
+!Disk
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+
+
+!!Limit case when r->0:
+if(r.lt.zerolimit)then
+        Omega = 4.d0/3.d0*pi*GravConst*(MB+RHOH) &
+              + 16.d0/105*GravConst*(M1/a1**3-M2/a2**3)*120.d0
+        Omega = Omega**0.5
+        return
+endif
+
+
+!Halo
+Lh   = para(1)
+rhoh = para(2)
+gHalo = 4.d0*Lh**2.d0*pi*rhoh*(r - Lh*atan(r/Lh))/r**2
+gHalo = GravConst*gHalo
+VHalo = sqrt(r*gHalo)
+!Bulge
+Mb   = para(3)
+rb   = para(4)
+gBulge = (-r/sqrt(1.d0+r**2/rb**2)/rb+dasinh(r/rb))/r**2
+
+gBulge = 4.d0*pi*rb**3*Mb*gBulge*GravConst
 VBulge = sqrt(r*gBulge)
 
 !!Disk
@@ -350,8 +364,10 @@ VBulge = sqrt(r*gBulge)
 
 !LauDisk 
 VDisk  = VLauDisk(r)
-V = sqrt(VHalo**2+VBulge**2+dble(VDisk**2))
-ENDFUNCTION
+Omega = sqrt(VHalo**2+VBulge**2+dble(VDisk**2))/r
+!print *,r,V
+!CALL CheckResult
+CONTAINS
 
 FUNCTION pDisk(r)
 IMPLICIT NONE
@@ -418,7 +434,7 @@ function dfunc(func,r)
 !
 IMPLICIT NONE
 DOUBLE PRECISION,INTENT(IN)     ::r
-DOUBLE PRECISION                ::dr=1.d-8
+DOUBLE PRECISION                ::dr
 DOUBLE PRECISION,PARAMETER      ::coe(3)=(/-1.5d0,2.d0,-0.5d0/)
 DOUBLE PRECISION                ::dfunc,ans,funcs(3)
 INTEGER                         ::i
@@ -429,7 +445,7 @@ interface
         ENDFUNCTION func
 endinterface        
 
-
+dr = epsilon(r)**0.3*max(r,epsilon(0d0))
 funcs(1) = func(r)
 funcs(2) = func(r+dr)
 funcs(3) = func(r+2.d0*dr)
@@ -445,26 +461,71 @@ if(isnan(dfunc))CALL XERMSG('k3sqrt','dfunc','dfunc is nan.',-94,0)
 endfunction
  
 function curf(r)
+USE NUM
 IMPLICIT NONE
 DOUBLE PRECISION                ::curf
-DOUBLE PRECISION                ::s,r,tmp
+DOUBLE PRECISION                ::r,tmp
 INTEGER                         ::m=2
 
-s    = -r/Omega(r)*dfunc(Omega,r)
-curf = 2.d0*dble(m)*(pi*GravConst*sigma0(r))/kappa(r)**2/r/real(sqrt(dcmplx(1.d0/s-0.5d0)))
-!if(isnan(curf))CALL XERMSG('k3sqrt','curf','curf is nan.',-96,0)
+if(r.lt.zerolimit)then
+        curf = &
+        2.d0*dble(m)*(pi*GravConst*sigma0(0.d0))/kappa(0.d0)**2*sqrt(-2.d0*Omega2()/(Omega(0.d0)))
+        return
+elseif(r.lt.3.d-2)then
+        curf = &
+        2.d0*dble(m)*(pi*GravConst*sigma0(r))/kappa(r)**2 &
+        *sqrt(-(2.d0*r*Omega2())/(r*Omega(r)))
+else
+        curf = &
+        2.d0*dble(m)*(pi*GravConst*sigma0(r))/kappa(r)**2*sqrt(-dfunc(Omega,r)/(r*Omega(r)))
+endif
 
 CALL CheckResult
 CONTAINS
+FUNCTION Omega2
+IMPLICIT NONE
+DOUBLE PRECISION          ::Omega2
+!Halo
+DOUBLE PRECISION          ::Lh,rhoh,gHalo,VHalo
+!bulge
+DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
+!disk
+DOUBLE PRECISION          ::dM,da,db
+DOUBLE COMPLEX            ::VDisk
+DOUBLE PRECISION          ::a1,a2,M1,M2
+
+if(.not.associated(para))then
+        print *,'para not init'
+        stop
+endif        
+
+
+!Halo
+Lh   = para(1)
+rhoh = para(2)
+!Bulge
+Mb   = para(3)
+rb   = para(4)
+!Disk
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+
+Omega2 = 4.d0*pi*GravConst*rhoh/5.d0/Lh**2 + 6.d0/5.d0*pi*GravConst*Mb/rb**2 &
+       + 8.d0*GravConst/105.d0*(M1/a1**5-M2/a2**5)*1080.d0
+Omega2 = -Omega2/2.d0/Omega(0.d0)
+
+ENDFUNCTION
+
 SUBROUTINE CheckResult
 IMPLICIT NONE
 CHARACTER(len=72)                       ::errormsg
-write(errormsg,"(E10.3)")s
 errormsg = trim(errormsg)
-errormsg = 'curf real nan.@s = '//errormsg
+errormsg = 'curf real nan.'
 if(isnan(real(curf)))then
         print *,'curf exception'
-        print *,r,s,Omega(r),dfunc(Omega,r)
+        print *,r,Omega(r),dfunc(Omega,r)
         CALL XERMSG('k3sqrt','curf',errormsg,-96,2)
 endif
 ENDSUBROUTINE
@@ -479,7 +540,7 @@ INTEGER                         ::n
 spiral.u = (1.d0,0.d0)*0.d0
 a = spiral.rmin
 b = spiral.rmax
-ui = (/a,1.d0,0.d0/)
+ui = (/dcmplx(a),dcmplx(0.d0),2.d0*sqrt(-k3sqrt(0.d0))/)
 CALL rk4(a,b,spiral.n,p,q,p,spiral.u,ui)
 spiral.ucaled = .true.
 spiral.r = real(spiral.u(1,:))
@@ -518,7 +579,7 @@ do i = 1, spiral.n
 !       spiral.h1(i) = u*rad*exp(-0.5d0*(0.d0,1.d0)*cmplx(expp,0.d0))
 enddo
 
-CALL refineh1
+!CALL refineh1
 spiral.h1caled = .true.
 
 CONTAINS
