@@ -85,7 +85,7 @@ DO i = 1, n*2
 DO j = 1, n*2
         pf = (/xcoord(i),ycoord(j)/)
         pi = pf
-        CALL projection(pi,pf)
+!       CALL projection(pi,pf)
         r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
         d  = sigma1(r,th)

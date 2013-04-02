@@ -91,9 +91,9 @@ IMPLICIT NONE
 !find EigenFunction
 CALL findu
 !find h1
-!CALL findh1
+CALL findh1
 !Find phi1 along r
-!CALL FindPhi1
+CALL FindPhi1
 !Save calculation results
 CALL k3sqrtlog
 ENDSUBROUTINE

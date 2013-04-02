@@ -17,7 +17,7 @@ else
         CALL ENDSTELLARDISK
 endif
 CALL findpspsd(wri,wii)
-print *,wri,wii
+print *,wri,',',wii
 
 STOP
 END PROGRAM
