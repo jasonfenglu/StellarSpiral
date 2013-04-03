@@ -71,7 +71,7 @@ if(.not.allocated(spiral.phi1r))ALLOCATE(spiral.phi1r(2*n))
 if(.not.allocated(spiral.r))ALLOCATE(spiral.r(4*n))
 
 
-spiral%rmin = 1d-8
+spiral%rmin = 0.d0 
 spiral%rmax = 2.d0*domain
 spiral%N    = 4*n
 
@@ -113,7 +113,7 @@ phi1r   = spiral.phi1r
 open(10,file='r-dep.dat')
 DO i = 2, spiral.n,2
         r = spiral.r(i)
-        write(10,'(6(1XE15.6))')spiral.r(i),abs(spiral.u(2,i)),abs(spiral.h1(i))/snsd(r)**2*sigma0(r),abs(spiral.phi1r(i/2)),abs(spiral.h1(i))
+        write(10,'(6(1XE15.6))')spiral.r(i),real(spiral.u(2,i)),abs(spiral.h1(i))/snsd(r)**2*sigma0(r),abs(spiral.phi1r(i/2)),abs(spiral.h1(i))
         !r, u, sigma1,potential1,h1
 enddo
 close(10)
@@ -515,6 +515,10 @@ M2 = para(14)
 Omega2 = 4.d0*pi*GravConst*rhoh/5.d0/Lh**2 + 6.d0/5.d0*pi*GravConst*Mb/rb**2 &
        + 8.d0*GravConst/105.d0*(M1/a1**5-M2/a2**5)*1080.d0
 Omega2 = -Omega2/2.d0/Omega(0.d0)
+if(Omega2.gt.0.d0)then
+        write(0,*)'Omega2 is larger than 0. curf will not exist. Omega2=',Omega2
+        stop
+endif
 
 ENDFUNCTION
 

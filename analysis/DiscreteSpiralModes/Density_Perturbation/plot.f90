@@ -40,12 +40,26 @@
         INTEGER                                 ::m,n   !dimentsion
         INTEGER                                 ::PGBEG
         REAL                                    ::dx,dy
+        INTEGER                                 ::noutput
 
 
+        IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
+        CALL output
         IF (PGBEG(0,'density.png/png',1,1) .NE. 1) STOP
-!       IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
-        CALL PGSVP(0.0,0.95,0.0,0.95)
+        CALL output
 
+        
+        CONTAINS
+        SUBROUTINE output()
+        LOGICAL                                 ::rauto
+        REAL                                    ::den
+        namelist /plotpara/ rauto,den
+
+        open(10,file='para.list')
+        read(10,nml=plotpara)
+        close(10)
+
+        CALL PGSVP(0.0,0.95,0.0,0.95)
         m = n
         dx = real(domain)/real(n)
         dy = real(domain)/real(m)
@@ -64,11 +78,15 @@
         !!Density
         vmax = real(MAXVAL(F(:,:)))
         vmin = real(MINVAL(F(:,:)))
-        print *,vmax,vmin
         vmax = vmax * 1.1d0
         vmin = vmin * 1.1d0
-!       vmax = 350.
-!       vmin =-350.
+        print *,vmax,vmin
+        if(.not.rauto)then
+                        vmax = den
+                        vmin = -vmax
+        endif
+
+
         CALL PALETT(2,CONTRA,Bright)
         CALL PGBBUF
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
@@ -116,6 +134,9 @@
 !                   2,n/4-2, &
 !                   0.02,2,TR2,-1.E10)
         CALL PGCLOS
+
+        ENDSUBROUTINE
+
         ENDSUBROUTINE
 
         SUBROUTINE plotpspdsearch(F,n,m,domain)
