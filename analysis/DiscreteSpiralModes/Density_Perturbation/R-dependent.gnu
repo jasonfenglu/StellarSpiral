@@ -112,7 +112,7 @@ set xrange [ 0.00000 : 14.0000 ] noreverse nowriteback
 set x2range [ * : * ] noreverse nowriteback  # (currently [-10.0000:10.0000] )
 set ylabel "" 0.000000,0.000000  font ""
 set y2label "" 0.000000,0.000000  font ""
-set yrange [ -10 : 10 ] noreverse nowriteback  # (currently [-10.0000:10.0000] )
+set yrange [ - 1 :  5 ] noreverse nowriteback  # (currently [-10.0000:10.0000] )
 set y2range [ * : * ] noreverse nowriteback  # (currently [-10.0000:10.0000] )
 set zlabel "" 0.000000,0.000000  font ""
 set zrange [ * : * ] noreverse nowriteback  # (currently [-10.0000:10.0000] )
@@ -134,6 +134,6 @@ set loadpath
 set fontpath 
 set fit noerrorvariables
 #plot 'r-dep.dat' using 1:2 title 'u','r-dep.dat' using 1:($3) title 'sigma1','r-dep.dat' using 1:($4) title 'phi1','LoweA.dat' using 1:($2)title 'Lowea','r-dep.dat' using 1:($5) title 'h1',0
-plot 'r-dep.dat' using 1:($2*1E1) title 'u','r-dep.dat' using 1:($3/1E0) title 'sigma1','r-dep.dat' using 1:($4/1E0) title 'phi1','LoweA.dat' using 1:($2)title 'Lowea','r-dep.dat' using 1:($5*3E2) title 'h1',0
+plot 'r-dep.dat' using 1:($2*1E0) title 'u','r-dep.dat' using 1:($3/1E3) title 'sigma1','r-dep.dat' using 1:($4/1E0) title 'phi1','LoweA.dat' using 1:($2)title 'Lowea','r-dep.dat' using 1:($5*3E2) title 'h1',0
 pause -1
 #    EOF

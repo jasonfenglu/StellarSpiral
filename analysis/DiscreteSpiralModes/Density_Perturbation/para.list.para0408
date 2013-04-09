@@ -19,7 +19,12 @@
 
 &PLOTPARA
 rauto    = .true.                 ,
-den	 =  500                    
+den	 =  500                   ,
+drawcir  = .false.
+/
+
+&DENSITYPARA
+toproject= .true.		   
 /
 
 !!note

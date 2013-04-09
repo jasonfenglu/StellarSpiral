@@ -114,7 +114,7 @@ enddo
 searchgrid.lcoord = reshape(searchgrid.coord,(/n*n,2/))
 
 !$OMP PARALLEL SHARED(searchgrid) PRIVATE(spiral,stdpara)
-CALL INIT_STELLARDISK(200,13.d0)
+CALL INIT_STELLARDISK(500,13.d0)
 !$OMP DO PRIVATE(spiral)
 DO j = 1,n**2
         wr = searchgrid%lcoord(j,1)
@@ -137,7 +137,8 @@ err = searchgrid%error(i,j)
 
 if(j.eq.1 .or. j.eq.n .or. i.eq.1 .or. i.eq.n)then
         l = l - 2
-        CALL XERMSG('k3sqrt','Omega Finding','Eigenvalue at boundary, giving up.',-95,-1)
+        CALL XERMSG('k3sqrt','Omega Finding','Eigenvalue at boundary, using &
+        larger grid.',-95,-1)
 endif
 !DO i = 1,12
 !DO j = 1,12

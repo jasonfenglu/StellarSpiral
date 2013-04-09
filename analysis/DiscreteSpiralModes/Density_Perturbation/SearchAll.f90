@@ -13,13 +13,13 @@ sequence
 endtype
 type(searchgrid_type)           ::searchgrid,recvgrid
 DOUBLE PRECISION                ::dr,wri,wii,di,err
-DOUBLE PRECISION                ::domain(4) = (/40d0,200d0,0d0,-8d0/)
+DOUBLE PRECISION                ::domain(4) = (/40d0,120d0,0d0,-5d0/)
 INTEGER                         ::l,i,j,p(1),n,m
 INTEGER                         ::ipc
 INTEGER                         ::now(3)
 INTEGER                         ::complete_count = 0
 
-m = 4000
+m = 2000
 n = m/5
 
 ALLOCATE(searchgrid.coord(m,n,2))
