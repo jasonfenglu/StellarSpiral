@@ -113,7 +113,7 @@ phi1r   = spiral.phi1r
 open(10,file='r-dep.dat')
 DO i = 2, spiral.n,2
         r = spiral.r(i)
-        write(10,'(6(1XE15.6))')spiral.r(i),real(spiral.u(2,i)),abs(spiral.h1(i))/snsd(r)**2*sigma0(r),abs(spiral.phi1r(i/2)),abs(spiral.h1(i))
+        write(10,'(6(1XE15.6))')spiral.r(i),abs(spiral.u(2,i)),abs(spiral.h1(i))/snsd(r)**2*sigma0(r),abs(spiral.phi1r(i/2)),abs(spiral.h1(i))
         !r, u, sigma1,potential1,h1
 enddo
 close(10)
@@ -544,7 +544,9 @@ INTEGER                         ::n
 spiral.u = (1.d0,0.d0)*0.d0
 a = spiral.rmin
 b = spiral.rmax
-ui = (/dcmplx(a),dcmplx(0.d0),2.d0*sqrt(-k3sqrt(0.d0))/)
+ui = (/dcmplx(a),dcmplx(0.d0),2.d0*sqrt(-q(0.d0))/)
+!ui = (/dcmplx(a),dcmplx(0.d0),dcmplx(1.d0)/)
+!ui = (/dcmplx(a),dcmplx(0.d0),dcmplx(-1.d0)/)
 CALL rk4(a,b,spiral.n,p,q,p,spiral.u,ui)
 spiral.ucaled = .true.
 spiral.r = real(spiral.u(1,:))
@@ -562,7 +564,8 @@ IMPLICIT NONE
 DOUBLE COMPLEX                  ::q
 DOUBLE PRECISION,INTENT(IN)     ::r
 q = k3sqrt(r)
-!q = dsin(r)
+!q =  (1)
+!q = dcmplx(1.d0,r**2)
 ENDFUNCTION
 
 ENDSUBROUTINE

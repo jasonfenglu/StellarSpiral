@@ -48,6 +48,12 @@ DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
 INTEGER,PARAMETER               ::n=500
 type(spiral_type)               ::shared_spiral
+LOGICAL                         ::toproject
+namelist /densitypara/ toproject
+
+open(10,file='para.list')
+read(10,nml=densitypara)
+close(10)
 
 if(iargc().eq.1)then
         CALL getarg(1,arg)
@@ -85,13 +91,13 @@ DO i = 1, n*2
 DO j = 1, n*2
         pf = (/xcoord(i),ycoord(j)/)
         pi = pf
-        CALL projection(pi,pf)
+        if(toproject)CALL projection(pi,pf)
         r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
         d  = sigma1(r,th)
         !===================
         !ignore d too high
-        if(r.gt.10.d0)d = 0.d0
+        if(r.gt.12.d0)d = 0.d0
         !ignore inside r=1.26  
 !       if(r.lt.2.26)d = d*(1.d0 - cos(r/2.26d0*pi_n/2.d0))
         !ignore d that is not exist during coordinate transformation

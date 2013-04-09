@@ -43,7 +43,7 @@
         INTEGER                                 ::noutput
 
 
-        IF (PGBEG(0,'/xserve',1,1) .NE. 1) STOP
+        IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
         CALL output
         IF (PGBEG(0,'density.png/png',1,1) .NE. 1) STOP
         CALL output
@@ -51,9 +51,9 @@
         
         CONTAINS
         SUBROUTINE output()
-        LOGICAL                                 ::rauto
+        LOGICAL                                 ::rauto,drawcir
         REAL                                    ::den
-        namelist /plotpara/ rauto,den
+        namelist /plotpara/ rauto,den,drawcir
 
         open(10,file='para.list')
         read(10,nml=plotpara)
@@ -97,10 +97,12 @@
         CALL PGSFS(2)
         CALL PGSCI(0)
 !       CALL PGPT(4,points(:,1),points(:,2),2)
-!       CALL PGCIRC(0.,0.,1.26)
-!       CALL PGCIRC(0.,0.,2.36)
-!       CALL PGCIRC(0.,0.,4.72)
-!       CALL PGCIRC(0.,0.,10.636)
+        if(drawcir)then
+                CALL PGCIRC(0.,0.,1.26)
+                CALL PGCIRC(0.,0.,2.36)
+                CALL PGCIRC(0.,0.,4.72)
+                CALL PGCIRC(0.,0.,10.636)
+        endif
 
         CALL PGLINE(2,(/2.,7./),(/-8.,-8/))
 
