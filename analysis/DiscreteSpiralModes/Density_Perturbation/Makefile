@@ -9,13 +9,15 @@ OBJECT2=  $(UTILS) force.o
 OBJECT3=  $(UTILS) SearchAll.o 
 OBJECT4=  $(UTILS) FindOne.o 
 OBJECT5=  $(UTILS) test.o
+OBJECT6=  $(UTILS) ParaSurvey.o
 
-all: $(OBJECT) $(OBJECT2) $(OBJECT3) $(OBJECT4) $(OBJECT5) 
+all: $(OBJECT) $(OBJECT2) $(OBJECT3) $(OBJECT4) $(OBJECT5) $(OBJECT6)
 	$(F90) -o Density.exe $(OBJECT) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf -openmp
 	$(F90) -o force.exe $(OBJECT2) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf -openmp
 	$(F90) -o SearchAll.exe $(OBJECT3) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf  
 	$(F90) -o FindOne.exe $(OBJECT4) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf  
 	$(F90) -o test.exe $(OBJECT5) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf  
+	$(F90) -o ParaSurvey.exe $(OBJECT6) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf  
 
 %.o:%.f90
 	$(F90) $(FFLAGS)  -c $< -o $@  $(INCL)

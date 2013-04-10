@@ -46,7 +46,7 @@ DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
-INTEGER,PARAMETER               ::n=500
+INTEGER,PARAMETER               ::n=800
 type(spiral_type)               ::shared_spiral
 LOGICAL                         ::toproject
 namelist /densitypara/ toproject

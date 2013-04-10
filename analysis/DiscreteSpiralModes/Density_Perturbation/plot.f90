@@ -186,6 +186,59 @@
 
         CALL PGCLOS
         ENDSUBROUTINE
+        
+        SUBROUTINE plotpspdsearchset(F,n,m,domain)
+        IMPLICIT NONE
+        DOUBLE PRECISION                        ::F(:,:,:)!plotting data
+        DOUBLE PRECISION                        ::domain(4)!plot range
+        REAL                                    ::TR(6) !plot geometry
+        REAL                                    ::TR2(6) !plot geometry
+        REAL                                    ::vmax,vmin
+        REAL                                    ::BRIGHT,CONTRA
+        INTEGER                                 ::m,n   !dimentsion
+        INTEGER                                 ::npanel,i
+        INTEGER                                 ::PGBEG
+        REAL                                    ::dx,dy
+
+        IF (PGBEG(0,'searchallset.png/png',1,1) .NE. 1) STOP
+        CALL PGPAP(23.,0.618)
+!       IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
+        CALL PGSVP(0.0,0.95,0.0,0.95)
+
+        CALL PGSUBP(3,3)
+        npanel = SIZE(F,3)
+
+
+        dx = real(domain(2)-domain(1))/real(n)
+        dy = real(domain(4)-domain(3))/real(m)
+
+        TR(3) = 0.
+        TR(5) = 0.
+        TR(2) = REAL(domain(2)-domain(1))/REAL(n-1)
+        TR(1) = REAL(domain(1))-TR(2)
+        TR(6) = REAL(domain(4)-domain(3))/REAL(m-1)
+        TR(4) = REAL(domain(3))-TR(6)
+
+        BRIGHT = 0.5
+        CONTRA = -0.9
+
+
+        vmax = 0.5
+        vmin = 0.
+        CALL PALETT(2,CONTRA,Bright)
+        CALL PGBBUF
+        DO i = 1, npanel
+                CALL PGENV(real(domain(1)),real(domain(2)),real(domain(3)),real(domain(4)),0,0)
+        CALL PGIMAG(REAL(F(:,:,i)),n,m,1,n,1,m,vmin,vmax,TR)
+        ENDDO
+
+!       CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+        CALL PGSCH(1.0)
+        CALL PGLAB('kpc','kpc','Absolute Value of Error')
+
+
+        CALL PGCLOS
+        ENDSUBROUTINE
 
       SUBROUTINE PALETT(TYPE, CONTRA, BRIGHT)
 !-----------------------------------------------------------------------

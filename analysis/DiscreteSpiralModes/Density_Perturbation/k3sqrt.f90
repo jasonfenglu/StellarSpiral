@@ -86,6 +86,35 @@ endif
 
 ENDSUBROUTINE INIT_STELLARDISK
 
+SUBROUTINE READINSTDPARA
+IMPLICIT NONE
+!Halo
+DOUBLE PRECISION                ::Lh,rhoh,gHalo,VHalo
+!bulge
+DOUBLE PRECISION                ::rb,Mb,gBulge,VBulge
+!disk
+DOUBLE PRECISION                ::dM,da,db,VDisk
+!Toomre Q
+DOUBLE PRECISION                ::Q,Qod,rq
+!Lau Disk
+DOUBLE PRECISION                ::a1,a2,M1,M2
+!pspd from readin
+DOUBLE PRECISION                ::w(4)
+!NAME LIST
+namelist /paralist/ Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2,w
+
+!$OMP CRITICAL
+open(10,file='para.list')
+read(10,nml=paralist)
+close(10)
+!$OMP END CRITICAL
+
+!ALLOCATE(stdpara(14))
+if(.not.allocated(stdpara))ALLOCATE(stdpara(14))
+stdpara = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2/)
+
+ENDSUBROUTINE
+
 SUBROUTINE FindSpiral
 IMPLICIT NONE
 !find EigenFunction
