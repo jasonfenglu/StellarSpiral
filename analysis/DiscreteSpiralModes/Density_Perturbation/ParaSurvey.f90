@@ -15,28 +15,32 @@ USE STELLARDISK
 type(searchgrid_type),ALLOCATABLE  ::searchset(:)
 DOUBLE PRECISION,TARGET,ALLOCATABLE::paraset(:,:)
 DOUBLE PRECISION,ALLOCATABLE       ::packtoplot(:,:,:)
-DOUBLE PRECISION                   ::domain(4) = (/40d0,200,0d0,-8d0/)
+DOUBLE PRECISION                   ::domain(4) = (/40d0,200,0d0,-6d0/)
 INTEGER                            ::m,n
 INTEGER                            ::nmodel = 9
 INTEGER                            ::i,j,k
 
 
-m = 1000
+m = 2000
 n = m/5
 
+!Read in Standard Parameters
 CALL READINSTDPARA
 ALLOCATE(paraset(size(stdpara,1),nmodel))
 DO i = 1, nmodel
         paraset(:,i) = stdpara(:)
 ENDDO
-
+!Setting deviations
 DO i = -4,4,1
         paraset(10,i+5) = paraset(10,5)*(1.d0+dble(i)*1d-1)
 ENDDO
+
+!Distributed Calculation
 ALLOCATE(searchset(nmodel))
 DO i = 1, nmodel
         CALL SearchOneModel(searchset(i),i)
 ENDDO
+!Collect data to plot subroutine
 ALLOCATE(packtoplot(m,n,nmodel))
 DO i = 1, nmodel
         packtoplot(:,:,i) = searchset(i).error

@@ -156,6 +156,7 @@
 
         IF (PGBEG(0,'searchall.png/png',1,1) .NE. 1) STOP
         CALL PGSVP(0.0,0.95,0.0,0.95)
+        CALL PGPAP(12.,0.618)
 
         dx = real(domain(2)-domain(1))/real(n)
         dy = real(domain(4)-domain(3))/real(m)

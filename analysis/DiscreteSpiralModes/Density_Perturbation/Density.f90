@@ -143,6 +143,7 @@ DEALLOCATE(potential)
 DEALLOCATE(xcoord)
 DEALLOCATE(ycoord)
 DEALLOCATE(density)
+CALL PhaseIntegrate
 CALL ENDSTELLARDISK
 STOP
 
@@ -227,4 +228,34 @@ apitc = 55.d0/180.d0*pi_n
 !tuned angle of line of node
 !aline = 30.d0/180.d0*pi_n
 aline =  argaline/180.d0*pi_n
+ENDSUBROUTINE
+
+SUBROUTINE PhaseIntegrate
+USE STELLARDISK,only:k3sqrt,pi
+IMPLICIT NONE
+DOUBLE PRECISION                ::ri,rf
+DOUBLE PRECISION                ::RE,AE,RR,ERR,ANS
+INTEGER                         ::IFLAG
+ri = 0.d0
+rf = 4.d0
+RR = 2.d0
+RE = 1d-8
+AE = 1d-8
+CALL DFZERO(F,ri,rf,RR,RE,AE,IFLAG)
+ri = 0.d0
+rf = min(5.1d0,rf)
+ERR = 1.d-8
+CALL DGAUS8(g,ri,rf,ERR,ANS,IFLAG)
+print *,'phase before zero',ans/pi,'to',rf
+CONTAINS
+FUNCTION F(r)
+IMPLICIT NONE
+DOUBLE PRECISION                ::r,F
+F = k3sqrt(r)
+ENDFUNCTION
+FUNCTION g(r)
+IMPLICIT NONE
+DOUBLE PRECISION                ::r,G
+g = REAL(sqrt(k3sqrt(r)))
+ENDFUNCTION
 ENDSUBROUTINE

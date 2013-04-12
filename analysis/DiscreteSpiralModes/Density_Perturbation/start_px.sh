@@ -23,7 +23,6 @@ OMP_NUM_THREADS=$PBS_NUM_PPN
 export OMP_NUM_THREADS
 
 rm -rf bc.log bc.err
-rm -rf pgplot.png
 ###### Run your jobs with parameters ######
 #./Density.exe 
 ./SearchAll.exe > searchall.log

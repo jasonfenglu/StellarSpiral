@@ -19,8 +19,8 @@ INTEGER                         ::ipc
 INTEGER                         ::now(3)
 INTEGER                         ::complete_count = 0
 
-m = 2000
-n = m/5
+m = 800
+n = m/10
 
 ALLOCATE(searchgrid.coord(m,n,2))
 ALLOCATE(searchgrid.error(m,n))

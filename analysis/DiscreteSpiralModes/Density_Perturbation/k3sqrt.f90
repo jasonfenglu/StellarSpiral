@@ -241,6 +241,7 @@ DOUBLE PRECISION,ALLOCATABLE ::WORK(:)
 INTEGER,ALLOCATABLE       ::IWORK(:)
 
 r = rr
+!not using integral now
 goto 10
 M     = para(5)
 a     = para(6)
@@ -570,12 +571,21 @@ IMPLICIT NONE
 DOUBLE COMPLEX                  ::ui(3)
 DOUBLE PRECISION                ::a,b
 INTEGER                         ::n
+LOGICAL                         ::ufzero
+namelist /BND/ ufzero
 spiral.u = (1.d0,0.d0)*0.d0
 a = spiral.rmin
 b = spiral.rmax
-ui = (/dcmplx(a),dcmplx(0.d0),2.d0*sqrt(-q(0.d0))/)
-!ui = (/dcmplx(a),dcmplx(0.d0),dcmplx(1.d0)/)
-!ui = (/dcmplx(a),dcmplx(0.d0),dcmplx(-1.d0)/)
+!$OMP CRITICAL
+open(10,file='para.list')
+read(10,nml=BND)
+close(10)
+!$OMP END CRITICAL
+if(ufzero)then
+        ui = (/dcmplx(a),dcmplx(0.d0),2.d0*sqrt(-q(0.d0))/)
+else
+        ui = (/dcmplx(a),dcmplx(1.d0,0.d0),dcmplx(0.d0)/)
+endif
 CALL rk4(a,b,spiral.n,p,q,p,spiral.u,ui)
 spiral.ucaled = .true.
 spiral.r = real(spiral.u(1,:))
