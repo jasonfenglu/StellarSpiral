@@ -13,11 +13,17 @@ CASE(2)
         READ(arg,*)wri
         CALL getarg(2,arg)
         READ(arg,*)wii
-CASE DEFAULT
-        print *,'no input initial finding value, using default.'
+CASE(1)
+        print *,'use input mode'
         CALL getarg(1,arg)
         READ(arg,*)mode
         CALL spiral0.init(spiral0,100,12.d0,stdpara,mode)
+        wri = real(spiral0.w)
+        wii = imag(spiral0.w)
+        CALL spiral0.final
+CASE DEFAULT        
+        print *,'no input initial finding value, using default.'
+        CALL spiral0.init(spiral0,100,12.d0,stdpara,1)
         wri = real(spiral0.w)
         wii = imag(spiral0.w)
         CALL spiral0.final
@@ -121,6 +127,10 @@ write(*,'(I2,3X,F7.4,3X,F7.4,3X,E10.3)')0,wri,wii
 do while (l.le.20)
         CALL omp_single_grid(l,wri,wii,err,r)
         write(*,'(I2,3X,F7.4,3X,F7.4,3X,E10.3,3X,D10.3,3X,F7.4)')l,wri,wii,err,r
+        if(wii.gt.0.d0)then
+                write(0,*)"don't growth, stop"
+                stop
+        endif
         if(abs(err).le.1d-6)exit
         l = l + 1
 enddo

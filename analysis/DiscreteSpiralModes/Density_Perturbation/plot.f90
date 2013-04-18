@@ -186,10 +186,8 @@
         BRIGHT = 0.5
         CONTRA = 0.9
 
-
-
-
         CALL PALETT(2,CONTRA,Bright)
+        CALL PGBBUF
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
         !!Density
         vmax = real(MAXVAL(F(:,:,1)))
