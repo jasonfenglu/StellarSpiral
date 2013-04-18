@@ -4,35 +4,41 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.6	//
-10	k3sqrt.f90	/^10 sigma0 = LauDiskSigma0(r)$/;"	l	function:k3sqrt	file:
+10	k3sqrt.f90	/^10 sigma0 = LauDiskSigma0(r,spiral)$/;"	l	function:k3sqrt	file:
+A	2Density.f90	/^DOUBLE PRECISION                ::A(/;"	v
 A	Density.f90	/^DOUBLE PRECISION                ::A(/;"	v
 AB	plot.f90	/^      REAL AL(20), AR(20), AG(20), AB(/;"	v	module:plotting
-AE	k3sqrt.f90	/^DOUBLE PRECISION        ::RE,AE,/;"	v
+AE	2Density.f90	/^DOUBLE PRECISION                ::RE,AE,/;"	v
+AE	Density.f90	/^DOUBLE PRECISION                ::RE,AE,/;"	v
 AG	plot.f90	/^      REAL AL(20), AR(20), AG(/;"	v	module:plotting
 AL	plot.f90	/^      REAL /;"	v	module:plotting
+ALPHA	2Density.f90	/^DOUBLE PRECISION                ::ALPHA /;"	v
 ALPHA	Density.f90	/^DOUBLE PRECISION                ::ALPHA /;"	v
+ANS	2Density.f90	/^DOUBLE PRECISION                ::RE,AE,RR,ERR,ANS$/;"	v
+ANS	Density.f90	/^DOUBLE PRECISION                ::RE,AE,RR,ERR,ANS$/;"	v
 AR	plot.f90	/^      REAL AL(20), AR(/;"	v	module:plotting
-B	k3sqrt.f90	/^DOUBL/;"	v
+BETA	2Density.f90	/^DOUBLE PRECISION                ::BETA /;"	v
 BETA	Density.f90	/^DOUBLE PRECISION                ::BETA /;"	v
+BND	k3sqrt.f90	/^namelist \/BND\//;"	n	subroutine:findu
 BRIGHT	plot.f90	/^      REAL CONTRA, BRIGHT$/;"	v	module:plotting
-C	k3sqrt.f90	/^DOUBLE PRECI/;"	v
 C	rk4.f90	/^DOUBLE PRECI/;"	v
 CONTRA	plot.f90	/^      REAL CONTRA,/;"	v	module:plotting
 CheckResult	k3sqrt.f90	/^SUBROUTINE CheckResult$/;"	s
-CheckResult	k3sqrt.f90	/^SUBROUTINE CheckResult$/;"	s	function:curf
 CheckResult	k3sqrt.f90	/^SUBROUTINE CheckResult$/;"	s	function:k3sqrt
-ENDSTELLARDISK	k3sqrt.f90	/^SUBROUTINE ENDSTELLARDISK$/;"	s
+ERR	2Density.f90	/^DOUBLE PRECISION                ::RE,AE,RR,ERR,/;"	v
+ERR	Density.f90	/^DOUBLE PRECISION                ::RE,AE,RR,ERR,/;"	v
 ExpPart	k3sqrt.f90	/^Function ExpPart(/;"	f	subroutine:findh1
-F90	Makefile	/^F90=ifort$/;"	m
-FCC	Makefile	/^FCC=icc$/;"	m
-FFLAGS	Makefile	/^FFLAGS=  -O3 -L. -lslatec -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -openmp $/;"	m
+F	2Density.f90	/^FU/;"	f
+F	Density.f90	/^FU/;"	f
 FUN	k3sqrt.f90	/^function FUN(/;"	f	function:k3sqrt
-FindPhi1	k3sqrt.f90	/^SUBROUTINE FindPhi1(/;"	s
+FindForce	k3sqrt.f90	/^SUBROUTINE FindForce(/;"	s	subroutine:findh1
+FindSpiral	k3sqrt.f90	/^SUBROUTINE FindSpiral(/;"	s
+G	2Density.f90	/^DOUBLE PRECISION                ::r,G$/;"	v
+G	Density.f90	/^DOUBLE PRECISION                ::r,G$/;"	v
 GB	plot.f90	/^      REAL GL(2), GR(2), GG(2), GB(/;"	v	module:plotting
 GG	plot.f90	/^      REAL GL(2), GR(2), GG(/;"	v	module:plotting
 GL	plot.f90	/^      REAL GL(/;"	v	module:plotting
 GR	plot.f90	/^      REAL GL(2), GR(/;"	v	module:plotting
-GravConst	k3sqrt.f90	/^DOUBLE PRECISION,PARAMETER::GravConst /;"	v	module:STELLARDISK
 H	k3sqrt.f90	/^FUNCTION H(/;"	f
 H	k3sqrt.f90	/^FUNCTION H(/;"	f	function:k3sqrt
 HB	plot.f90	/^      REAL HL(5), HR(5), HG(5), HB(/;"	v	module:plotting
@@ -40,214 +46,254 @@ HG	plot.f90	/^      REAL HL(5), HR(5), HG(/;"	v	module:plotting
 HL	plot.f90	/^      REAL HL(/;"	v	module:plotting
 HR	plot.f90	/^      REAL HL(5), HR(/;"	v	module:plotting
 I	rk4.f90	/^IN/;"	v
-IFLAG	k3sqrt.f90	/^INTEGER                 ::l,IFLAG$/;"	v
+IFLAG	2Density.f90	/^INTEGER                         ::IFLAG$/;"	v
+IFLAG	Density.f90	/^INTEGER                         ::IFLAG$/;"	v
+INCX	2Density.f90	/^INTEGER                         ::INCX /;"	v
 INCX	Density.f90	/^INTEGER                         ::INCX /;"	v
+INCY	2Density.f90	/^INTEGER                         ::INCY /;"	v
 INCY	Density.f90	/^INTEGER                         ::INCY /;"	v
-INIT_STELLARDISK	k3sqrt.f90	/^SUBROUTINE INIT_STELLARDISK(/;"	s
+INVC	2Density.f90	/^FUNCTION INVC(/;"	f	module:projections
 INVC	Density.f90	/^FUNCTION INVC(/;"	f	module:projections
 J	rk4.f90	/^INTEGER                 ::I,J,/;"	v
 K	rk4.f90	/^DOUBLE COMPLEX          ::K(/;"	v
 L	rk4.f90	/^INTEGER                 ::I,J,L$/;"	v
+LDA	2Density.f90	/^INTEGER                         ::LDA /;"	v
 LDA	Density.f90	/^INTEGER                         ::LDA /;"	v
-Lh	k3sqrt.f90	/^DOUBLE PRECISION          ::Lh,/;"	v
+Lh	k3sqrt.f90	/^DOUBLE PRECISION                ::Lh,/;"	v
+M	2Density.f90	/^INTEGER                         ::M /;"	v
 M	Density.f90	/^INTEGER                         ::M /;"	v
 M1	k3sqrt.f90	/^DOUBLE PRECISION                ::a1,a2,M1,/;"	v
 M2	k3sqrt.f90	/^DOUBLE PRECISION                ::a1,a2,M1,M2$/;"	v
-Mb	k3sqrt.f90	/^DOUBLE PRECISION          ::rb,Mb,/;"	v
+Mb	k3sqrt.f90	/^DOUBLE PRECISION                ::rb,Mb,/;"	v
+N	2Density.f90	/^INT/;"	v
 N	Density.f90	/^INT/;"	v
+N	k3sqrt.f90	/^       INT/;"	v
 N	rk4.f90	/^INT/;"	v
-OBJECT	Makefile	/^OBJECT =  $(UTILS) Density.o $/;"	m
-OBJECT2	Makefile	/^OBJECT2=  $(UTILS) force.o $/;"	m
-OBJECT3	Makefile	/^OBJECT3=  $(UTILS) SearchAll.o $/;"	m
-OBJECT4	Makefile	/^OBJECT4=  $(UTILS) FindOne.o $/;"	m
-Omega	k3sqrt.f90	/^FUNCTION Omega(/;"	f
+NUM	k3sqrt.f90	/^MODULE NUM$/;"	m
+Omega2	k3sqrt.f90	/^FUNCTION Omega2(/;"	f	function:curf
+PspdSearchStruct	ParaSurvey.f90	/^MODULE PspdSearchStruct$/;"	m
+Q	k3sqrt.f90	/^DOUBLE PRECISION                        ::Q,/;"	v
+Q	k3sqrt.f90	/^DOUBLE PRECISION                ::Q,/;"	v
+Qod	k3sqrt.f90	/^DOUBLE PRECISION                        ::Q,r,Qod,/;"	v
+Qod	k3sqrt.f90	/^DOUBLE PRECISION                ::Q,Qod,/;"	v
+R	2Density.f90	/^FUNCTION R(/;"	f	module:projections
 R	Density.f90	/^FUNCTION R(/;"	f	module:projections
 RB	plot.f90	/^      REAL RL(9), RR(9), RG(9), RB(/;"	v	module:plotting
-RE	k3sqrt.f90	/^DOUBLE PREC/;"	v
+RE	2Density.f90	/^DOUBLE PREC/;"	v
+RE	Density.f90	/^DOUBLE PREC/;"	v
 RG	plot.f90	/^      REAL RL(9), RR(9), RG(/;"	v	module:plotting
 RK	rk4.f90	/^MODULE RK$/;"	m
 RL	plot.f90	/^      REAL RL(/;"	v	module:plotting
-RR	k3sqrt.f90	/^DOUBLE PRECISION        ::RE,AE,B,C,RR$/;"	v
+RR	2Density.f90	/^DOUBLE PRECISION                ::RE,AE,RR,/;"	v
+RR	Density.f90	/^DOUBLE PRECISION                ::RE,AE,RR,/;"	v
 RR	plot.f90	/^      REAL RL(9), RR(/;"	v	module:plotting
-STELLARDISK	k3sqrt.f90	/^MODULE STELLARDISK$/;"	m
-Sigma	k3sqrt.f90	/^function Sigma(/;"	f
-TEMP	k3sqrt.f90	/^SUBROUTINE TEMP$/;"	s
+TRANS	2Density.f90	/^CHARACTER(1)                    ::TRANS$/;"	v
 TRANS	Density.f90	/^CHARACTER(1)                    ::TRANS$/;"	v
-ToomreQ	k3sqrt.f90	/^function ToomreQ(/;"	f
-UTILS	Makefile	/^UTILS  = plot.o rk4.o k3sqrt.o nrtype.o$/;"	m
-V	k3sqrt.f90	/^DOUBLE PRECISION          ::V$/;"	v
-VBulge	k3sqrt.f90	/^DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge$/;"	v
-VDisk	k3sqrt.f90	/^DOUBLE COMPLEX            ::VDisk$/;"	v
-VHalo	k3sqrt.f90	/^DOUBLE PRECISION          ::Lh,rhoh,gHalo,VHalo$/;"	v
+ToomreQ	k3sqrt.f90	/^DOUBLE PRECISION                        ::Q,r,Qod,ToomreQ,/;"	v
+VBulge	k3sqrt.f90	/^DOUBLE PRECISION                ::rb,Mb,gBulge,VBulge$/;"	v
+VDisk	k3sqrt.f90	/^DOUBLE PRECISION                ::dM,da,db,VDisk$/;"	v
+VHalo	k3sqrt.f90	/^DOUBLE PRECISION                ::Lh,rhoh,gHalo,VHalo$/;"	v
 VLauDisk	k3sqrt.f90	/^DOUBLE COMPLEX                  ::VLauDisk$/;"	v
 WB	plot.f90	/^      REAL WL(10), WR(10), WG(10), WB(/;"	v	module:plotting
 WG	plot.f90	/^      REAL WL(10), WR(10), WG(/;"	v	module:plotting
 WL	plot.f90	/^      REAL WL(/;"	v	module:plotting
 WR	plot.f90	/^      REAL WL(10), WR(/;"	v	module:plotting
+X	2Density.f90	/^DOUBLE PRECISION                ::X(/;"	v
 X	Density.f90	/^DOUBLE PRECISION                ::X(/;"	v
+Y	2Density.f90	/^DOUBLE PRECISION                ::X(2),Y(/;"	v
 Y	Density.f90	/^DOUBLE PRECISION                ::X(2),Y(/;"	v
 a	rk4.f90	/^DOUBLE PRECISION        ::a(/;"	v
 a1	k3sqrt.f90	/^DOUBLE PRECISION                ::a1,/;"	v
 a2	k3sqrt.f90	/^DOUBLE PRECISION                ::a1,a2,/;"	v
+aline	2Density.f90	/^        DOUBLE PRECISION,SAVE           ::aline,/;"	v	module:projections
 aline	Density.f90	/^        DOUBLE PRECISION,SAVE           ::aline,/;"	v	module:projections
 ans	k3sqrt.f90	/^DOUBLE PRECISION                ::dfunc,ans,/;"	v
+aolin	2Density.f90	/^        DOUBLE PRECISION,SAVE           ::aolin$/;"	v	module:projections
 aolin	Density.f90	/^        DOUBLE PRECISION,SAVE           ::aolin$/;"	v	module:projections
+apitc	2Density.f90	/^        DOUBLE PRECISION,SAVE           ::apitc$/;"	v	module:projections
 apitc	Density.f90	/^        DOUBLE PRECISION,SAVE           ::apitc$/;"	v	module:projections
 arg	FindOne.f90	/^CHARACTER(len=32)                 ::arg$/;"	v	program:find_all
 arg	force.f90	/^CHARACTER(len=32)               ::arg$/;"	v	program:calforce
+argaline	2Density.f90	/^        DOUBLE PRECISION,SAVE           ::aline,argaline$/;"	v	module:projections
 argaline	Density.f90	/^        DOUBLE PRECISION,SAVE           ::aline,argaline$/;"	v	module:projections
 b	rk4.f90	/^DOUBLE PRECISION        ::b(/;"	v
+bndu0	k3sqrt.f90	/^       LOGICAL                          ::bndu0 /;"	v
+bndu0	k3sqrt.f90	/^LOGICAL                                 ::bndu0(/;"	v
 calforce	force.f90	/^PROGRAM calforce$/;"	p
 coe	k3sqrt.f90	/^DOUBLE PRECISION,PARAMETER      ::coe(/;"	v
 complete_count	SearchAll.f90	/^INTEGER                         ::complete_count /;"	v	program:test
 coord	FindOne.f90	/^        DOUBLE PRECISION,ALLOCATABLE::coord(/;"	k	type:searchgrid_type
-coord	FindOne.f90	/^        DOUBLE PRECISION::coord(/;"	k	type:searchgrid_type
+coord	ParaSurvey.f90	/^        DOUBLE PRECISION,ALLOCATABLE::coord(/;"	k	type:searchgrid_type
 coord	SearchAll.f90	/^        DOUBLE PRECISION,ALLOCATABLE::coord(/;"	k	type:searchgrid_type
+cpfromstd	k3sqrt.f90	/^SUBROUTINE cpfromstd(/;"	s
 curf	k3sqrt.f90	/^function curf(/;"	f
-dM	k3sqrt.f90	/^DOUBLE PRECISION          ::dM,/;"	v
-da	k3sqrt.f90	/^DOUBLE PRECISION          ::dM,da,/;"	v
-dat	k3sqrt.f90	/^DOUBLE PRECISION,ALLOCATABLE            ::dat(/;"	v
-db	k3sqrt.f90	/^DOUBLE PRECISION          ::dM,da,db$/;"	v
+dM	k3sqrt.f90	/^DOUBLE PRECISION                ::dM,/;"	v
+da	k3sqrt.f90	/^DOUBLE PRECISION                ::dM,da,/;"	v
+db	k3sqrt.f90	/^DOUBLE PRECISION                ::dM,da,db,/;"	v
 density	force.f90	/^DOUBLE PRECISION,ALLOCATABLE    ::density(/;"	v	program:calforce
 dfunc	k3sqrt.f90	/^DOUBLE PRECISION                ::dfunc,/;"	v
 di	FindOne.f90	/^DOUBLE PRECISION                ::dr,wri,wii,di,/;"	v
 di	SearchAll.f90	/^DOUBLE PRECISION                ::dr,wri,wii,di,/;"	v	program:test
 domain	SearchAll.f90	/^DOUBLE PRECISION                ::domain(/;"	v	program:test
 domain	force.f90	/^DOUBLE PRECISION                ::domain=/;"	v	program:calforce
+domain	k3sqrt.f90	/^DOUBLE PRECISION                        ::domain$/;"	v
 dpDisk	k3sqrt.f90	/^DOUBLE PRECISION        ::dpDisk$/;"	v
 dr	FindOne.f90	/^DOUBLE PRECISION                ::dr,/;"	v
 dr	SearchAll.f90	/^DOUBLE PRECISION                ::dr,/;"	v	program:test
 dr	k3sqrt.f90	/^DOUBLE PRECISION                ::dr$/;"	v
-dsimplifiedPoisson	k3sqrt.f90	/^DOUBLE COMPLEX                  ::dsimplifiedPoisson$/;"	v
+dr	test.f90	/^DOUBLE PRECISION        ::ri,rf,dr,/;"	v	program:test
+dsimplifiedPoisson	k3sqrt.f90	/^FUNCTION dsimplifiedPoisson(/;"	f	subroutine:findh1
 dx	force.f90	/^DOUBLE PRECISION                ::domain= 12.d0,dx,/;"	v	program:calforce
 dy	force.f90	/^DOUBLE PRECISION                ::domain= 12.d0,dx,dy,/;"	v	program:calforce
 err	FindOne.f90	/^DOUBLE PRECISION                ::dr,wri,wii,di,err$/;"	v
 err	SearchAll.f90	/^DOUBLE PRECISION                ::dr,wri,wii,di,err$/;"	v	program:test
 error	FindOne.f90	/^        DOUBLE PRECISION,ALLOCATABLE::error(/;"	k	type:searchgrid_type
-error	FindOne.f90	/^        DOUBLE PRECISION::error(/;"	k	type:searchgrid_type
+error	ParaSurvey.f90	/^        DOUBLE PRECISION,ALLOCATABLE::error(/;"	k	type:searchgrid_type
 error	SearchAll.f90	/^        DOUBLE PRECISION,ALLOCATABLE::error(/;"	k	type:searchgrid_type
-error	k3sqrt.f90	/^DOUBLE COMPLEX          ::error$/;"	v
+error	k3sqrt.f90	/^       DOUBLE PRECISION                 ::error$/;"	v
 f	rk4.f90	/^FUNCTION f(/;"	f
 f	rk4.f90	/^FUNCTION f(/;"	f	subroutine:rk45
 find_all	FindOne.f90	/^PROGRAM find_all$/;"	p
-findh1	k3sqrt.f90	/^SUBROUTINE findh1(/;"	s	function:curf
+findh1	k3sqrt.f90	/^SUBROUTINE findh1(/;"	s	subroutine:findu
 findpspsd	FindOne.f90	/^SUBROUTINE findpspsd(/;"	s
+findu	k3sqrt.f90	/^SUBROUTINE findu(/;"	s
 force	force.f90	/^DOUBLE PRECISION,ALLOCATABLE    ::force(/;"	v	program:calforce
-force	k3sqrt.f90	/^DOUBLE PRECISION                ::force(/;"	v
+fortoone	k3sqrt.f90	/^       DOUBLE PRECISION                 ::fortoone$/;"	v
 four21	k3sqrt.f90	/^function four21(/;"	f
 funcs	k3sqrt.f90	/^DOUBLE PRECISION                ::dfunc,ans,funcs(/;"	v
-g	k3sqrt.f90	/^DOUBLE PRECISION,PARAMETER::g /;"	v	module:STELLARDISK
-gBulge	k3sqrt.f90	/^DOUBLE PRECISION          ::rb,Mb,gBulge,/;"	v
-gHalo	k3sqrt.f90	/^DOUBLE PRECISION          ::Lh,rhoh,gHalo,/;"	v
-h	k3sqrt.f90	/^DOUBLE COMPLEX,INTENT(IN)       ::phi/;"	v
-h	k3sqrt.f90	/^DOUBLE PRECISION        ::h=/;"	v
+gBulge	k3sqrt.f90	/^DOUBLE PRECISION                ::rb,Mb,gBulge,/;"	v
+gHalo	k3sqrt.f90	/^DOUBLE PRECISION                ::Lh,rhoh,gHalo,/;"	v
 h	rk4.f90	/^DOUBLE PRECISION        ::ri,rf,h$/;"	v
-hh1	k3sqrt.f90	/^DOUBLE COMPLEX                  ::hh1,/;"	v
-hh1	k3sqrt.f90	/^DOUBLE COMPLEX                  ::uu,hh1$/;"	v
+h1	k3sqrt.f90	/^       DOUBLE COMPLEX,ALLOCATABLE       ::h1(/;"	v
+h1caled	k3sqrt.f90	/^       LOGICAL                          ::h1caled /;"	v
+i	2Density.f90	/^INTEGER                         ::i$/;"	v
 i	Density.f90	/^INTEGER                         ::i$/;"	v
 i	FindOne.f90	/^INTEGER                         ::l,i,/;"	v
 i	SearchAll.f90	/^INTEGER                         ::l,i,/;"	v	program:test
 i	force.f90	/^INTEGER                         ::i,/;"	v	program:calforce
-i	k3sqrt.f90	/^INTEGER                                 ::i,/;"	v
 i	k3sqrt.f90	/^INTEGER                         ::i$/;"	v
-i	k3sqrt.f90	/^INTEGER                         ::i,/;"	v
+i	test.f90	/^INTEGER                 ::n,i$/;"	v	program:test
 ipc	FindOne.f90	/^INTEGER                         ::ipc$/;"	v
 ipc	SearchAll.f90	/^INTEGER                         ::ipc$/;"	v	program:test
 j	FindOne.f90	/^INTEGER                         ::l,i,j,/;"	v
 j	SearchAll.f90	/^INTEGER                         ::l,i,j,/;"	v	program:test
 j	force.f90	/^INTEGER                         ::i,j,/;"	v	program:calforce
-j	k3sqrt.f90	/^INTEGER                         ::i,j,/;"	v
 k	force.f90	/^INTEGER                         ::i,j,k$/;"	v	program:calforce
-k	k3sqrt.f90	/^INTEGER                         ::i,j,k,/;"	v
 k3sqrt	k3sqrt.f90	/^function k3sqrt(/;"	f
-k3sqrtlog	k3sqrt.f90	/^SUBROUTINE k3sqrtlog$/;"	s
 l	FindOne.f90	/^INTEGER                         ::l,/;"	v
 l	SearchAll.f90	/^INTEGER                         ::l,/;"	v	program:test
-l	k3sqrt.f90	/^INTEGER                         ::i,j,k,l,/;"	v
-l	k3sqrt.f90	/^INTEGER                 ::l,/;"	v
 lcoord	FindOne.f90	/^        DOUBLE PRECISION,ALLOCATABLE::lcoord(/;"	k	type:searchgrid_type
+lcoord	ParaSurvey.f90	/^        DOUBLE PRECISION,ALLOCATABLE::lcoord(/;"	k	type:searchgrid_type
 lcoord	SearchAll.f90	/^        DOUBLE PRECISION,ALLOCATABLE::lcoord(/;"	k	type:searchgrid_type
 lerror	FindOne.f90	/^        DOUBLE PRECISION,ALLOCATABLE::lerror(/;"	k	type:searchgrid_type
+lerror	ParaSurvey.f90	/^        DOUBLE PRECISION,ALLOCATABLE::lerror(/;"	k	type:searchgrid_type
 lerror	SearchAll.f90	/^        DOUBLE PRECISION,ALLOCATABLE::lerror(/;"	k	type:searchgrid_type
 m	SearchAll.f90	/^INTEGER                         ::l,i,j,p(1),n,m$/;"	v	program:test
-m	k3sqrt.f90	/^INTEGER                                 ::i,m$/;"	v
+mode	k3sqrt.f90	/^       INTEGER                          ::mode$/;"	v
+mode	k3sqrt.f90	/^INTEGER                                 ::n,mode$/;"	v
 n	FindOne.f90	/^INTEGER                         ::n$/;"	v
 n	SearchAll.f90	/^INTEGER                         ::l,i,j,p(1),n,/;"	v	program:test
 n	force.f90	/^INTEGER,PARAMETER               ::n=/;"	v	program:calforce
-n	k3sqrt.f90	/^INTEGER                         ::i,j,k,l,n$/;"	v
-n	k3sqrt.f90	/^INTEGER                         ::i,n$/;"	v
+n	k3sqrt.f90	/^INTEGER                                 ::n,/;"	v
+n	test.f90	/^INTEGER                 ::n,/;"	v	program:test
 now	FindOne.f90	/^INTEGER                         ::now(/;"	v
 now	SearchAll.f90	/^INTEGER                         ::now(/;"	v	program:test
 nu	k3sqrt.f90	/^function nu(/;"	f
+output	plot.f90	/^        SUBROUTINE output(/;"	s	module:plotting
+p	2Density.f90	/^REAL                            ::p(/;"	v
 p	Density.f90	/^REAL                            ::p(/;"	v
 p	FindOne.f90	/^INTEGER                         ::l,i,j,p(/;"	v
 p	SearchAll.f90	/^INTEGER                         ::l,i,j,p(/;"	v	program:test
-p	k3sqrt.f90	/^RECURSIVE FUNCTION p(/;"	f	function:curf
+p	k3sqrt.f90	/^RECURSIVE FUNCTION p(/;"	f	subroutine:findu
 p	rk4.f90	/^DOUBLE COMPLEX,EXTERNAL ::p,/;"	v
 pDisk	k3sqrt.f90	/^FUNCTION pDisk(/;"	f
-para	k3sqrt.f90	/^DOUBLE PRECISION,POINTER,SAVE           ::para(/;"	v	module:STELLARDISK
-paralist	k3sqrt.f90	/^namelist \/paralist\//;"	n	subroutine:INIT_STELLARDISK
+para	k3sqrt.f90	/^DOUBLE PRECISION,POINTER                ::para(/;"	v
+para	k3sqrt.f90	/^type(typgalaxy_para)/;"	v
+para1	test.f90	/^type(typgalaxy_para)para1$/;"	v	program:test
+para_print	k3sqrt.f90	/^SUBROUTINE para_print(/;"	s
+paralist	k3sqrt.f90	/^namelist \/paralist\//;"	n
+pf	2Density.f90	/^DOUBLE PRECISION                ::pi(2),pf(/;"	v
 pf	Density.f90	/^DOUBLE PRECISION                ::pi(2),pf(/;"	v
-phi	k3sqrt.f90	/^DOUBLE COMPLEX,INTENT(IN)       ::phi,/;"	v
-phi1	k3sqrt.f90	/^DOUBLE PRECISION                ::phi1$/;"	v
-phir	k3sqrt.f90	/^DOUBLE COMPLEX                  ::hh1,phir$/;"	v
+phi1	k3sqrt.f90	/^FUNCTION phi1(/;"	f
+phi1r	k3sqrt.f90	/^       DOUBLE COMPLEX,ALLOCATABLE       ::phi1r(/;"	v
+phi1rcaled	k3sqrt.f90	/^       LOGICAL                          ::phi1rcaled=/;"	v
+pi	2Density.f90	/^DOUBLE PRECISION                ::pi(/;"	v
 pi	Density.f90	/^DOUBLE PRECISION                ::pi(/;"	v
-pi	k3sqrt.f90	/^DOUBLE PRECISION,PARAMETER::pi /;"	v	module:STELLARDISK
+pi_n	2Density.f90	/^        DOUBLE PRECISION,PARAMETER      ::pi_n /;"	v	module:projections
 pi_n	Density.f90	/^        DOUBLE PRECISION,PARAMETER      ::pi_n /;"	v	module:projections
 plotlog	plot.f90	/^        SUBROUTINE plotlog(/;"	s	module:plotting
-plotpspdsearch	plot.f90	/^        SUBROUTINE plotpspdsearch(/;"	s	module:plotting
+plotpara	plot.f90	/^        namelist \/plotpara\//;"	n	subroutine:output
+plotpspdsearchset	plot.f90	/^        SUBROUTINE plotpspdsearchset(/;"	s	module:plotting
 plotting	plot.f90	/^        module plotting$/;"	m
 points	plot.f90	/^        REAL,SAVE                               ::points(/;"	v	module:plotting
 potential	force.f90	/^DOUBLE PRECISION,ALLOCATABLE    ::potential(/;"	v	program:calforce
+projection	2Density.f90	/^SUBROUTINE projection(/;"	s
 projection	Density.f90	/^SUBROUTINE projection(/;"	s
+projections	2Density.f90	/^module projections$/;"	m
 projections	Density.f90	/^module projections$/;"	m
 q	rk4.f90	/^DOUBLE COMPLEX,EXTERNAL ::p,q$/;"	v
+r	2Density.f90	/^DOUBLE PRECISION                ::r,/;"	v
+r	Density.f90	/^DOUBLE PRECISION                ::r,/;"	v
 r	FindOne.f90	/^DOUBLE PRECISION                ::r$/;"	v
 r	force.f90	/^DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,/;"	v	program:calforce
-r	k3sqrt.f90	/^DOUBLE PRECISION                        ::r$/;"	v
-r	k3sqrt.f90	/^DOUBLE PRECISION                ::forc/;"	v
+r	k3sqrt.f90	/^       DOUBLE PRECISION,ALLOCATABLE     ::r(/;"	v
+r	k3sqrt.f90	/^DOUBLE PRECISION                        ::Q,r,/;"	v
 r	k3sqrt.f90	/^DOUBLE PRECISION                ::r$/;"	v
-r	k3sqrt.f90	/^DOUBLE PRECISION           ::r$/;"	v
-r	k3sqrt.f90	/^DOUBLE PRECISION        ::h=10d-5   ,r$/;"	v
 r	k3sqrt.f90	/^DOUBLE PRECISION        ::r$/;"	v
 r	k3sqrt.f90	/^DOUBLE PRECISION,INTENT(IN)     ::r$/;"	v
-r	k3sqrt.f90	/^DOUBLE PRECISION,INTENT(IN)     ::r,/;"	v
 r	rk4.f90	/^DOUBLE PRECISION        ::r$/;"	v
-rad	k3sqrt.f90	/^DOUBLE PRECISION                ::rad$/;"	v
-rb	k3sqrt.f90	/^DOUBLE PRECISION          ::rb,/;"	v
+r	test.f90	/^DOUBLE PRECISION        ::ri/;"	v	program:test
+rb	k3sqrt.f90	/^DOUBLE PRECISION                ::rb,/;"	v
 recvgrid	FindOne.f90	/^type(searchgrid_type)           ::searchgrid,recvgrid$/;"	v
 recvgrid	SearchAll.f90	/^type(searchgrid_type)           ::searchgrid,recvgrid$/;"	v	program:test
+refineh1	k3sqrt.f90	/^SUBROUTINE refineh1$/;"	s	subroutine:findh1
+rf	2Density.f90	/^DOUBLE PRECISION                ::ri,rf$/;"	v
+rf	Density.f90	/^DOUBLE PRECISION                ::ri,rf$/;"	v
 rf	rk4.f90	/^DOUBLE PRECISION        ::ri,rf,/;"	v
-rhoh	k3sqrt.f90	/^DOUBLE PRECISION          ::Lh,rhoh,/;"	v
+rf	test.f90	/^DOUBLE PRECISION        ::ri,rf,/;"	v	program:test
+rhoh	k3sqrt.f90	/^DOUBLE PRECISION                ::Lh,rhoh,/;"	v
+ri	2Density.f90	/^DOUBLE PRECISION                ::ri,/;"	v
+ri	Density.f90	/^DOUBLE PRECISION                ::ri,/;"	v
 ri	rk4.f90	/^DOUBLE PRECISION        ::ri,/;"	v
+ri	test.f90	/^DOUBLE PRECISION        ::ri,/;"	v	program:test
 rk45	rk4.f90	/^SUBROUTINE rk45(/;"	s	module:RK
-rr	k3sqrt.f90	/^DOUBLE PRECISION,INTENT(IN)::rr$/;"	v
-runit	k3sqrt.f90	/^DOUBLE PRECISION                ::runit(/;"	v
+rmax	k3sqrt.f90	/^       DOUBLE PRECISION                 ::rmax$/;"	v
+rmin	k3sqrt.f90	/^       DOUBLE PRECISION                 ::rmin$/;"	v
+rq	k3sqrt.f90	/^DOUBLE PRECISION                        ::Q,r,Qod,ToomreQ,rq$/;"	v
+rq	k3sqrt.f90	/^DOUBLE PRECISION                ::Q,Qod,rq$/;"	v
 searchgrid	FindOne.f90	/^type(searchgrid_/;"	v
 searchgrid	SearchAll.f90	/^type(searchgrid_/;"	v	program:test
 searchgrid_type	FindOne.f90	/^type searchgrid_type$/;"	t
-searchgrid_type	FindOne.f90	/^type searchgrid_type$/;"	t	subroutine:single_grid
+searchgrid_type	ParaSurvey.f90	/^type searchgrid_type$/;"	t	module:PspdSearchStruct
 searchgrid_type	SearchAll.f90	/^type searchgrid_type$/;"	t	program:test
+set_angles	2Density.f90	/^SUBROUTINE set_angles$/;"	s
 set_angles	Density.f90	/^SUBROUTINE set_angles$/;"	s
-sigma1	k3sqrt.f90	/^FUNCTION sigma1(/;"	f
 single_grid	FindOne.f90	/^SUBROUTINE single_grid(/;"	s
 snsd	k3sqrt.f90	/^function snsd(/;"	f	function:k3sqrt
-spiral	k3sqrt.f90	/^type(spiral_/;"	v
+spiral	Density.f90	/^type(typspiral)/;"	v
+spiral	FindOne.f90	/^type(typspiral)/;"	v
+spiral	FindOne.f90	/^type(typspiral)/;"	v	program:find_all
+spiral	k3sqrt.f90	/^type(typspiral)/;"	v
+spiral	test.f90	/^type(typspiral)/;"	v	program:test
+spiral_final	k3sqrt.f90	/^SUBROUTINE spiral_final(/;"	s
+spiral_printh1	k3sqrt.f90	/^SUBROUTINE spiral_printh1(/;"	s
+spiralnml	k3sqrt.f90	/^namelist \/spiralnml\//;"	n
+stdpara	k3sqrt.f90	/^type(typgalaxy_para),TARGET,SAVE        ::stdpara$/;"	v
 test	SearchAll.f90	/^program test$/;"	p
+test	test.f90	/^program test$/;"	p
 th	force.f90	/^DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th$/;"	v	program:calforce
-th	k3sqrt.f90	/^DOUBLE PRECISION                ::force(2),r,th$/;"	v
-th	k3sqrt.f90	/^DOUBLE PRECISION,INTENT(IN)     ::r,th$/;"	v
-thunit	k3sqrt.f90	/^DOUBLE PRECISION                ::runit(2),thunit(/;"	v
+this	k3sqrt.f90	/^type(typspiral)                         ::this$/;"	v
 tmp	force.f90	/^DOUBLE PRECISION                ::tmp$/;"	v	program:calforce
+u	k3sqrt.f90	/^       DOUBLE COMPLEX,ALLOCATABLE       ::u(/;"	v
 u	rk4.f90	/^DOUBLE COMPLEX          ::u(/;"	v
+ucaled	k3sqrt.f90	/^       LOGICAL                          ::ucaled /;"	v
 ui	rk4.f90	/^DOUBLE COMPLEX          ::u(2,N),ui(/;"	v
-uu	k3sqrt.f90	/^DOUBLE COMPLEX                  ::uu,/;"	v
-uu	k3sqrt.f90	/^DOUBLE COMPLEX          ::uu(/;"	v
 uu	rk4.f90	/^DOUBLE COMPLEX          ::u(2,N),ui(2),uu(/;"	v
+w	k3sqrt.f90	/^       DOUBLE COMPLEX                   ::w$/;"	v
+w	k3sqrt.f90	/^DOUBLE PRECISION                        ::w(/;"	v
 wii	FindOne.f90	/^DOUBLE PRECISION                  ::wri,wii$/;"	v	program:find_all
 wii	FindOne.f90	/^DOUBLE PRECISION                ::dr,wri,wii,/;"	v
 wii	SearchAll.f90	/^DOUBLE PRECISION                ::dr,wri,wii,/;"	v	program:test
-withf	k3sqrt.f90	/^LOGICAL,PARAMETER         ::withf /;"	v	module:STELLARDISK
 wri	FindOne.f90	/^DOUBLE PRECISION                  ::wri,/;"	v	program:find_all
 wri	FindOne.f90	/^DOUBLE PRECISION                ::dr,wri,/;"	v
 wri	SearchAll.f90	/^DOUBLE PRECISION                ::dr,wri,/;"	v	program:test
@@ -255,3 +301,4 @@ x1	k3sqrt.f90	/^DOUBLE PRECISION                ::x1,/;"	v
 x2	k3sqrt.f90	/^DOUBLE PRECISION                ::x1,x2$/;"	v
 xcoord	force.f90	/^DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(/;"	v	program:calforce
 ycoord	force.f90	/^DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(/;"	v	program:calforce
+zerolimit	k3sqrt.f90	/^DOUBLE PRECISION,PARAMETER                      ::zerolimit=/;"	v	module:NUM

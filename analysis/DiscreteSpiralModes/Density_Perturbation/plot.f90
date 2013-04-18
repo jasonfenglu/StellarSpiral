@@ -141,6 +141,109 @@
 
         ENDSUBROUTINE
 
+        SUBROUTINE plotdensity2(F,n,domain)
+        IMPLICIT NONE
+        DOUBLE PRECISION,ALLOCATABLE,INTENT(IN) ::F(:,:,:)!plotting data
+        DOUBLE PRECISION                        ::domain!plot range
+        REAL                                    ::TR(6) !plot geometry
+        REAL                                    ::TR2(6) !plot geometry
+        REAL                                    ::vmax,vmin
+        REAL                                    ::BRIGHT,CONTRA
+        INTEGER                                 ::m,n   !dimentsion
+        INTEGER                                 ::PGBEG
+        REAL                                    ::dx,dy
+        INTEGER                                 ::noutput
+
+
+        IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
+        CALL output
+        IF (PGBEG(0,'density.png/png',1,1) .NE. 1) STOP
+        CALL output
+        
+        CONTAINS
+        SUBROUTINE output()
+        LOGICAL                                 ::rauto(2),drawcir(2)
+        REAL                                    ::den(2)
+        namelist /plotpara/ rauto,den,drawcir
+
+        open(10,file='para.list')
+        read(10,nml=plotpara)
+        close(10)
+
+        CALL PGSVP(0.0,0.95,0.0,0.95)
+        CALL PGSUBP(2,1)
+        m = n
+        dx = real(domain)/real(n)
+        dy = real(domain)/real(m)
+
+        TR(3) = 0.
+        TR(5) = 0.
+        TR(2) = dx
+        TR(1) = -domain-dx/2.d0
+        TR(4) = -domain-dy/2.d0
+        TR(6) = dy
+
+        BRIGHT = 0.5
+        CONTRA = 0.9
+
+
+
+
+        CALL PALETT(2,CONTRA,Bright)
+        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+        !!Density
+        vmax = real(MAXVAL(F(:,:,1)))
+        vmin = real(MINVAL(F(:,:,1)))
+        vmax = vmax * 1.1d0
+        vmin = vmin * 1.1d0
+        print *,vmax,vmin
+        if(.not.rauto(1))then
+                        vmax = den(1)
+                        vmin = -vmax
+        endif
+        CALL PGIMAG(REAL(F(:,:,1)),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+        if(drawcir(1))then
+                CALL PGSFS(2)
+                CALL PGSCI(0)
+                CALL PGCIRC(0.,0.,1.26)
+                CALL PGCIRC(0.,0.,2.36)
+                CALL PGCIRC(0.,0.,4.72)
+                CALL PGCIRC(0.,0.,10.636)
+        endif
+        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+        !!Density
+        vmax = real(MAXVAL(F(:,:,2)))
+        vmin = real(MINVAL(F(:,:,2)))
+        vmax = vmax * 1.1d0
+        vmin = vmin * 1.1d0
+        print *,vmax,vmin
+        if(.not.rauto(2))then
+                        vmax = den(2)
+                        vmin = -vmax
+        endif
+        CALL PGIMAG(REAL(F(:,:,2)),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+        CALL PGSCH(1.0)
+        CALL PGLAB('kpc','kpc','Density')
+        CALL PGSFS(2)
+        CALL PGSCI(0)
+!       CALL PGPT(4,points(:,1),points(:,2),2)
+        if(drawcir(2))then
+                CALL PGCIRC(0.,0.,1.26)
+                CALL PGCIRC(0.,0.,2.36)
+                CALL PGCIRC(0.,0.,4.72)
+                CALL PGCIRC(0.,0.,10.636)
+        endif
+
+        CALL PGLINE(2,(/2.,7./),(/-8.,-8/))
+
+        CALL PGCLOS
+
+        ENDSUBROUTINE
+
+        ENDSUBROUTINE
+
         SUBROUTINE plotpspdsearch(F,n,m,domain)
         IMPLICIT NONE
         DOUBLE PRECISION                        ::F(:,:)!plotting data

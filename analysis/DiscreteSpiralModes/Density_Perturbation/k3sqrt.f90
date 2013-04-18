@@ -2,18 +2,20 @@ MODULE NUM
 DOUBLE PRECISION,PARAMETER                      ::zerolimit=1.d-6
 ENDMODULE NUM
 
-MODULE STELLARDISK
-USE PLOTTING
-IMPLICIT NONE
-DOUBLE PRECISION,PARAMETER::GravConst   = 4.3d-6 
-DOUBLE PRECISION,PARAMETER::g           = 4.3d0
-DOUBLE PRECISION,PARAMETER::pi          = 4.d0*atan(1.d0)
-LOGICAL,PARAMETER         ::withf       = .true.
-DOUBLE PRECISION,POINTER,SAVE           ::para(:)=>null()
-DOUBLE PRECISION          ::wr          
-DOUBLE PRECISION          ::wi          
-DOUBLE PRECISION,TARGET ,SAVE,ALLOCATABLE::stdpara(:)
-type   spiral_type
+MODULE STELLARDISK_MODEL
+type   typgalaxy_para
+       DOUBLE PRECISION                 ::para(14)
+       LOGICAL                          ::inited=.false.
+       CONTAINS 
+       PROCEDURE::printpara             =>para_print
+       PROCEDURE,NOPASS::readstd        =>READINSTDPARA
+       PROCEDURE,NOPASS::cpfromstd      =>cpfromstd
+endtype
+type(typgalaxy_para),TARGET,SAVE        ::stdpara
+type,extends(typgalaxy_para)::typspiral
+       DOUBLE COMPLEX                   ::w
+       INTEGER                          ::mode
+       INTEGER                          ::N
        DOUBLE COMPLEX,ALLOCATABLE       ::u(:,:) 
        DOUBLE COMPLEX,ALLOCATABLE       ::h1(:)
        DOUBLE COMPLEX,ALLOCATABLE       ::phi1r(:)
@@ -21,20 +23,23 @@ type   spiral_type
        DOUBLE PRECISION                 ::rmax
        DOUBLE PRECISION                 ::rmin
        DOUBLE PRECISION                 ::fortoone
-       INTEGER                          ::N
+       DOUBLE COMPLEX                   ::error
        LOGICAL                          ::ucaled    = .false.
        LOGICAL                          ::h1caled   = .false.
        LOGICAL                          ::phi1rcaled= .false.
+       LOGICAL                          ::bndu0     = .true.
+       CONTAINS
+       PROCEDURE,NOPASS::init           =>spiral_init
+       PROCEDURE::printu                =>spiral_printu
+       PROCEDURE::printh1               =>spiral_printh1
+       PROCEDURE::printr                =>spiral_printr
+       PROCEDURE::final                 =>spiral_final
 endtype
-type(spiral_type)         ::spiral
-!$OMP THREADPRIVATE(spiral,wr,wi,stdpara)
 CONTAINS
 
-SUBROUTINE INIT_STELLARDISK(n,domain)
-USE OMP_LIB
+SUBROUTINE para_print(this)
 IMPLICIT NONE
-DOUBLE PRECISION                ::domain
-INTEGER                         ::n
+class(typgalaxy_para),intent(in)           ::this
 !Halo
 DOUBLE PRECISION                ::Lh,rhoh,gHalo,VHalo
 !bulge
@@ -48,43 +53,28 @@ DOUBLE PRECISION                ::a1,a2,M1,M2
 !pspd from readin
 DOUBLE PRECISION                ::w(4)
 !NAME LIST
-namelist /paralist/ Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2,w
-
-
-!$OMP CRITICAL
-open(10,file='para.list')
-read(10,nml=paralist)
-close(10)
-!$OMP END CRITICAL
-
-
-!ALLOCATE(stdpara(14))
-if(.not.allocated(stdpara))ALLOCATE(stdpara(14))
-stdpara = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2/)
-para => stdpara
-
-
-!Allocate
-if(.not.allocated(spiral.u))ALLOCATE(spiral.u(3,4*n))
-if(.not.allocated(spiral.h1))ALLOCATE(spiral.h1(4*n))
-if(.not.allocated(spiral.phi1r))ALLOCATE(spiral.phi1r(2*n))
-if(.not.allocated(spiral.r))ALLOCATE(spiral.r(4*n))
-
-
-spiral%rmin = 0.d0 
-spiral%rmax = 2.d0*domain
-spiral%N    = 4*n
-
-!!choose pspd
-if(withf)then
-        wr = w(1)
-        wi = w(2)
+namelist /paralist/ Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2
+if(.not.this.inited)then
+        write(0,*)'para not init,print failed'
 else
-        wr = w(3)
-        wi = w(4)
+      Lh        = this.para(1)
+      rhoh      = this.para(2)
+      Mb        = this.para(3)
+      rb        = this.para(4)
+      dM        = this.para(5)
+      da        = this.para(6)
+      db        = this.para(7)
+      Qod       = this.para(8)
+      q         = this.para(9)
+      rq        = this.para(10)
+      a1        = this.para(11)
+      a2        = this.para(12)
+      M1        = this.para(13)
+      M2        = this.para(14)
+      write(6,*)'para print:'
+      write(6,nml=paralist)
 endif
-
-ENDSUBROUTINE INIT_STELLARDISK
+ENDSUBROUTINE
 
 SUBROUTINE READINSTDPARA
 IMPLICIT NONE
@@ -98,10 +88,8 @@ DOUBLE PRECISION                ::dM,da,db,VDisk
 DOUBLE PRECISION                ::Q,Qod,rq
 !Lau Disk
 DOUBLE PRECISION                ::a1,a2,M1,M2
-!pspd from readin
-DOUBLE PRECISION                ::w(4)
 !NAME LIST
-namelist /paralist/ Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2,w
+namelist /paralist/ Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2
 
 !$OMP CRITICAL
 open(10,file='para.list')
@@ -109,105 +97,195 @@ read(10,nml=paralist)
 close(10)
 !$OMP END CRITICAL
 
-!ALLOCATE(stdpara(14))
-if(.not.allocated(stdpara))ALLOCATE(stdpara(14))
-stdpara = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2/)
-
+stdpara.para = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2/)
+stdpara.inited = .true.
 ENDSUBROUTINE
 
-SUBROUTINE FindSpiral
+SUBROUTINE cpfromstd(this)
 IMPLICIT NONE
-!find EigenFunction
-CALL findu
-!find h1
-CALL findh1
-!Find phi1 along r
-CALL FindPhi1
-!Save calculation results
-CALL k3sqrtlog
+type(typgalaxy_para)                    ::this
+this = stdpara
 ENDSUBROUTINE
 
-SUBROUTINE k3sqrtlog
+SUBROUTINE spiral_init(this,n,domain,para,mode)
+USE OMP_LIB
+IMPLICIT NONE
+type(typspiral)                         ::this
+type(typgalaxy_para)                    ::para
+INTEGER                                 ::n,mode
+DOUBLE PRECISION                        ::domain
+!pspd from readin
+DOUBLE PRECISION                        ::w(4)
+LOGICAL                                 ::bndu0(2)
+namelist /spiralnml/ w,bndu0
+if(.not.allocated(this.u))ALLOCATE(this.u(3,4*n))
+if(.not.allocated(this.h1))ALLOCATE(this.h1(4*n))
+if(.not.allocated(this.phi1r))ALLOCATE(this.phi1r(2*n))
+if(.not.allocated(this.r))ALLOCATE(this.r(4*n))
+!ALLOCATE(this.u(3,4*n))
+!ALLOCATE(this.h1(4*n))
+!ALLOCATE(this.phi1r(2*n))
+!ALLOCATE(this.r(4*n))
+this.rmin = 0.d0 
+this.rmax = 1.5d0*domain
+this.n    = 4*n
+this.para = para.para
+this.inited = .true.
+this.mode = mode
+!$OMP CRITICAL
+open(10,file='para.list')
+read(10,nml=spiralnml)
+close(10)
+!$OMP END CRITICAL
+this.w = dcmplx(w(mode*2-1),w(mode*2))
+this.bndu0 = bndu0(mode)
+!$OMP BARRIER
+ENDSUBROUTINE
+
+SUBROUTINE spiral_final(this)
+IMPLICIT NONE
+class(typspiral)                         ::this
+DEALLOCATE(this.u)
+DEALLOCATE(this.h1)
+DEALLOCATE(this.phi1r)
+DEALLOCATE(this.r)
+ENDSUBROUTINE
+
+SUBROUTINE spiral_printu(this)
+IMPLICIT NONE
+class(typspiral),INTENT(IN)             ::this
+INTEGER                                 ::i
+DO i = 1, this.n
+        write(6,*)real(this.u(1,i)),abs(this.u(2,i))
+ENDDO
+ENDSUBROUTINE
+
+SUBROUTINE spiral_printh1(this)
+IMPLICIT NONE
+class(typspiral),INTENT(IN)             ::this
+INTEGER                                 ::i
+DO i = 1, this.n
+        write(6,*)this.r(i),abs(this.h1(i))
+ENDDO
+ENDSUBROUTINE
+
+SUBROUTINE spiral_printr(this)
+IMPLICIT NONE
+class(typspiral),INTENT(IN)             ::this
+INTEGER                                 ::i
+DO i = 1, this.n
+        write(6,*)this.r(i)
+ENDDO
+ENDSUBROUTINE
+
+
+ENDMODULE
+
+MODULE STELLARDISK
+USE STELLARDISK_MODEL,only:stdpara,typspiral
+USE PLOTTING
+IMPLICIT NONE
+DOUBLE PRECISION,PARAMETER::GravConst   = 4.3d-6 
+DOUBLE PRECISION,PARAMETER::g           = 4.3d0
+DOUBLE PRECISION,PARAMETER::pi          = 4.d0*atan(1.d0)
+CONTAINS
+
+SUBROUTINE FindSpiral(spiral)
+IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
+
+if(.not.spiral.inited)then
+        write(0,*)'spiral object not initialized, stop'
+        stop
+endif
+!find EigenFunction
+CALL findu(spiral)
+!!find h1
+CALL findh1(spiral)
+!!Find phi1 along r
+!CALL FindPhi1
+!!Save calculation results
+ENDSUBROUTINE
+ 
+SUBROUTINE k3sqrtlog(spiral)
+USE STELLARDISK_MODEL,only:stdpara,typspiral
 IMPLICIT NONE                           
+type(typspiral)                         ::spiral
 INTEGER                                 ::i
 DOUBLE PRECISION                        ::r
-DOUBLE COMPLEX,ALLOCATABLE              ::u(:,:),h1(:),phi1r(:)
-ALLOCATE(u(3,spiral.N))
-ALLOCATE(h1(spiral.N))
-ALLOCATE(phi1r(spiral.N))
-
-u       = spiral.u
-h1      = spiral.h1
-phi1r   = spiral.phi1r
-open(10,file='r-dep.dat')
+CHARACTER(len=32)                       ::ch
+write(ch,"(A5,I1,A4)")'r-dep',spiral.mode,'.dat'
+open(10,file=ch)
 DO i = 2, spiral.n,2
         r = spiral.r(i)
-        write(10,'(6(1XE15.6))')spiral.r(i),abs(spiral.u(2,i)),abs(spiral.h1(i))/snsd(r)**2*sigma0(r),abs(spiral.phi1r(i/2)),abs(spiral.h1(i))
-        !r, u, sigma1,potential1,h1
+        write(10,'(6(1XE15.6))')spiral.r(i),abs(spiral.u(2,i)),abs(spiral.h1(i))/snsd(r,spiral)**2*sigma0(r,spiral),abs(spiral.h1(i))
+        !r, u, sigma1,h1
 enddo
 close(10)
 
-CALL rlog
+!CALL rlog
 
 ENDSUBROUTINE
 
-SUBROUTINE rlog
-USE plotting,only:plotlog
-IMPLICIT NONE
-DOUBLE PRECISION,ALLOCATABLE            ::dat(:,:)
-DOUBLE PRECISION                        ::r
-INTEGER                                 ::i,m
+!SUBROUTINE rlog
+!USE plotting,only:plotlog
+!IMPLICIT NONE
+!DOUBLE PRECISION,ALLOCATABLE            ::dat(:,:)
+!DOUBLE PRECISION                        ::r
+!INTEGER                                 ::i,m
+!
+!!r, rotation, k3, Q
+!m = 4
+!
+!ALLOCATE(dat(4,spiral.n))
+!dat(1,:) = spiral.r
+!do i = 1, spiral.n
+!        r=spiral.r(i)
+!        dat(2,i) = Omega(r)
+!        dat(3,i) = dble(k3sqrt(r))
+!        dat(4,i) = ToomreQ(r)
+!enddo
+!
+!CALL plotlog(dat,m,spiral.n)
+!DEALLOCATE(dat)
+!ENDSUBROUTINE
 
-!r, rotation, k3, Q
-m = 4
-
-ALLOCATE(dat(4,spiral.n))
-dat(1,:) = spiral.r
-do i = 1, spiral.n
-        r=spiral.r(i)
-        dat(2,i) = Omega(r)
-        dat(3,i) = dble(k3sqrt(r))
-        dat(4,i) = ToomreQ(r)
-enddo
-
-CALL plotlog(dat,m,spiral.n)
-DEALLOCATE(dat)
-ENDSUBROUTINE
-
-function ToomreQ(r)
-DOUBLE PRECISION  Q,r,Qod,ToomreQ,rq
+function ToomreQ(r,spiral)
+DOUBLE PRECISION                        ::Q,r,Qod,ToomreQ,rq
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)
+para=>spiral.para
 Qod = para(8)
 q   = para(9)
 rq  = para(10)
 ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2))
 endfunction
 
-function nu(r)
+function nu(r,spiral)
 IMPLICIT NONE
-DOUBLE COMPLEX                  ::nu   
-DOUBLE PRECISION                ::r
-DOUBLE PRECISION                ::m 
-
+type(typspiral),TARGET                  ::spiral
+DOUBLE COMPLEX                          ::nu   
+DOUBLE PRECISION                        ::r
+DOUBLE PRECISION                        ::m 
 m = 2.d0
-nu = (dcmplx(wr,wi)-m*Omega(r))/kappa(r)
+nu = (spiral.w-m*Omega(r,spiral))/kappa(r,spiral)
 endfunction
  
-function k3sqrt(r)
+function k3sqrt(r,spiral)
+USE STELLARDISK_MODEL
 IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
 DOUBLE COMPLEX            k3sqrt
 DOUBLE PRECISION,INTENT(in)::r
 DOUBLE PRECISION          ::rr
 
 
-if(withf)then
-        k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2 &
-                 - 1.d0 + nu(r)**2 + 0.25d0*curF(r)**2*ToomreQ(r)**2)
-else                 
-        k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
-                 - 1.d0 + nu(r)**2)
-endif
-!if(isnan(real(k3sqrt)))CALL XERMSG('k3sqrt','k3sqrt','k3sqrt is nan.',-98,2)
-k3sqrt = k3sqrt
+k3sqrt = (dcmplx(kappa(r,spiral)/snsd(r,spiral)))**2*(dcmplx(ToomreQ(r,spiral))**-2 &
+       - 1.d0 + nu(r,spiral)**2 + 0.25d0*curF(r,spiral)**2*ToomreQ(r,spiral)**2)
+
+!k3sqrt = (dcmplx(kappa(r)/snsd(r)))**2*(dcmplx(ToomreQ(r))**-2  &
+!         - 1.d0 + nu(r)**2)
+
 CALL CheckResult
 CONTAINS
 
@@ -222,14 +300,17 @@ ENDSUBROUTINE
 
 endfunction
 
-function snsd(r)
+function snsd(r,spiral)
 IMPLICIT NONE
-DOUBLE PRECISION          ::r,snsd
-snsd = ToomreQ(r)*pi*GravConst*sigma0(r)/kappa(r)
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION                        ::r,snsd
+snsd = ToomreQ(r,spiral)*pi*GravConst*sigma0(r,spiral)/kappa(r,spiral)
 ENDFUNCTION
  
-function Sigma0(rr)
+function Sigma0(rr,spiral)
 IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)
 DOUBLE PRECISION,INTENT(IN)::rr
 DOUBLE PRECISION          ::Sigma0,r
 DOUBLE PRECISION          ::m,a,b
@@ -239,6 +320,8 @@ DOUBLE PRECISION          ::ABSERR
 INTEGER                   ::NEVAL,IERR,LIMIT,LENW,LAST,INF
 DOUBLE PRECISION,ALLOCATABLE ::WORK(:)
 INTEGER,ALLOCATABLE       ::IWORK(:)
+
+para=>spiral.para
 
 r = rr
 !not using integral now
@@ -261,7 +344,7 @@ DEALLOCATE(WORK)
 DEALLOCATE(IWORK)
 Sigma0 = ans/10.d5
 
-10 sigma0 = LauDiskSigma0(r)
+10 sigma0 = LauDiskSigma0(r,spiral)
 
 contains 
 function FUN(z)
@@ -276,13 +359,16 @@ ENDFUNCTION
 
 ENDFUNCTION
 
-FUNCTION LauDiskSigma0(r)
+FUNCTION LauDiskSigma0(r,spiral)
 IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION                ::LauDiskSigma0
 DOUBLE PRECISION                ::r
 !Lau Disk
 DOUBLE PRECISION                ::x1,x2
 DOUBLE PRECISION                ::a1,a2,M1,M2
+DOUBLE PRECISION,POINTER                ::para(:)
+para=>spiral.para
 a1 = para(11)
 a2 = para(12)
 M1 = para(13)
@@ -309,9 +395,10 @@ H = 6.5625 /x**3  + H
 ENDFUNCTION
 ENDFUNCTION
 
-function kappa(r)
+function kappa(r,spiral)
 USE NUM
 IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION  kappa
 DOUBLE PRECISION,INTENT(IN)             ::r
 DOUBLE PRECISION  dr
@@ -320,16 +407,16 @@ DOUBLE PRECISION  dOmega
 !        kappa = 2.d0*Omega(r)
 !        return
 !endif
-kappa = sqrt(4.d0*Omega(r)**2*(1.d0+r/(2.d0*Omega(r))*dfunc(Omega,r)))
+kappa = sqrt(4.d0*Omega(r,spiral)**2*(1.d0+r/(2.d0*Omega(r,spiral))*dfunc(Omega,r,spiral)))
 if(isnan(kappa))then
         print *,'kappa exception catched'
         print *,'r,Omega,dfunc(Omega,r):'
-        print *,r,Omega(r),dfunc(Omega,r)
+        print *,r,Omega(r,spiral),dfunc(Omega,r,spiral)
         CALL XERMSG('k3sqrt','kappa','kappa is nan.',-97,2)
 endif       
 ENDFUNCTION
 
-FUNCTION Omega(r)
+FUNCTION Omega(r,spiral)
 USE NUM
 IMPLICIT NONE
 DOUBLE PRECISION          ::Omega
@@ -342,12 +429,11 @@ DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
 DOUBLE PRECISION          ::dM,da,db
 DOUBLE COMPLEX            ::VDisk
 DOUBLE PRECISION          ::a1,a2,M1,M2
+!spiral
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)=>null()
 
-if(.not.associated(para))then
-        print *,'para not init'
-        stop
-endif        
-
+para=>spiral.para
 
 !Halo
 Lh   = para(1)
@@ -360,7 +446,6 @@ a1 = para(11)
 a2 = para(12)
 M1 = para(13)
 M2 = para(14)
-
 
 !!Limit case when r->0:
 if(r.lt.zerolimit)then
@@ -458,27 +543,31 @@ ENDFUNCTION
 
 ENDFUNCTION
 
-function dfunc(func,r)
+function dfunc(func,r,spiral)
+USE STELLARDISK_MODEL
 !
 ! Forward differential
 !
 IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION,INTENT(IN)     ::r
 DOUBLE PRECISION                ::dr
 DOUBLE PRECISION,PARAMETER      ::coe(3)=(/-1.5d0,2.d0,-0.5d0/)
 DOUBLE PRECISION                ::dfunc,ans,funcs(3)
 INTEGER                         ::i
 interface 
-        function func(x)
+        function func(x,spiral)
+        USE STELLARDISK_MODEL
         DOUBLE PRECISION        ::func
         DOUBLE PRECISION        ::x
+        type(typspiral),TARGET                  ::spiral
         ENDFUNCTION func
 endinterface        
 
 dr = epsilon(r)**0.3*max(r,epsilon(0d0))
-funcs(1) = func(r)
-funcs(2) = func(r+dr)
-funcs(3) = func(r+2.d0*dr)
+funcs(1) = func(r,spiral)
+funcs(2) = func(r+dr,spiral)
+funcs(3) = func(r+2.d0*dr,spiral)
 ans = dot_product(funcs,coe)/dr
 dfunc = ans
 
@@ -490,30 +579,33 @@ dfunc = ans
 if(isnan(dfunc))CALL XERMSG('k3sqrt','dfunc','dfunc is nan.',-94,0)
 endfunction
  
-function curf(r)
+function curf(r,spiral)
 USE NUM
 IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION                ::curf
 DOUBLE PRECISION                ::r,tmp
 INTEGER                         ::m=2
 
 if(r.lt.zerolimit)then
         curf = &
-        2.d0*dble(m)*(pi*GravConst*sigma0(0.d0))/kappa(0.d0)**2*sqrt(-2.d0*Omega2()/(Omega(0.d0)))
+        2.d0*dble(m)*(pi*GravConst*sigma0(0.d0,spiral))/kappa(0.d0,spiral)**2*sqrt(-2.d0*Omega2(spiral)/(Omega(0.d0,spiral)))
         return
 elseif(r.lt.3.d-2)then
         curf = &
-        2.d0*dble(m)*(pi*GravConst*sigma0(r))/kappa(r)**2 &
-        *sqrt(-(2.d0*r*Omega2())/(r*Omega(r)))
+        2.d0*dble(m)*(pi*GravConst*sigma0(r,spiral))/kappa(r,spiral)**2 &
+        *sqrt(-(2.d0*r*Omega2(spiral))/(r*Omega(r,spiral)))
 else
         curf = &
-        2.d0*dble(m)*(pi*GravConst*sigma0(r))/kappa(r)**2*sqrt(-dfunc(Omega,r)/(r*Omega(r)))
+        2.d0*dble(m)*(pi*GravConst*sigma0(r,spiral))/kappa(r,spiral)**2*sqrt(-dfunc(Omega,r,spiral)/(r*Omega(r,spiral)))
 endif
 
 CALL CheckResult
 CONTAINS
-FUNCTION Omega2
+FUNCTION Omega2(spiral)
+USE STELLARDISK_MODEL
 IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION          ::Omega2
 !Halo
 DOUBLE PRECISION          ::Lh,rhoh,gHalo,VHalo
@@ -523,12 +615,9 @@ DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
 DOUBLE PRECISION          ::dM,da,db
 DOUBLE COMPLEX            ::VDisk
 DOUBLE PRECISION          ::a1,a2,M1,M2
-
-if(.not.associated(para))then
-        print *,'para not init'
-        stop
-endif        
-
+!para
+DOUBLE PRECISION,POINTER                ::para(:)
+para=>spiral.para
 
 !Halo
 Lh   = para(1)
@@ -544,7 +633,7 @@ M2 = para(14)
 
 Omega2 = 4.d0*pi*GravConst*rhoh/5.d0/Lh**2 + 6.d0/5.d0*pi*GravConst*Mb/rb**2 &
        + 8.d0*GravConst/105.d0*(M1/a1**5-M2/a2**5)*1080.d0
-Omega2 = -Omega2/2.d0/Omega(0.d0)
+Omega2 = -Omega2/2.d0/Omega(0.d0,spiral)
 if(Omega2.gt.0.d0)then
         write(0,*)'Omega2 is larger than 0. curf will not exist. Omega2=',Omega2
         stop
@@ -559,15 +648,17 @@ errormsg = trim(errormsg)
 errormsg = 'curf real nan.'
 if(isnan(real(curf)))then
         print *,'curf exception'
-        print *,r,Omega(r),dfunc(Omega,r)
+        print *,r,Omega(r,spiral),dfunc(Omega,r,spiral)
         CALL XERMSG('k3sqrt','curf',errormsg,-96,2)
 endif
 ENDSUBROUTINE
 ENDFUNCTION
  
-SUBROUTINE findu
+SUBROUTINE findu(spiral)
 USE RK,only:rk4
+USE STELLARDISK_MODEL
 IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
 DOUBLE COMPLEX                  ::ui(3)
 DOUBLE PRECISION                ::a,b
 INTEGER                         ::n
@@ -576,19 +667,15 @@ namelist /BND/ ufzero
 spiral.u = (1.d0,0.d0)*0.d0
 a = spiral.rmin
 b = spiral.rmax
-!$OMP CRITICAL
-open(10,file='para.list')
-read(10,nml=BND)
-close(10)
-!$OMP END CRITICAL
-if(ufzero)then
+if(spiral.bndu0)then
         ui = (/dcmplx(a),dcmplx(0.d0),2.d0*sqrt(-q(0.d0))/)
 else
         ui = (/dcmplx(a),dcmplx(1.d0,0.d0),dcmplx(0.d0)/)
 endif
 CALL rk4(a,b,spiral.n,p,q,p,spiral.u,ui)
 spiral.ucaled = .true.
-spiral.r = real(spiral.u(1,:))
+spiral.r(:) = real(spiral.u(1,:))
+spiral.error = error(spiral)
 contains
 
 RECURSIVE FUNCTION p(r)
@@ -602,27 +689,25 @@ RECURSIVE FUNCTION q(r)
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::q
 DOUBLE PRECISION,INTENT(IN)     ::r
-q = k3sqrt(r)
+q = k3sqrt(r,spiral)
 !q =  (1)
 !q = dcmplx(1.d0,r**2)
 ENDFUNCTION
 
 ENDSUBROUTINE
 
-SUBROUTINE findh1()
+SUBROUTINE findh1(spiral)
 IMPLICIT NONE
+type(typspiral)                         ::spiral
 DOUBLE COMPLEX                  ::u
 DOUBLE COMPLEX                  ::rad
 DOUBLE PRECISION                ::h,r,expp
-INTEGER                         ::i,n
-
+INTEGER                         ::i
 do i = 1, spiral.n
         r   = spiral.r(i)
         u   = spiral.u(2,i)
-        rad = sqrt(kappa(r)**2*(1.d0-nu(r)**2)/sigma0(r)/r)
-        expp= ExpPart(r)
+        rad = sqrt(kappa(r,spiral)**2*(1.d0-nu(r,spiral)**2)/sigma0(r,spiral)/r)
         spiral.h1(i) = u*rad*exp(-0.5d0*(0.d0,1.d0)*ExpPart(r))
-!       spiral.h1(i) = u*rad*exp(-0.5d0*(0.d0,1.d0)*cmplx(expp,0.d0))
 enddo
 
 !CALL refineh1
@@ -631,22 +716,30 @@ spiral.h1caled = .true.
 CONTAINS
 
 Function ExpPart(r) result(ans)
+USE NUM
         IMPLICIT NONE
         DOUBLE PRECISION,INTENT(IN)     ::r
         DOUBLE PRECISION                ::a,rr
         DOUBLE PRECISION                ::ans
-        DOUBLE PRECISION                ::ferr = 1.d-20
+        DOUBLE PRECISION                ::ferr = 1.d-15
         INTEGER                         ::IERR,K=6000
-        a = 1.d-6
+        a = zerolimit
         rr = r
         IERR = 0
         if(rr.eq.0.d0)then
                 ans = 0.d0
         else
-                CALL DGAUS8(Sigma,a,rr,fERR,ans,IERR)
-!               CALL DQNC79(Sigma,a,rr,fERR,ans,IERR,K)
+                CALL DGAUS8(F,a,rr,fERR,ans,IERR)
+!               CALL DQNC79(F,a,rr,fERR,ans,IERR,K)
         endif
+
 ENDFUNCTION ExpPart
+
+FUNCTION F(r)
+DOUBLE PRECISION                ::F,r
+F = Sigma(r,spiral)
+ENDFUNCTION
+
 
 SUBROUTINE refineh1
 IMPLICIT NONE
@@ -666,11 +759,13 @@ enddo
 ENDSUBROUTINE refineh1
 ENDSUBROUTINE findh1
 
-SUBROUTINE FindPhi1()
+SUBROUTINE FindPhi1(spiral)
+USE STELLARDISK_MODEL
 IMPLICIT NONE
 DOUBLE COMPLEX                  ::k(4)
 DOUBLE PRECISION                ::r,h
 INTEGER                         ::i,j,l,n
+type(typspiral),TARGET                  ::spiral
 
 n = spiral.n
 !!Solve ODE of phi from density by RK4
@@ -693,28 +788,32 @@ IMPLICIT NONE
 DOUBLE COMPLEX                  ::dsimplifiedPoisson
 DOUBLE COMPLEX,INTENT(IN)       ::phi,h
 DOUBLE PRECISION                ::r
-
-dsimplifiedPoisson = -phi/(2.d0*r)+(0.d0,1.d0)*cmplx(Sigma(r),0)*h
-dsimplifiedPoisson = dsimplifiedPoisson + 3.75d0/(0.d0,1.d0)/Sigma(r)/r**2*phi
-
-!!test case 
-!!dsimplifiedPoisson =  -phi*r + (0.d0,1.d0)*r
-!!bnd condition is phi = 1+i at r=0
-!!solution is
-!!phi = exp(-r**2/2)+ i
-!!dsimplifiedPoisson = -phi*r
+!
+!dsimplifiedPoisson = -phi/(2.d0*r)+(0.d0,1.d0)*cmplx(Sigma(r),0)*h
+!dsimplifiedPoisson = dsimplifiedPoisson + 3.75d0/(0.d0,1.d0)/Sigma(r)/r**2*phi
+!
+!!!test case 
+!!!dsimplifiedPoisson =  -phi*r + (0.d0,1.d0)*r
+!!!bnd condition is phi = 1+i at r=0
+!!!solution is
+!!!phi = exp(-r**2/2)+ i
+!!!dsimplifiedPoisson = -phi*r
 ENDFUNCTION
 
-function Sigma(r) RESULT(ans)
+function Sigma(r,spiral) RESULT(ans)
+USE STELLARDISK_MODEL
 !This is NOT related to density
 IMPLICIT NONE
+type(typspiral)                         ::spiral
 DOUBLE PRECISION                ::ans
 DOUBLE PRECISION,INTENT(IN)     ::r
-ans = 2.d0*pi*GravConst*sigma0(r)/snsd(r)**2
+ans = 2.d0*pi*GravConst*sigma0(r,spiral)/snsd(r,spiral)**2
 ENDFUNCTION
 
 SUBROUTINE FindForce(force,r,th)
+USE STELLARDISK_MODEL
 IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION                ::force(2),r,th
 DOUBLE COMPLEX                  ::hh1,phir
 DOUBLE PRECISION                ::runit(2),thunit(2)
@@ -738,9 +837,11 @@ force = real(dsimplifiedPoisson(r,phir,hh1)*exp((0.d0,-2.d0)*th)*runit &
 
 ENDSUBROUTINE
 
-FUNCTION sigma1(r,th)
+FUNCTION sigma1(r,th,spiral)
+USE STELLARDISK_MODEL
 !This is to find density perturbation by solve the k3sqr ODE
 IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
 DOUBLE COMPLEX                  ::uu,hh1
 DOUBLE PRECISION                ::sigma1
 DOUBLE PRECISION,INTENT(IN)     ::r,th
@@ -758,7 +859,7 @@ enddo
 
 
 !find density
-sigma1 = real(hh1*sigma0(r)/snsd(r)**2*exp(-2.d0*th*(0.d0,1.d0)))
+sigma1 = real(hh1*sigma0(r,spiral)/snsd(r,spiral)**2*exp(-2.d0*th*(0.d0,1.d0)))
 
 
 ENDFUNCTION
@@ -771,32 +872,34 @@ DOUBLE PRECISION,INTENT(IN)     ::r,th
 DOUBLE COMPLEX                  ::uu,hh1
 DOUBLE PRECISION                ::rad
 INTEGER                         ::i,j,k,l,n
-!interploting u at non-grid point r
-n = spiral.n
-do i = 1, n*2
-        if(spiral.r(2*i).gt.r)then
-                exit
-        endif
-enddo
-!uu = (r-u(1,i-1))/(u(1,i)-u(1,i-1))*(u(2,i)-u(2,i-1)) + u(2,i-1)
-hh1 =(r-spiral.u(1,2*i-2))/(spiral.u(1,2*i)-spiral.u(1,2*i-2))*(spiral.phi1r(i)-spiral.phi1r(i-1)) + spiral.phi1r(i-1)
-
-
-!find potential
-phi1 = real(hh1*exp(-2.d0*th*(0.d0,1.d0)))
-
-
+!!interploting u at non-grid point r
+!n = spiral.n
+!do i = 1, n*2
+!        if(spiral.r(2*i).gt.r)then
+!                exit
+!        endif
+!enddo
+!!uu = (r-u(1,i-1))/(u(1,i)-u(1,i-1))*(u(2,i)-u(2,i-1)) + u(2,i-1)
+!hh1 =(r-spiral.u(1,2*i-2))/(spiral.u(1,2*i)-spiral.u(1,2*i-2))*(spiral.phi1r(i)-spiral.phi1r(i-1)) + spiral.phi1r(i-1)
+!
+!
+!!find potential
+!phi1 = real(hh1*exp(-2.d0*th*(0.d0,1.d0)))
+!
+!
 ENDFUNCTION
 
 SUBROUTINE ENDSTELLARDISK
-DEALLOCATE(spiral.u)
-DEALLOCATE(spiral.h1)
-DEALLOCATE(spiral.phi1r)
-DEALLOCATE(spiral.r)
+!DEALLOCATE(spiral.u)
+!DEALLOCATE(spiral.h1)
+!DEALLOCATE(spiral.phi1r)
+!DEALLOCATE(spiral.r)
 ENDSUBROUTINE
 
-function error()
+function error(spiral)
+USE STELLARDISK_MODEL
 IMPLICIT NONE          
+type(typspiral)                         ::spiral
 DOUBLE COMPLEX          ::error
 DOUBLE COMPLEX          ::uu(3)
 DOUBLE PRECISION        ::h=10d-5   ,r
@@ -804,7 +907,7 @@ DOUBLE PRECISION        ::RE,AE,B,C,RR
 INTEGER                 ::l,IFLAG
 
 B = 6.d0
-C = 12.d0
+C = 20.d0
 RR = 8.d0
 RE = 1d-8
 AE = 1d-8
@@ -817,143 +920,18 @@ do l = 1,spiral.n
                 exit
         endif
 enddo
-error  = -(0.d0,1.d0)*sqrt(k3sqrt(r))
+error  = -(0.d0,1.d0)*sqrt(k3sqrt(r,spiral))
 error  = error -                           &
-0.5d0/sqrt(k3sqrt(r))*               &                
-(sqrt(k3sqrt(r+h))-sqrt(k3sqrt(r-h)))/(2.d0*h)
+0.5d0/sqrt(k3sqrt(r,spiral))*               &                
+(sqrt(k3sqrt(r+h,spiral))-sqrt(k3sqrt(r-h,spiral)))/(2.d0*h)
 error = uu(3)/uu(2) -error
 CONTAINS
 function four21(r)
 IMPLICIT NONE
 DOUBLE PRECISION                ::four21,r
-four21 = (wr - 2.d0*Omega(r))/kappa(r) - 0.5d0
+four21 = (real(spiral.w)- 2.d0*Omega(r,spiral))/kappa(r,spiral) - 0.5d0
 ENDFUNCTION
         
 endfunction
-
-SUBROUTINE TEMP
-!type    type_u
-!       DOUBLE COMPLEX,POINTER           ::u(:,:) 
-!       DOUBLE PRECISION,POINTER         ::rcoord(:)
-!       INTEGER                          ::length
-!endtype
-!
-!type    type_h1
-!       DOUBLE COMPLEX,POINTER           ::h1(:) 
-!       DOUBLE PRECISION,POINTER         ::rcoord(:)
-!       INTEGER                          ::length
-!endtype
-!
-!type    type_phi1
-!       DOUBLE COMPLEX,POINTER           ::h1(:) 
-!       DOUBLE PRECISION,POINTER         ::rcoord(:)
-!       INTEGER                          ::length
-!endtype
-!
-!type    type_stellarspiral
-!        type(type_u)                    ::u
-!        type(type_h1)                   ::h1
-!        type(type_phi1)                 ::phi
-!        DOUBLE PRECISION                ::rmin,rmax
-!endtype     
-!
-!type::Q_type
-!        DOUBLE PRECISION,POINTER        ::Qod
-!        DOUBLE PRECISION,POINTER        ::q
-!        DOUBLE PRECISION,POINTER        ::rq
-!endtype       
-!type::comp_type
-!        !Halo
-!        DOUBLE PRECISION,POINTER        ::Lh,rhoh,gHalo,VHalo
-!        !bulge
-!        DOUBLE PRECISION,POINTER        ::rb,Mb,gBulge,VBulge
-!        !disk
-!        DOUBLE PRECISION,POINTER        ::dM,da,db,VDisk
-!endtype
-!type(type_stellarspiral)                ::stellarspiral
-!!SUBROUTINE mpi_single_grid(l,wri,wii)
-!!IMPLICIT NONE
-!!include 'mpif.h'
-!!type searchgrid_type
-!!sequence
-!!        DOUBLE PRECISION::coord(12,12,2)
-!!        DOUBLE PRECISION::error(12,12)
-!!endtype
-!!type(searchgrid_type)           ::searchgrid,recvgrid
-!!DOUBLE PRECISION                ::dr,wri,wii,di
-!!INTEGER                         ::l,i,j,p(2)
-!!!!mpi
-!!INTEGER                         ::ierr,nprocs,myid,trunknum
-!!integer                         ::mpi_grid_type,dextent
-!!integer                         ::oldtypes(0:1), blockcounts(0:1), &
-!!                                  offsets(0:1),itag,istat
-!!dr = 1.d0/10.0d0**(l-1)
-!!di = 0.5d0/10.0d0**(l-1)
-!!!most left and upper grid
-!!wri = wri +(-6.d0+0.5d0)*dr
-!!wii = wii +(-6.d0+0.5d0)*dr
-!!
-!!DO i = 1,12
-!!        searchgrid%coord(:,i,2) = dble(i-1)*dr + wii
-!!        searchgrid%coord(i,:,1) = dble(i-1)*dr + wri
-!!enddo
-!!call MPI_INIT(ierr)
-!!call MPI_COMM_RANK(MPI_COMM_WORLD,myid,ierr)
-!!call MPI_COMM_SIZE(MPI_COMM_WORLD,nprocs,ierr)
-!!
-!!call MPI_TYPE_EXTENT(MPI_DOUBLE_PRECISION,dextent,ierr)
-!!offsets(0) = 0
-!!oldtypes(0) = MPI_DOUBLE_PRECISION
-!!blockcounts(0) = 12*12*2
-!!offsets(1) = 12*12*2*dextent
-!!oldtypes(1) = MPI_DOUBLE_PRECISION 
-!!blockcounts(1) = 12*12
-!!call MPI_TYPE_STRUCT(2,blockcounts,offsets,oldtypes,mpi_grid_type,ierr)
-!!
-!!call MPI_TYPE_CONTIGUOUS(12*12*2,MPI_DOUBLE_PRECISION,mpi_grid_type,ierr)
-!!call MPI_TYPE_COMMIT(mpi_grid_type,ierr)
-!!
-!!trunknum = 12/nprocs + 1
-!!if(myid.ne.0)then
-!!!print *,myid,min0(trunknum*myid+trunknum,12)
-!!DO j = 1,12
-!!!DO i = 1,12
-!!DO i = 1+trunknum*myid,min0(trunknum*myid+trunknum,12)
-!!        wr = searchgrid%coord(i,j,1)
-!!        wi = searchgrid%coord(i,j,2)
-!!        !CALL INIT_STELLARDISK(10,20.d0)
-!!        !searchgrid%error(i,j) = abs(error())
-!!        !CALL ENDSTELLARDISK
-!!ENDDO
-!!ENDDO
-!!endif
-!!itag = 2000
-!!if(myid.ne.0)then
-!!        CALL MPI_SEND(searchgrid,1,mpi_grid_type,0,itag,MPI_COMM_WORLD,ierr)
-!!elseif(myid.eq.0)then
-!!        DO i = 1,nprocs-1
-!!        CALL MPI_RECV(recvgrid  ,1,mpi_grid_type,i,itag,MPI_COMM_WORLD,istat,ierr)
-!!        searchgrid%coord(1+trunknum*i:min0(trunknum*myid+trunknum,12),:,:) &
-!!       =  recvgrid%coord(1+trunknum*i:min0(trunknum*myid+trunknum,12),:,:) 
-!!        searchgrid%error(1+trunknum*i:min0(trunknum*myid+trunknum,12),:) &
-!!       =  recvgrid%error(1+trunknum*i:min0(trunknum*myid+trunknum,12),:) 
-!!        ENDDO
-!!endif
-!!CALL MPI_FINALIZE(ierr)
-!!        
-!!p = MINLOC(searchgrid%error(:,:))
-!!i = p(1)
-!!j = p(2)
-!!wri = searchgrid%coord(i,j,1)
-!!wii = searchgrid%coord(i,j,2)
-!!!if(j.eq.1 .or. j.eq.12 .or. i.eq.1 .or. i.eq.12)l = l -1
-!!DO i = 1,12
-!!DO j = 1,12
-!!        print *,searchgrid%coord(i,j,:),searchgrid%error(i,j)
-!!ENDDO
-!!ENDDO
-!!
-!!ENDSUBROUTINE
-ENDSUBROUTINE
 
 ENDMODULE STELLARDISK

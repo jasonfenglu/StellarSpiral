@@ -33,31 +33,30 @@ INVC(2,2) = 1.d0
 ENDFUNCTION
 endmodule
 
-PROGRAM density1
+PROGRAM caldensity2
 USE PLOTTING
 USE STELLARDISK_MODEL
-USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1
+USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,k3sqrtlog
 USE projections,only:argaline
 IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
 DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th,pf(2),pi(2)
-DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
+DOUBLE PRECISION,ALLOCATABLE    ::density(:,:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
 INTEGER,PARAMETER               ::n=800
-type(typspiral)                 ::spiral
+INTEGER                         ::nmode
+type(typspiral)                 ::spiral(2)
 LOGICAL                         ::toproject
 namelist /densitypara/ toproject
 
-!read in density plot related options
 open(10,file='para.list')
 read(10,nml=densitypara)
 close(10)
 
-!rotate with input parameters
 if(iargc().eq.1)then
         CALL getarg(1,arg)
         READ(arg,*)argaline
@@ -66,14 +65,11 @@ if(iargc().eq.1)then
         argaline = 3.d0
 endif
 
-
-CALL stdpara.readstd
-CALL spiral.init(spiral,200,12.d0,stdpara,1)
-CALL FindSpiral(spiral)
+!Setup grid
 dx = domain/dble(n)
 dy = domain/dble(n)
 
-ALLOCATE(density(2*n,2*n))
+ALLOCATE(density(2*n,2*n,2))
 ALLOCATE(xcoord(2*n))
 ALLOCATE(ycoord(2*n))
 
@@ -82,7 +78,17 @@ DO i = 1, n*2
         ycoord(i) =  dy*0.5d0 - domain + dble(i)*dx
 ENDDO
 
-!$OMP PARALLEL SHARED(density,spiral) PRIVATE(j,r,th,pi,pf,d)
+CALL stdpara.readstd
+DO i = 1, 2
+        CALL spiral.init(spiral(i),200,12.d0,stdpara,i)
+        CALL FindSpiral(spiral(i))
+        CALL k3sqrtlog(spiral(i))
+ENDDO
+
+
+!mode loop
+DO nmode = 1, 2
+!$OMP PARALLEL SHARED(density) PRIVATE(j,r,th,pi,pf,d) FIRSTPRIVATE(spiral)
 !$OMP DO 
 DO i = 1, n*2
 DO j = 1, n*2
@@ -91,7 +97,7 @@ DO j = 1, n*2
         if(toproject)CALL projection(pi,pf)
         r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
-        d  = sigma1(r,th,spiral)
+        d  = sigma1(r,th,spiral(nmode))
         !===================
         !ignore d too high
         if(r.gt.12.d0)d = 0.d0
@@ -101,47 +107,28 @@ DO j = 1, n*2
         if(isnan(d))d = 0.d0
         !ignore value below detection limit
 !       if(abs(d).lt.limit)d = 0.d0
-        density(i,j) = d
+        density(i,j,nmode) = d
 ENDDO
 ENDDO
 !$OMP END DO
 !$OMP END PARALLEL 
+ENDDO
 
-
-!
-!!!Find 2d Potential
- ALLOCATE(potential(2*n,2*n))
-!DO i = 1, n*2
-!DO j = 1, n*2
-!        r = sqrt(xcoord(i)**2+ycoord(j)**2)
-!        th = atan2(ycoord(j),xcoord(i))
-!        potential(i,j) = phi1(r,th)
-!ENDDO
-!ENDDO
-
-!!Find Force
-ALLOCATE(force(n/4,n/4,2))
-!DO i = 1,n/4
-!DO j = 1, n/4
-!        r = sqrt(xcoord(i*8)**2+ycoord(j*8)**2)
-!        th = atan2(ycoord(j*8),xcoord(i*8))
-!        call FindForce(force(i,j,:),r,th)
-!ENDDO
-!ENDDO
+if(maxval(abs(spiral(:).error)).gt.1d-5)write(0,*)'!!!!!! wrong pspd'
 
 points(1,:) = (/0.0,10.636/)
 points(2,:) = (/0.0,-10.636/)
 points(3,:) = (/0.0,4.727/)
 points(4,:) = (/0.0,-4.727/)
 CALL dprojection(points)
-CALL plotdensity(density,potential,force,n,domain)
+print *,'!!!!'
+CALL plotdensity2(density,n,domain)
 
-DEALLOCATE(potential)
+!DEALLOCATE(potential)
 DEALLOCATE(xcoord)
 DEALLOCATE(ycoord)
 DEALLOCATE(density)
-!CALL PhaseIntegrate
-!CALL ENDSTELLARDISK
+CALL PhaseIntegrate
 STOP
 
 
@@ -227,34 +214,32 @@ apitc = 55.d0/180.d0*pi_n
 aline =  argaline/180.d0*pi_n
 ENDSUBROUTINE
 
-SUBROUTINE PhaseIntegrate(spiral)
-USE STELLARDISK_MODEL
-USE STELLARDISK,only:k3sqrt,pi
-IMPLICIT NONE
-type(typspiral),TARGET                  ::spiral
-DOUBLE PRECISION                ::ri,rf
-DOUBLE PRECISION                ::RE,AE,RR,ERR,ANS
-INTEGER                         ::IFLAG
-ri = 0.d0
-rf = 4.d0
-RR = 2.d0
-RE = 1d-8
-AE = 1d-8
-CALL DFZERO(F,ri,rf,RR,RE,AE,IFLAG)
-ri = 0.d0
-rf = min(5.1d0,rf)
-ERR = 1.d-8
-CALL DGAUS8(g,ri,rf,ERR,ANS,IFLAG)
-print *,'phase before zero',ans/pi,'to',rf
-CONTAINS
-FUNCTION F(r)
-IMPLICIT NONE
-DOUBLE PRECISION                ::r,F
-F = k3sqrt(r,spiral)
-ENDFUNCTION
-FUNCTION g(r)
-IMPLICIT NONE
-DOUBLE PRECISION                ::r,G
-g = REAL(sqrt(k3sqrt(r,spiral)))
-ENDFUNCTION
+SUBROUTINE PhaseIntegrate
+!USE STELLARDISK,only:k3sqrt,pi
+!IMPLICIT NONE
+!DOUBLE PRECISION                ::ri,rf
+!DOUBLE PRECISION                ::RE,AE,RR,ERR,ANS
+!INTEGER                         ::IFLAG
+!ri = 0.d0
+!rf = 4.d0
+!RR = 2.d0
+!RE = 1d-8
+!AE = 1d-8
+!CALL DFZERO(F,ri,rf,RR,RE,AE,IFLAG)
+!ri = 0.d0
+!rf = min(5.1d0,rf)
+!ERR = 1.d-8
+!CALL DGAUS8(g,ri,rf,ERR,ANS,IFLAG)
+!print *,'phase before zero',ans/pi,'to',rf
+!CONTAINS
+!FUNCTION F(r)
+!IMPLICIT NONE
+!DOUBLE PRECISION                ::r,F
+!F = k3sqrt(r)
+!ENDFUNCTION
+!FUNCTION g(r)
+!IMPLICIT NONE
+!DOUBLE PRECISION                ::r,G
+!g = REAL(sqrt(k3sqrt(r)))
+!ENDFUNCTION
 ENDSUBROUTINE

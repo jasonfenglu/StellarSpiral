@@ -2,6 +2,7 @@ program test
 USE PLOTTING
 USE STELLARDISK
 USE OMP_LIB
+USE STELLARDISK_MODEL
 
 IMPLICIT NONE
 type searchgrid_type
@@ -12,8 +13,10 @@ sequence
         DOUBLE PRECISION,ALLOCATABLE::lerror(:)
 endtype
 type(searchgrid_type)           ::searchgrid,recvgrid
+type(typspiral)                 ::spiral
 DOUBLE PRECISION                ::dr,wri,wii,di,err
-DOUBLE PRECISION                ::domain(4) = (/40d0,120d0,0d0,-5d0/)
+DOUBLE PRECISION                ::domain(4) = (/40d0,120d0,0d0,-3d0/)  !better resolution 40-120
+DOUBLE PRECISION                ::wr,wi
 INTEGER                         ::l,i,j,p(1),n,m
 INTEGER                         ::ipc
 INTEGER                         ::now(3)
@@ -42,23 +45,25 @@ DO i = 1,n
 enddo
 searchgrid.lcoord = reshape(searchgrid.coord,(/m*n,2/))
 
-!$OMP PARALLEL SHARED(searchgrid,complete_count) PRIVATE(spiral,stdpara)
-CALL INIT_STELLARDISK(200,15.d0)
-!$OMP DO PRIVATE(spiral)
+CALL stdpara.readstd
+!$OMP PARALLEL SHARED(searchgrid,complete_count,stdpara) FIRSTPRIVATE(spiral)
+!$OMP DO 
 DO j = 1,m*n
+        CALL spiral.init(spiral,100,15.d0,stdpara,1)
         wr = searchgrid%lcoord(j,1)
         wi = searchgrid%lcoord(j,2)
+        spiral.w = dcmplx(wr,wi)
 !       ipc = omp_get_thread_num()
 !       print *,'!!!',j,ipc
-        CALL Findu
-        searchgrid%lerror(j) = abs(error())
+        CALL FindSpiral(spiral)
+        searchgrid%lerror(j) = abs(spiral.error)
+        CALL spiral.final
         !$OMP CRITICAL
                 complete_count = complete_count + 1
         !$OMP END CRITICAL
         print *,real(complete_count)/real(m*n)*100.
 ENDDO
 !$OMP END DO
-CALL ENDSTELLARDISK
 !$OMP END PARALLEL
 
 !p = MINLOC(searchgrid%lerror(:))

@@ -1,78 +1,38 @@
 PROGRAM find_all
-USE STELLARDISK,ONLY:INIT_STELLARDISK,ENDSTELLARDISK,wr,wi
+USE STELLARDISK_MODEL
 IMPLICIT NONE
+type(typspiral),TARGET            ::spiral0
 DOUBLE PRECISION                  ::wri,wii
 CHARACTER(len=32)                 ::arg
-          
-if(iargc().eq.2)then
+INTEGER                           ::mode,narg
+
+narg = iargc()
+SELECT case(narg)
+CASE(2)
         CALL getarg(1,arg)
         READ(arg,*)wri
         CALL getarg(2,arg)
         READ(arg,*)wii
-else 
-        CALL INIT_STELLARDISK(5,20.d0)
-        print *,'no input initial finding value, using default'
-        wri = wr
-        wii = wi
-        CALL ENDSTELLARDISK
-endif
+CASE DEFAULT
+        print *,'no input initial finding value, using default.'
+        CALL getarg(1,arg)
+        READ(arg,*)mode
+        CALL spiral0.init(spiral0,100,12.d0,stdpara,mode)
+        wri = real(spiral0.w)
+        wii = imag(spiral0.w)
+        CALL spiral0.final
+ENDSELECT
+
+          
 CALL findpspsd(wri,wii)
 print *,wri,',',wii
 
 STOP
 END PROGRAM
 
-SUBROUTINE single_grid(l,wri,wii)
-USE STELLARDISK
-IMPLICIT NONE
-type searchgrid_type
-sequence
-        DOUBLE PRECISION::coord(12,12,2)
-        DOUBLE PRECISION::error(12,12)
-endtype
-type(searchgrid_type)           ::searchgrid,recvgrid
-DOUBLE PRECISION                ::dr,wri,wii,di
-INTEGER                         ::l,i,j,p(2)
-
-
-
-dr = 1.d0/10.0d0**(l-1)
-di = 0.5d0/10.0d0**(l-1)
-!most left and upper grid
-wri = wri +(-6.d0+0.5d0)*dr
-wii = wii +(-6.d0+0.5d0)*dr
-
-DO i = 1,12
-        searchgrid%coord(:,i,2) = dble(i-1)*dr + wii
-        searchgrid%coord(i,:,1) = dble(i-1)*dr + wri
-enddo
-DO j = 1,12
-CALL INIT_STELLARDISK(500,20.d0)
-DO i = 1,12
-        wr = searchgrid%coord(i,j,1)
-        wi = searchgrid%coord(i,j,2)
-        CALL FindSpiral
-ENDDO
-ENDDO
-        
-p = MINLOC(searchgrid%error(:,:))
-i = p(1)
-j = p(2)
-wri = searchgrid%coord(i,j,1)
-wii = searchgrid%coord(i,j,2)
-
-!!Print search grid for debug
-!if(j.eq.1 .or. j.eq.12 .or. i.eq.1 .or. i.eq.12)l = l -1
-!DO i = 1,12
-!DO j = 1,12
-!        print *,searchgrid%coord(i,j,:),searchgrid%error(i,j)
-!ENDDO
-!ENDDO
-
-ENDSUBROUTINE
-
 SUBROUTINE omp_single_grid(l,wri,wii,err,r)
-USE STELLARDISK
+USE STELLARDISK_MODEL
+USE STELLARDISK,only:FindSpiral,pi_n=>pi
 USE OMP_LIB
 IMPLICIT NONE
 type searchgrid_type
@@ -83,12 +43,14 @@ sequence
         DOUBLE PRECISION,ALLOCATABLE::lerror(:)
 endtype
 type(searchgrid_type)           ::searchgrid,recvgrid
+type(typspiral)                 ::spiral
 DOUBLE PRECISION                ::dr,wri,wii,di,err
 DOUBLE PRECISION                ::r
 INTEGER                         ::n
 INTEGER                         ::l,i,j,p(2)
 INTEGER                         ::ipc
 INTEGER                         ::now(3)
+
 
 r  = 2.d0**(1.d0-dble(l))
 n  = 8
@@ -113,20 +75,19 @@ enddo
 
 searchgrid.lcoord = reshape(searchgrid.coord,(/n*n,2/))
 
-!$OMP PARALLEL SHARED(searchgrid) PRIVATE(spiral,stdpara)
-CALL INIT_STELLARDISK(500,13.d0)
-!$OMP DO PRIVATE(spiral)
+CALL stdpara.readstd
+!CALL omp_set_num_threads(1)
+!$OMP PARALLEL SHARED(searchgrid,stdpara) FIRSTPRIVATE(spiral)
+!$OMP DO 
 DO j = 1,n**2
-        wr = searchgrid%lcoord(j,1)
-        wi = searchgrid%lcoord(j,2)
-!       ipc = omp_get_thread_num()
-!       print *,'!!!',j,ipc
-        CALL Findu
-        searchgrid%lerror(j) = abs(error())
+        CALL spiral.init(spiral,200,12.d0,stdpara,1)
+        spiral.w = dcmplx(searchgrid.lcoord(j,1),searchgrid.lcoord(j,2))
+        CALL FindSpiral(spiral)
+        searchgrid.lerror(j) = abs(spiral.error)
+        CALL spiral.final
 ENDDO
-!$OMP END DO
-!$OMP END PARALLEL
-CALL ENDSTELLARDISK
+!$OMP END DO 
+!$OMP END PARALLEL 
 searchgrid.error = reshape(searchgrid.lerror,(/n,n/))
 p = MINLOC(searchgrid%error(:,:))
 i = p(1)
@@ -152,7 +113,6 @@ DEALLOCATE(searchgrid.lerror)
 ENDSUBROUTINE
 
 SUBROUTINE findpspsd(wri,wii)
-USE STELLARDISK,only:spiral
 IMPLICIT NONE
 DOUBLE PRECISION                ::wri,wii,err,r
 INTEGER                         ::l
@@ -160,7 +120,7 @@ l = 1
 write(*,'(I2,3X,F7.4,3X,F7.4,3X,E10.3)')0,wri,wii
 do while (l.le.20)
         CALL omp_single_grid(l,wri,wii,err,r)
-        write(*,'(I2,3X,F7.4,3X,F7.4,3X,E10.3,3X,D10.3,3X,F7.4)')l,wri,wii,err,r,spiral.fortoone
+        write(*,'(I2,3X,F7.4,3X,F7.4,3X,E10.3,3X,D10.3,3X,F7.4)')l,wri,wii,err,r
         if(abs(err).le.1d-6)exit
         l = l + 1
 enddo
