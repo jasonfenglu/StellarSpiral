@@ -25,5 +25,5 @@ export OMP_NUM_THREADS
 rm -rf bc.log bc.err
 ###### Run your jobs with parameters ######
 #./Density.exe 
-./SearchAll.exe > searchall.log
+./SearchAll.exe $start $end > searchall.log
 #./FindOne.exe

@@ -17,16 +17,18 @@ CASE(1)
         print *,'use input mode'
         CALL getarg(1,arg)
         READ(arg,*)mode
-        CALL spiral0.init(spiral0,100,12.d0,stdpara,mode)
+!       CALL spiral0.init(spiral0,100,12.d0,stdpara,mode)
+        CALL spiral0.readw(mode)
         wri = real(spiral0.w)
         wii = imag(spiral0.w)
-        CALL spiral0.final
+!       CALL spiral0.final
 CASE DEFAULT        
         print *,'no input initial finding value, using default.'
-        CALL spiral0.init(spiral0,100,12.d0,stdpara,1)
+!       CALL spiral0.init(spiral0,100,12.d0,stdpara,1)
+        CALL spiral0.readw(1)
         wri = real(spiral0.w)
         wii = imag(spiral0.w)
-        CALL spiral0.final
+!       CALL spiral0.final
 ENDSELECT
 
           

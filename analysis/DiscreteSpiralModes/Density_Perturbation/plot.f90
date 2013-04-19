@@ -141,15 +141,16 @@
 
         ENDSUBROUTINE
 
-        SUBROUTINE plotdensity2(F,n,domain)
+        SUBROUTINE plotdensity2(F,n,domain,r,k3,kn,u)
         IMPLICIT NONE
         DOUBLE PRECISION,ALLOCATABLE,INTENT(IN) ::F(:,:,:)!plotting data
         DOUBLE PRECISION                        ::domain!plot range
+        DOUBLE PRECISION                        ::r(:),k3(:,:),u(:,:)
         REAL                                    ::TR(6) !plot geometry
         REAL                                    ::TR2(6) !plot geometry
         REAL                                    ::vmax,vmin
         REAL                                    ::BRIGHT,CONTRA
-        INTEGER                                 ::m,n   !dimentsion
+        INTEGER                                 ::m,n,kn!dimentsion
         INTEGER                                 ::PGBEG
         REAL                                    ::dx,dy
         INTEGER                                 ::noutput
@@ -171,7 +172,7 @@
         close(10)
 
         CALL PGSVP(0.0,0.95,0.0,0.95)
-        CALL PGSUBP(2,1)
+        CALL PGSUBP(2,2)
         m = n
         dx = real(domain)/real(n)
         dy = real(domain)/real(m)
@@ -187,7 +188,6 @@
         CONTRA = 0.9
 
         CALL PALETT(2,CONTRA,Bright)
-        CALL PGBBUF
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
         !!Density
         vmax = real(MAXVAL(F(:,:,1)))
@@ -209,6 +209,7 @@
                 CALL PGCIRC(0.,0.,4.72)
                 CALL PGCIRC(0.,0.,10.636)
         endif
+        CALL PGSCI(1)
         CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
         !!Density
         vmax = real(MAXVAL(F(:,:,2)))
@@ -234,7 +235,21 @@
                 CALL PGCIRC(0.,0.,10.636)
         endif
 
-        CALL PGLINE(2,(/2.,7./),(/-8.,-8/))
+!       CALL PGLINE(2,(/2.,7./),(/-8.,-8/))
+
+        !!k3
+        CALL PGSCI(1)
+        CALL PGENV(0.,real(domain),-1.,2.,0,1)
+        CALL PGLINE(kn,real(r(:)),real(k3(:,1)))
+        CALL PGSCI(2)
+        CALL PGLINE(kn,real(r(:)),real(k3(:,2)))
+
+        !!u
+        CALL PGSCI(1)
+        CALL PGENV(0.,real(domain),0.,5.,0,1)
+        CALL PGLINE(kn,real(r(:)),real(u(:,1)))
+        CALL PGSCI(2)
+        CALL PGLINE(kn,real(r(:)),real(u(:,2)))
 
         CALL PGCLOS
 

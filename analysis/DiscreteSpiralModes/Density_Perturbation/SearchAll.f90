@@ -14,6 +14,7 @@ sequence
 endtype
 type(searchgrid_type)           ::searchgrid,recvgrid
 type(typspiral)                 ::spiral
+CHARACTER(len=32)                 ::arg
 DOUBLE PRECISION                ::dr,wri,wii,di,err
 DOUBLE PRECISION                ::domain(4) = (/40d0,120d0,0d0,-3d0/)  !better resolution 40-120
 DOUBLE PRECISION                ::wr,wi
@@ -21,8 +22,21 @@ INTEGER                         ::l,i,j,p(1),n,m
 INTEGER                         ::ipc
 INTEGER                         ::now(3)
 INTEGER                         ::complete_count = 0
+INTEGER                         ::narg
 
-m = 800
+narg = iargc()
+
+SELECT CASE(narg)
+CASE(2)
+                CALL getarg(1,arg)
+                READ(arg,*)domain(1)
+                CALL getarg(2,arg)
+                READ(arg,*)domain(2)
+CASE DEFAULT
+ENDSELECT
+
+!m = 800
+m = int(domain(2)-domain(1))*20
 n = m/10
 
 ALLOCATE(searchgrid.coord(m,n,2))

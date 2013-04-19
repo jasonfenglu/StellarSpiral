@@ -45,6 +45,7 @@ DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th,pf(2),pi(2)
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
+DOUBLE PRECISION,ALLOCATABLE    ::k3(:,:),u(:,:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
 INTEGER,PARAMETER               ::n=800
@@ -81,6 +82,7 @@ ENDDO
 CALL stdpara.readstd
 DO i = 1, 2
         CALL spiral.init(spiral(i),200,12.d0,stdpara,i)
+        CALL spiral(i).readw(i)
         CALL FindSpiral(spiral(i))
         CALL k3sqrtlog(spiral(i))
 ENDDO
@@ -121,8 +123,15 @@ points(2,:) = (/0.0,-10.636/)
 points(3,:) = (/0.0,4.727/)
 points(4,:) = (/0.0,-4.727/)
 CALL dprojection(points)
-print *,'!!!!'
-CALL plotdensity2(density,n,domain)
+ALLOCATE(k3(spiral(1).n,2))
+k3(:,1) = spiral(1).k3
+k3(:,2) = spiral(2).k3
+ALLOCATE(u(spiral(1).n,2))
+u(:,1) = abs(spiral(1).u(2,:))
+u(:,2) = abs(spiral(2).u(2,:))
+CALL plotdensity2(density,n,domain,spiral(1).r,k3,spiral(1).n,u)
+DEALLOCATE(k3)
+DEALLOCATE(u)
 
 !DEALLOCATE(potential)
 DEALLOCATE(xcoord)

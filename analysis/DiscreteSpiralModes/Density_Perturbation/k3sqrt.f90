@@ -19,6 +19,7 @@ type,extends(typgalaxy_para)::typspiral
        DOUBLE COMPLEX,ALLOCATABLE       ::u(:,:) 
        DOUBLE COMPLEX,ALLOCATABLE       ::h1(:)
        DOUBLE COMPLEX,ALLOCATABLE       ::phi1r(:)
+       DOUBLE COMPLEX,ALLOCATABLE       ::k3(:)
        DOUBLE PRECISION,ALLOCATABLE     ::r(:)
        DOUBLE PRECISION                 ::rmax
        DOUBLE PRECISION                 ::rmin
@@ -34,6 +35,7 @@ type,extends(typgalaxy_para)::typspiral
        PROCEDURE::printh1               =>spiral_printh1
        PROCEDURE::printr                =>spiral_printr
        PROCEDURE::final                 =>spiral_final
+       PROCEDURE::readw                 =>spiral_readw
 endtype
 CONTAINS
 
@@ -107,6 +109,26 @@ type(typgalaxy_para)                    ::this
 this = stdpara
 ENDSUBROUTINE
 
+SUBROUTINE spiral_readw(this,mode)
+IMPLICIT NONE
+class(typspiral)                         ::this
+!pspd from readin
+DOUBLE PRECISION                        ::w(4)
+INTEGER                                 ::mode
+LOGICAL                                 ::bndu0(2)
+namelist /spiralnml/ w,bndu0
+
+this.mode = mode
+!$OMP CRITICAL
+open(10,file='para.list')
+read(10,nml=spiralnml)
+close(10)
+!$OMP END CRITICAL
+!this.bndu0 = bndu0(mode)
+
+this.w = dcmplx(w(mode*2-1),w(mode*2))
+ENDSUBROUTINE
+
 SUBROUTINE spiral_init(this,n,domain,para,mode)
 USE OMP_LIB
 IMPLICIT NONE
@@ -114,14 +136,11 @@ type(typspiral)                         ::this
 type(typgalaxy_para)                    ::para
 INTEGER                                 ::n,mode
 DOUBLE PRECISION                        ::domain
-!pspd from readin
-DOUBLE PRECISION                        ::w(4)
-LOGICAL                                 ::bndu0(2)
-namelist /spiralnml/ w,bndu0
 if(.not.allocated(this.u))ALLOCATE(this.u(3,4*n))
 if(.not.allocated(this.h1))ALLOCATE(this.h1(4*n))
 if(.not.allocated(this.phi1r))ALLOCATE(this.phi1r(2*n))
 if(.not.allocated(this.r))ALLOCATE(this.r(4*n))
+if(.not.allocated(this.k3))ALLOCATE(this.k3(4*n))
 !ALLOCATE(this.u(3,4*n))
 !ALLOCATE(this.h1(4*n))
 !ALLOCATE(this.phi1r(2*n))
@@ -131,15 +150,6 @@ this.rmax = 1.5d0*domain
 this.n    = 4*n
 this.para = para.para
 this.inited = .true.
-this.mode = mode
-!$OMP CRITICAL
-open(10,file='para.list')
-read(10,nml=spiralnml)
-close(10)
-!$OMP END CRITICAL
-this.w = dcmplx(w(mode*2-1),w(mode*2))
-this.bndu0 = bndu0(mode)
-!$OMP BARRIER
 ENDSUBROUTINE
 
 SUBROUTINE spiral_final(this)
@@ -149,6 +159,7 @@ DEALLOCATE(this.u)
 DEALLOCATE(this.h1)
 DEALLOCATE(this.phi1r)
 DEALLOCATE(this.r)
+DEALLOCATE(this.k3)
 ENDSUBROUTINE
 
 SUBROUTINE spiral_printu(this)
@@ -660,7 +671,7 @@ IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
 DOUBLE COMPLEX                  ::ui(3)
 DOUBLE PRECISION                ::a,b
-INTEGER                         ::n
+INTEGER                         ::n,i
 LOGICAL                         ::ufzero
 namelist /BND/ ufzero
 spiral.u = (1.d0,0.d0)*0.d0
@@ -675,6 +686,9 @@ CALL rk4(a,b,spiral.n,p,q,p,spiral.u,ui)
 spiral.ucaled = .true.
 spiral.r(:) = real(spiral.u(1,:))
 spiral.error = error(spiral)
+DO i = 1, spiral.n
+        spiral.k3(i) = k3sqrt(spiral.r(i),spiral)
+ENDDO
 contains
 
 RECURSIVE FUNCTION p(r)
