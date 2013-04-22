@@ -3,8 +3,8 @@ USE PLOTTING
 USE STELLARDISK
 USE OMP_LIB
 USE STELLARDISK_MODEL
-
 IMPLICIT NONE
+include 'mpif.h'
 type searchgrid_type
 sequence
         DOUBLE PRECISION,ALLOCATABLE::coord(:,:,:)
@@ -18,11 +18,17 @@ CHARACTER(len=32)                 ::arg
 DOUBLE PRECISION                ::dr,wri,wii,di,err
 DOUBLE PRECISION                ::domain(4) = (/40d0,120d0,0d0,-3d0/)  !better resolution 40-120
 DOUBLE PRECISION                ::wr,wi
+DOUBLE PRECISION,ALLOCATABLE    ::errormpisend(:)
 INTEGER                         ::l,i,j,p(1),n,m
 INTEGER                         ::ipc
 INTEGER                         ::now(3)
 INTEGER                         ::complete_count = 0
 INTEGER                         ::narg
+INTEGER                         ::mpi_size,myid,info,ierr,chunk
+INTEGER                         ::ompid, ompsize
+CALL MPI_INIT(ierr)
+CALL MPI_COMM_RANK(MPI_COMM_WORLD,myid,ierr)
+CALL MPI_COMM_SIZE(MPI_COMM_WORLD,mpi_size,ierr)
 
 narg = iargc()
 
@@ -60,9 +66,13 @@ enddo
 searchgrid.lcoord = reshape(searchgrid.coord,(/m*n,2/))
 
 CALL stdpara.readstd
+chunk = ceiling(real(m*n)/real(mpi_size))
+print *,myid,m,n,chunk
+ALLOCATE(errormpisend(chunk))
 !$OMP PARALLEL SHARED(searchgrid,complete_count,stdpara) FIRSTPRIVATE(spiral)
 !$OMP DO 
-DO j = 1,m*n
+!DO j = 1,m*n
+DO j = chunk*myid+1,chunk*(myid+1)
         CALL spiral.init(spiral,100,15.d0,stdpara,1)
         wr = searchgrid%lcoord(j,1)
         wi = searchgrid%lcoord(j,2)
@@ -70,31 +80,37 @@ DO j = 1,m*n
 !       ipc = omp_get_thread_num()
 !       print *,'!!!',j,ipc
         CALL FindSpiral(spiral)
-        searchgrid%lerror(j) = abs(spiral.error)
+!       searchgrid%lerror(j) = abs(spiral.error)
+        errormpisend(j-chunk*myid) = abs(spiral.error)
         CALL spiral.final
+        if(myid.eq.0)then
         !$OMP CRITICAL
                 complete_count = complete_count + 1
         !$OMP END CRITICAL
-        print *,real(complete_count)/real(m*n)*100.
+        print *,real(complete_count)/real(chunk)*100.
+        endif
 ENDDO
 !$OMP END DO
 !$OMP END PARALLEL
+print *,'collecting data'
+CALL MPI_GATHER(errormpisend,chunk,MPI_DOUBLE_PRECISION,searchgrid.lerror,chunk,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
 !p = MINLOC(searchgrid%lerror(:))
 !wri = searchgrid%lcoord(p(1),1)
 !wii = searchgrid%lcoord(p(1),2)
 !err = searchgrid%lerror(p(1))
-searchgrid.coord = reshape(searchgrid.coord,(/m,n,2/))
-searchgrid.error = reshape(searchgrid.lerror,(/m,n/))
 !DO i = 1, N
 !DO j = 1, N
 !        print *,searchgrid.coord(i,j,:),searchgrid.error(i,j)
 !ENDDO
 !ENDDO
-print *,'min error',minval(searchgrid.error(:,:))
 
-
-CALL plotpspdsearch(searchgrid.error,m,n,domain)
+if(myid.eq.0)then
+        searchgrid.coord = reshape(searchgrid.coord,(/m,n,2/))
+        searchgrid.error = reshape(searchgrid.lerror,(/m,n/))
+        print *,'min error',minval(searchgrid.error(:,:))
+        CALL plotpspdsearch(searchgrid.error,m,n,domain)
+endif
 
 !1000 CALL INIT_STELLARDISK(100,40.d0)
 !wr = 60.d0
@@ -108,4 +124,5 @@ DEALLOCATE(searchgrid.error)
 DEALLOCATE(searchgrid.lcoord)
 DEALLOCATE(searchgrid.lerror)
 
+CALL MPI_FINALIZE(ierr)
 ENDPROGRAM
