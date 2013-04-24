@@ -11,7 +11,7 @@ endtype
 type(tst) tt
 
 ri = 0.d0
-rf = 10.d0
+rf = 15.d0
 !rf = 10.d0
 N  = 1000
 
@@ -29,17 +29,26 @@ dr = (rf-ri)/dble(n)
 !ENDDO
 
 
+!CALL stdpara.readstd
+!ALLOCATE(tt.dat(3))
+!!$OMP PARALLEL FIRSTPRIVATE(spiral)
+!!$OMP DO 
+!DO i = 1, 32
+!CALL spiral.init(spiral,500,12.d0,stdpara,1)
+!CALL FindSpiral(spiral)
+!CALL spiral.final
+!print *,spiral.error
+!ENDDO
+!!$OMP END PARALLEL
+
 CALL stdpara.readstd
-ALLOCATE(tt.dat(3))
-!$OMP PARALLEL FIRSTPRIVATE(spiral)
-!$OMP DO 
-DO i = 1, 32
-CALL spiral.init(spiral,500,12.d0,stdpara,1)
+CALL spiral.init(spiral,N,12.d0,stdpara,1)
+CALL spiral.readw(1)
 CALL FindSpiral(spiral)
-CALL spiral.final
-print *,spiral.error
+DO i = 1, N
+        r = dr*dble(i)
+       write(6,*)r,real(k3sqrt(r,spiral)),real(spiral.k3(i))
 ENDDO
-!$OMP END PARALLEL
 
 stop
 end      

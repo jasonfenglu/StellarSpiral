@@ -7,7 +7,7 @@
 ###### Queue name ######
 #PBS -q medium
 ###### Number of nodes and cores(ppn), time(walltime) and memory size(mem) ######
-#PBS -l nodes=8:ppn=12
+#PBS -l nodes=8:ppn=8
 ###### Sends mail to yourself when the job begins and ends ######
 #PBS -m be
 ###### Specific the shell types ######
@@ -20,9 +20,9 @@ cd $PBS_O_WORKDIR
 . /etc/profile.d/modules.sh
 module purge
 module load torque lam ifc pgplot
-rm searchall.err
-rm searchall.mpi.log
-rm searchall.png
+#rm searchall.err
+#rm searchall.mpi.log
+#rm searchall.log
 
 # Set the number of OpenMP threads to share the work.
 # This is actually the same as the default value as each node has 8 cores
@@ -33,6 +33,6 @@ export OMP_NUM_THREADS=12
 ###### Run parallel jobs ######
 cat $PBS_NODEFILE | uniq > LAMHOST
 $LAM_HOME/bin/lamboot -v LAMHOST
-$LAM_HOME/bin/mpiexec C ./SearchAll.exe > searchall.log
+$LAM_HOME/bin/mpiexec C ./SearchAll.exe $start $end> searchall.log
 $LAM_HOME/bin/lamhalt
 rm LAMHOST

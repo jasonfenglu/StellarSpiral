@@ -28,7 +28,7 @@ ExpPart	k3sqrt.f90	/^Function ExpPart(/;"	f	subroutine:findh1
 F	Density.f90	/^FU/;"	f
 FUN	k3sqrt.f90	/^function FUN(/;"	f	function:k3sqrt
 FindForce	k3sqrt.f90	/^SUBROUTINE FindForce(/;"	s	subroutine:findh1
-FindSpiral	k3sqrt.f90	/^SUBROUTINE FindSpiral(/;"	s
+FindSpiral	k3sqrt.f90	/^SUBROUTINE FindSpiral(/;"	s	subroutine:spiral_printr
 G	Density.f90	/^DOUBLE PRECISION                ::r,G$/;"	v
 GB	plot.f90	/^      REAL GL(2), GR(2), GG(2), GB(/;"	v	module:plotting
 GG	plot.f90	/^      REAL GL(2), GR(2), GG(/;"	v	module:plotting
@@ -102,14 +102,13 @@ aolin	Density.f90	/^        DOUBLE PRECISION,SAVE           ::aolin$/;"	v	module
 apitc	2Density.f90	/^        DOUBLE PRECISION,SAVE           ::apitc$/;"	v	module:projections
 apitc	Density.f90	/^        DOUBLE PRECISION,SAVE           ::apitc$/;"	v	module:projections
 arg	FindOne.f90	/^CHARACTER(len=32)                 ::arg$/;"	v	program:find_all
+arg	SearchAll.f90	/^CHARACTER(len=32)                 ::arg$/;"	v	program:test
 arg	force.f90	/^CHARACTER(len=32)               ::arg$/;"	v	program:calforce
 argaline	2Density.f90	/^        DOUBLE PRECISION,SAVE           ::aline,argaline$/;"	v	module:projections
 argaline	Density.f90	/^        DOUBLE PRECISION,SAVE           ::aline,argaline$/;"	v	module:projections
 b	rk4.f90	/^DOUBLE PRECISION        ::b(/;"	v
 bndu0	k3sqrt.f90	/^       LOGICAL                          ::bndu0 /;"	v
-bndu0	k3sqrt.f90	/^LOGICAL                                 ::bndu0(/;"	v
 calforce	force.f90	/^PROGRAM calforce$/;"	p
-ch	k3sqrt.f90	/^CHARACTER(len=32)                       ::ch$/;"	v
 coe	k3sqrt.f90	/^DOUBLE PRECISION,PARAMETER      ::coe(/;"	v
 complete_count	SearchAll.f90	/^INTEGER                         ::complete_count /;"	v	program:test
 coord	FindOne.f90	/^        DOUBLE PRECISION,ALLOCATABLE::coord(/;"	k	type:searchgrid_type
@@ -125,7 +124,6 @@ dfunc	k3sqrt.f90	/^DOUBLE PRECISION                ::dfunc,/;"	v
 di	SearchAll.f90	/^DOUBLE PRECISION                ::dr,wri,wii,di,/;"	v	program:test
 domain	SearchAll.f90	/^DOUBLE PRECISION                ::domain(/;"	v	program:test
 domain	force.f90	/^DOUBLE PRECISION                ::domain=/;"	v	program:calforce
-domain	k3sqrt.f90	/^DOUBLE PRECISION                        ::domain$/;"	v
 dpDisk	k3sqrt.f90	/^DOUBLE PRECISION        ::dpDisk$/;"	v
 dr	SearchAll.f90	/^DOUBLE PRECISION                ::dr,/;"	v	program:test
 dr	k3sqrt.f90	/^DOUBLE PRECISION                ::dr$/;"	v
@@ -156,7 +154,6 @@ i	2Density.f90	/^INTEGER                         ::i$/;"	v
 i	Density.f90	/^INTEGER                         ::i$/;"	v
 i	SearchAll.f90	/^INTEGER                         ::l,i,/;"	v	program:test
 i	force.f90	/^INTEGER                         ::i,/;"	v	program:calforce
-i	k3sqrt.f90	/^INTEGER                                 ::i$/;"	v
 i	k3sqrt.f90	/^INTEGER                         ::i$/;"	v
 i	test.f90	/^INTEGER                 ::n,i$/;"	v	program:test
 ipc	SearchAll.f90	/^INTEGER                         ::ipc$/;"	v	program:test
@@ -174,12 +171,11 @@ lerror	SearchAll.f90	/^        DOUBLE PRECISION,ALLOCATABLE::lerror(/;"	k	type:s
 m	SearchAll.f90	/^INTEGER                         ::l,i,j,p(1),n,m$/;"	v	program:test
 mode	FindOne.f90	/^INTEGER                           ::mode,/;"	v	program:find_all
 mode	k3sqrt.f90	/^       INTEGER                          ::mode$/;"	v
-mode	k3sqrt.f90	/^INTEGER                                 ::n,mode$/;"	v
 n	SearchAll.f90	/^INTEGER                         ::l,i,j,p(1),n,/;"	v	program:test
 n	force.f90	/^INTEGER,PARAMETER               ::n=/;"	v	program:calforce
-n	k3sqrt.f90	/^INTEGER                                 ::n,/;"	v
 n	test.f90	/^INTEGER                 ::n,/;"	v	program:test
 narg	FindOne.f90	/^INTEGER                           ::mode,narg$/;"	v	program:find_all
+narg	SearchAll.f90	/^INTEGER                         ::narg$/;"	v	program:test
 now	SearchAll.f90	/^INTEGER                         ::now(/;"	v	program:test
 nu	k3sqrt.f90	/^function nu(/;"	f
 omp_single_grid	FindOne.f90	/^SUBROUTINE omp_single_grid(/;"	s
@@ -190,7 +186,6 @@ p	SearchAll.f90	/^INTEGER                         ::l,i,j,p(/;"	v	program:test
 p	k3sqrt.f90	/^RECURSIVE FUNCTION p(/;"	f	subroutine:findu
 p	rk4.f90	/^DOUBLE COMPLEX,EXTERNAL ::p,/;"	v
 pDisk	k3sqrt.f90	/^FUNCTION pDisk(/;"	f
-para	k3sqrt.f90	/^type(typgalaxy_para)/;"	v
 para1	test.f90	/^type(typgalaxy_para)para1$/;"	v	program:test
 para_print	k3sqrt.f90	/^SUBROUTINE para_print(/;"	s
 paralist	k3sqrt.f90	/^namelist \/paralist\//;"	n
@@ -218,7 +213,6 @@ r	Density.f90	/^DOUBLE PRECISION                ::r,/;"	v
 r	FindOne.f90	/^DOUBLE PRECISION                ::wri/;"	v
 r	force.f90	/^DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,/;"	v	program:calforce
 r	k3sqrt.f90	/^       DOUBLE PRECISION,ALLOCATABLE     ::r(/;"	v
-r	k3sqrt.f90	/^DOUBLE PRECISION                        ::r$/;"	v
 r	k3sqrt.f90	/^DOUBLE PRECISION                ::r$/;"	v
 r	k3sqrt.f90	/^DOUBLE PRECISION        ::r$/;"	v
 r	k3sqrt.f90	/^DOUBLE PRECISION,INTENT(IN)     ::r$/;"	v
@@ -249,14 +243,13 @@ spiral	SearchAll.f90	/^type(typspiral)/;"	v	program:test
 spiral	k3sqrt.f90	/^type(typspiral)/;"	v
 spiral	test.f90	/^type(typspiral)/;"	v	program:test
 spiral0	FindOne.f90	/^type(typspiral),TARGET            ::spiral0$/;"	v	program:find_all
-spiral_final	k3sqrt.f90	/^SUBROUTINE spiral_final(/;"	s
-spiral_printh1	k3sqrt.f90	/^SUBROUTINE spiral_printh1(/;"	s
-spiralnml	k3sqrt.f90	/^namelist \/spiralnml\//;"	n
+spiral_init	k3sqrt.f90	/^SUBROUTINE spiral_init(/;"	s
+spiral_printr	k3sqrt.f90	/^SUBROUTINE spiral_printr(/;"	s
+spiral_printu	k3sqrt.f90	/^SUBROUTINE spiral_printu(/;"	s
 stdpara	k3sqrt.f90	/^type(typgalaxy_para),TARGET,SAVE        ::stdpara$/;"	v
 test	SearchAll.f90	/^program test$/;"	p
 test	test.f90	/^program test$/;"	p
 th	force.f90	/^DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th$/;"	v	program:calforce
-this	k3sqrt.f90	/^type(typspiral)                         ::this$/;"	v
 tmp	force.f90	/^DOUBLE PRECISION                ::tmp$/;"	v	program:calforce
 tst	test.f90	/^type tst$/;"	t	program:test
 tt	test.f90	/^type(tst) tt$/;"	v	program:test
@@ -266,7 +259,6 @@ ucaled	k3sqrt.f90	/^       LOGICAL                          ::ucaled /;"	v
 ui	rk4.f90	/^DOUBLE COMPLEX          ::u(2,N),ui(/;"	v
 uu	rk4.f90	/^DOUBLE COMPLEX          ::u(2,N),ui(2),uu(/;"	v
 w	k3sqrt.f90	/^       DOUBLE COMPLEX                   ::w$/;"	v
-w	k3sqrt.f90	/^DOUBLE PRECISION                        ::w(/;"	v
 wi	SearchAll.f90	/^DOUBLE PRECISION                ::wr,wi$/;"	v	program:test
 wii	FindOne.f90	/^DOUBLE PRECISION                  ::wri,wii$/;"	v	program:find_all
 wii	FindOne.f90	/^DOUBLE PRECISION                ::wri,wii,/;"	v

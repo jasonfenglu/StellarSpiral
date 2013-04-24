@@ -16,9 +16,9 @@ type(searchgrid_type)           ::searchgrid,recvgrid
 type(typspiral)                 ::spiral
 CHARACTER(len=32)                 ::arg
 DOUBLE PRECISION                ::dr,wri,wii,di,err
-DOUBLE PRECISION                ::domain(4) = (/40d0,120d0,0d0,-3d0/)  !better resolution 40-120
+DOUBLE PRECISION                ::domain(4) = (/40d0,120d0,0d0,-7d0/)  !better resolution 40-120
 DOUBLE PRECISION                ::wr,wi
-DOUBLE PRECISION,ALLOCATABLE    ::errormpisend(:)
+DOUBLE PRECISION,ALLOCATABLE    ::errormpisend(:),mpiall(:)
 INTEGER                         ::l,i,j,p(1),n,m
 INTEGER                         ::ipc
 INTEGER                         ::now(3)
@@ -29,7 +29,7 @@ INTEGER                         ::ompid, ompsize
 CALL MPI_INIT(ierr)
 CALL MPI_COMM_RANK(MPI_COMM_WORLD,myid,ierr)
 CALL MPI_COMM_SIZE(MPI_COMM_WORLD,mpi_size,ierr)
-
+print *,'MPI started',myid
 narg = iargc()
 
 SELECT CASE(narg)
@@ -41,9 +41,15 @@ CASE(2)
 CASE DEFAULT
 ENDSELECT
 
-!m = 800
 m = int(domain(2)-domain(1))*20
 n = m/10
+if(mod(m,mpi_size).eq.0)then
+        chunk = m/mpi_size
+else 
+        chunk = m/mpi_size + 1
+endif
+m = chunk*mpi_size
+chunk = chunk *n
 
 ALLOCATE(searchgrid.coord(m,n,2))
 ALLOCATE(searchgrid.error(m,n))
@@ -66,7 +72,6 @@ enddo
 searchgrid.lcoord = reshape(searchgrid.coord,(/m*n,2/))
 
 CALL stdpara.readstd
-chunk = ceiling(real(m*n)/real(mpi_size))
 print *,myid,m,n,chunk
 ALLOCATE(errormpisend(chunk))
 !$OMP PARALLEL SHARED(searchgrid,complete_count,stdpara) FIRSTPRIVATE(spiral)
@@ -92,7 +97,7 @@ DO j = chunk*myid+1,chunk*(myid+1)
 ENDDO
 !$OMP END DO
 !$OMP END PARALLEL
-print *,'collecting data'
+print *,'collecting data',myid
 CALL MPI_GATHER(errormpisend,chunk,MPI_DOUBLE_PRECISION,searchgrid.lerror,chunk,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
 !p = MINLOC(searchgrid%lerror(:))

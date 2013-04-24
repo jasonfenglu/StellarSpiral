@@ -246,10 +246,12 @@
 
         !!u
         CALL PGSCI(1)
-        CALL PGENV(0.,real(domain),0.,5.,0,1)
+        CALL PGENV(0.,real(domain),0.,8.,0,1)
         CALL PGLINE(kn,real(r(:)),real(u(:,1)))
         CALL PGSCI(2)
         CALL PGLINE(kn,real(r(:)),real(u(:,2)))
+!       CALL PGLINE(kn,real(r(:)),real(d(:,1)))
+!       CALL PGLINE(kn,real(r(:)),real(d(:,2)))
 
         CALL PGCLOS
 

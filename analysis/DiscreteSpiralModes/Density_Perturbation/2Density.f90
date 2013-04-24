@@ -45,7 +45,7 @@ DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th,pf(2),pi(2)
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
-DOUBLE PRECISION,ALLOCATABLE    ::k3(:,:),u(:,:)
+DOUBLE PRECISION,ALLOCATABLE    ::k3(:,:),u(:,:),h(:,:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
 INTEGER,PARAMETER               ::n=800
@@ -129,9 +129,13 @@ k3(:,2) = spiral(2).k3
 ALLOCATE(u(spiral(1).n,2))
 u(:,1) = abs(spiral(1).u(2,:))
 u(:,2) = abs(spiral(2).u(2,:))
+ALLOCATE(h(spiral(1).n,2))
+h(:,1) = abs(spiral(1).h1(:))
+h(:,2) = abs(spiral(2).h1(:))
 CALL plotdensity2(density,n,domain,spiral(1).r,k3,spiral(1).n,u)
 DEALLOCATE(k3)
 DEALLOCATE(u)
+DEALLOCATE(h)
 
 !DEALLOCATE(potential)
 DEALLOCATE(xcoord)

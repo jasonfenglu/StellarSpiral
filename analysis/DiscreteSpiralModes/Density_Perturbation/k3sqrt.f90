@@ -29,6 +29,7 @@ type,extends(typgalaxy_para)::typspiral
        LOGICAL                          ::h1caled   = .false.
        LOGICAL                          ::phi1rcaled= .false.
        LOGICAL                          ::bndu0     = .true.
+       LOGICAL                          ::winit     = .false.
        CONTAINS
        PROCEDURE,NOPASS::init           =>spiral_init
        PROCEDURE::printu                =>spiral_printu
@@ -36,6 +37,7 @@ type,extends(typgalaxy_para)::typspiral
        PROCEDURE::printr                =>spiral_printr
        PROCEDURE::final                 =>spiral_final
        PROCEDURE::readw                 =>spiral_readw
+       PROCEDURE::printk3               =>spiral_printk3
 endtype
 CONTAINS
 
@@ -127,6 +129,7 @@ close(10)
 !this.bndu0 = bndu0(mode)
 
 this.w = dcmplx(w(mode*2-1),w(mode*2))
+this.winit = .true.
 ENDSUBROUTINE
 
 SUBROUTINE spiral_init(this,n,domain,para,mode)
@@ -189,6 +192,15 @@ DO i = 1, this.n
 ENDDO
 ENDSUBROUTINE
 
+SUBROUTINE spiral_printk3(this)
+IMPLICIT NONE
+class(typspiral),INTENT(IN)             ::this
+INTEGER                                 ::i
+DO i = 1, this.n
+        write(6,*)this.r(i),this.k3(i)
+ENDDO
+ENDSUBROUTINE
+
 ENDMODULE
 
 MODULE STELLARDISK
@@ -206,6 +218,10 @@ type(typspiral),TARGET                  ::spiral
 
 if(.not.spiral.inited)then
         write(0,*)'spiral object not initialized, stop'
+        stop
+endif
+if(.not.spiral.winit)then
+        write(0,*)'pspd not initialized,stop!!'
         stop
 endif
 !find EigenFunction
@@ -672,8 +688,7 @@ type(typspiral),TARGET                  ::spiral
 DOUBLE COMPLEX                  ::ui(3)
 DOUBLE PRECISION                ::a,b
 INTEGER                         ::n,i
-LOGICAL                         ::ufzero
-namelist /BND/ ufzero
+
 spiral.u = (1.d0,0.d0)*0.d0
 a = spiral.rmin
 b = spiral.rmax
