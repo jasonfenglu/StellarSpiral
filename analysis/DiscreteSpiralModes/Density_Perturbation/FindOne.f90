@@ -90,6 +90,7 @@ CALL stdpara.readstd
 DO j = 1,n**2
         CALL spiral.init(spiral,200,12.d0,stdpara,1)
         spiral.w = dcmplx(searchgrid.lcoord(j,1),searchgrid.lcoord(j,2))
+        spiral.winit = .true.
         CALL FindSpiral(spiral)
         searchgrid.lerror(j) = abs(spiral.error)
         CALL spiral.final

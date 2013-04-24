@@ -41,7 +41,7 @@ CASE(2)
 CASE DEFAULT
 ENDSELECT
 
-m = int(domain(2)-domain(1))*20
+m = int(domain(2)-domain(1))*40
 n = m/10
 if(mod(m,mpi_size).eq.0)then
         chunk = m/mpi_size
@@ -82,6 +82,7 @@ DO j = chunk*myid+1,chunk*(myid+1)
         wr = searchgrid%lcoord(j,1)
         wi = searchgrid%lcoord(j,2)
         spiral.w = dcmplx(wr,wi)
+        spiral.winit = .true.
 !       ipc = omp_get_thread_num()
 !       print *,'!!!',j,ipc
         CALL FindSpiral(spiral)

@@ -124,8 +124,8 @@ points(3,:) = (/0.0,4.727/)
 points(4,:) = (/0.0,-4.727/)
 CALL dprojection(points)
 ALLOCATE(k3(spiral(1).n,2))
-k3(:,1) = spiral(1).k3
-k3(:,2) = spiral(2).k3
+k3(:,1) = real(spiral(1).k3)
+k3(:,2) = real(spiral(2).k3)
 ALLOCATE(u(spiral(1).n,2))
 u(:,1) = abs(spiral(1).u(2,:))
 u(:,2) = abs(spiral(2).u(2,:))

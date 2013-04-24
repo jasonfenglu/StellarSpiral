@@ -47,8 +47,38 @@ CALL spiral.readw(1)
 CALL FindSpiral(spiral)
 DO i = 1, N
         r = dr*dble(i)
-       write(6,*)r,real(k3sqrt(r,spiral)),real(spiral.k3(i))
+!      write(6,*)r,real(spiral.u(2,i)),imag(spiral.u(2,i))
+!      write(6,*)r,real(k3sqrt(r,spiral)),imag(k3sqrt(r,spiral))
+        write(6,*)r,F2(r)
+        
 ENDDO
 
 stop
+CONTAINS
+
+FUNCTION F(r)
+IMPLICIT NONE
+DOUBLE PRECISION                ::r,F
+F = sqrt(k3sqrt(r,spiral))
+ENDFUNCTION
+Function F2(r) result(ans)
+USE NUM
+        IMPLICIT NONE
+        DOUBLE PRECISION,INTENT(IN)     ::r
+        DOUBLE PRECISION                ::a,rr
+        DOUBLE PRECISION                ::ans
+        DOUBLE PRECISION                ::ferr = 1.d-15
+        INTEGER                         ::IERR,K=6000
+        a = zerolimit
+        rr = r
+        IERR = 0
+        if(rr.eq.0.d0)then
+                ans = 0.d0
+        else
+                CALL DGAUS8(F,a,rr,fERR,ans,IERR)
+!               CALL DQNC79(F,a,rr,fERR,ans,IERR,K)
+        endif
+
+ENDFUNCTION 
+
 end      
