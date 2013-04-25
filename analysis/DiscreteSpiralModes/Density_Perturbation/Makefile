@@ -2,34 +2,32 @@ F90=ifort
 MPIF77=mpif77
 FCC=icc
 
-FFLAGS=  -O3 -L. -lslatecomp -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -limf -openmp
+FFLAGS=  -O3 -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -limf  -openmp
+
+LIB   = -L. -lslatecomp -limf -lpthread -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -liomp5 
 
 UTILS  = plot.o rk4.o k3sqrt.o
-OBJECT =  $(UTILS) Density.o 
-OBJECT3=  $(UTILS) SearchAll.o 
-OBJECT4=  $(UTILS) FindOne.o 
-OBJECT5=  $(UTILS) test.o
-OBJECT7=  $(UTILS) 2Density.o
+EXE    = Density.exe FindOne.exe test.exe 2Density.exe 3Density.exe
+MPIEXE = SearchAll.exe
 
+OUTILS := $(addprefix obj/,$(UTILS))
 
-all: $(UTILS) mpi $(OBJECT) $(OBJECT2) $(OBJECT3) $(OBJECT4) $(OBJECT5) $(OBJECT6) $(OBJECT7)
-	$(F90) -o Density.exe $(OBJECT) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf -openmp
-	$(MPIF77) -o SearchAll.exe $(OBJECT3) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf  
-	$(F90) -o FindOne.exe $(OBJECT4) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf  
-	$(F90) -o test.exe $(OBJECT5) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf  
-	$(F90) -o 2Density.exe $(OBJECT7) $(FFLAGS) -lm -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -I$(INCLUDE) -L$(LIB) -liomp5 -lpthread -limf  
+vpath obj/ .
+
+all:    $(OUTILS) mpi $(EXE) $(MPIEXE)
 
 mpi:
-	$(MPIF77) $(FFLAGS) SearchAll.f90 -c $(INCL)
+	$(MPIF77) $(FFLAGS) SearchAll.f90 -c -o obj/SearchAll.o $(LIB)
+	$(MPIF77) $(FFLAGS) -o SearchAll.exe $(OUTILS) obj/SearchAll.o  $(LIB)
 
-%.o:%.f90
-	$(F90) $(FFLAGS)  -c $< -o $@  $(INCL)
+%.exe:  obj/%.o $(OUTILS)
+	$(F90) $(FFLAGS) -o $@ $(OUTILS) $< $(LIB) 
+
+obj/%.o:%.f90
+	$(F90) $(FFLAGS) -c $< -o $@  $(LIB)
 	
-%.o:%.f
-	$(F90) $(FFLAGS)  -c $< -o $@ 
-
-%.o:%.c
-	$(FCC) $(FFLAGS)  -c $< -o $@ 
+obj/%.o:%.f
+	$(F90) $(FFLAGS) -c $< -o $@ 
 
 clean:
-	rm -rf *.o *.exe *.mod bc.*
+	rm -rf *.o *.exe *.mod bc.* obj/*

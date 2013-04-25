@@ -164,15 +164,15 @@
         CONTAINS
         SUBROUTINE output()
         LOGICAL                                 ::rauto(2),drawcir(2)
-        REAL                                    ::den(2)
-        namelist /plotpara/ rauto,den,drawcir
+        REAL                                    ::den(2),alpha
+        namelist /plotpara/ rauto,den,drawcir,alpha
 
         open(10,file='para.list')
         read(10,nml=plotpara)
         close(10)
 
         CALL PGSVP(0.0,0.95,0.0,0.95)
-        CALL PGSUBP(2,2)
+        CALL PGSUBP(-3,2)
         m = n
         dx = real(domain)/real(n)
         dy = real(domain)/real(m)
@@ -252,6 +252,36 @@
         CALL PGLINE(kn,real(r(:)),real(u(:,2)))
 !       CALL PGLINE(kn,real(r(:)),real(d(:,1)))
 !       CALL PGLINE(kn,real(r(:)),real(d(:,2)))
+
+
+        !!map
+        CALL PGSCI(1)
+        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+        !!Density
+        vmax = real(MAXVAL(F(:,:,1))+MAXVAL(F(:,:,2)))
+        vmin = -vmax
+        vmax = vmax * 1.1d0
+        vmin = vmin * 1.1d0
+        print *,vmax,vmin
+        if(.not.rauto(1))then
+                        vmax = den(1)
+                        vmin = -vmax
+        endif
+        CALL PGIMAG(REAL(F(:,:,1))+REAL(F(:,:,2))*alpha,2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+        if(drawcir(1))then
+                CALL PGSFS(2)
+                CALL PGSCI(0)
+                CALL PGCIRC(0.,0.,1.26)
+                CALL PGCIRC(0.,0.,2.36)
+                CALL PGCIRC(0.,0.,4.72)
+                CALL PGCIRC(0.,0.,10.636)
+        endif
+        CALL PGSCI(1)
+
+        !summantion of u
+        CALL PGENV(0.,real(domain),0.,8.,0,1)
+        CALL PGLINE(kn,real(r(:)),real(u(:,1)+u(:,2)))
 
         CALL PGCLOS
 

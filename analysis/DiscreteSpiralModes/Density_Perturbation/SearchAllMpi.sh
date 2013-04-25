@@ -28,7 +28,7 @@ module load torque lam ifc pgplot
 # This is actually the same as the default value as each node has 8 cores
 # and we have asked PBS to use all of them, so we don't need to set it.  It is
 # here only for demonstration purposes.
-export OMP_NUM_THREADS=12
+#export OMP_NUM_THREADS=12
 
 ###### Run parallel jobs ######
 cat $PBS_NODEFILE | uniq > LAMHOST
