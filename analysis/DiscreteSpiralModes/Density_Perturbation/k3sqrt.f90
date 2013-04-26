@@ -610,7 +610,7 @@ USE NUM
 IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION                ::curf
-DOUBLE PRECISION                ::r,tmp
+DOUBLE PRECISION                ::r,tmp,s
 INTEGER                         ::m=2
 
 if(r.lt.zerolimit)then
@@ -622,8 +622,11 @@ elseif(r.lt.3.d-2)then
         2.d0*dble(m)*(pi*GravConst*sigma0(r,spiral))/kappa(r,spiral)**2 &
         *sqrt(-(2.d0*r*Omega2(spiral))/(r*Omega(r,spiral)))
 else
+        s = -r/Omega(r,spiral)*dfunc(Omega,r,spiral)
+!       curf = &
+!       2.d0*dble(m)*(pi*GravConst*sigma0(r,spiral))/kappa(r,spiral)**2*sqrt(-2.d0*dfunc(Omega,r,spiral)/(2.d0*r*Omega(r,spiral)+dfunc(Omega,r,spiral)))
         curf = &
-        2.d0*dble(m)*(pi*GravConst*sigma0(r,spiral))/kappa(r,spiral)**2*sqrt(-dfunc(Omega,r,spiral)/(r*Omega(r,spiral)))
+        2.d0*dble(m)*(pi*GravConst*sigma0(r,spiral))/kappa(r,spiral)**2/r/sqrt(1.d0/s-0.5d0)
 endif
 
 CALL CheckResult
