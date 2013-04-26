@@ -475,7 +475,10 @@ M2 = para(14)
 
 !!Limit case when r->0:
 if(r.lt.zerolimit)then
-        Omega = 4.d0/3.d0*pi*GravConst*(MB+RHOH) &
+        !!ignore by nightly test
+!       Omega = 4.d0/3.d0*pi*GravConst*(MB+RHOH) &
+!             + 16.d0/105*GravConst*(M1/a1**3-M2/a2**3)*120.d0
+        Omega = Mb*GravConst/rb**3 &
               + 16.d0/105*GravConst*(M1/a1**3-M2/a2**3)*120.d0
         Omega = Omega**0.5
         return
@@ -489,12 +492,17 @@ gHalo = 4.d0*Lh**2.d0*pi*rhoh*(r - Lh*atan(r/Lh))/r**2
 gHalo = GravConst*gHalo
 VHalo = sqrt(r*gHalo)
 !Bulge
+goto 200
 Mb   = para(3)
 rb   = para(4)
 gBulge = (-r/sqrt(1.d0+r**2/rb**2)/rb+dasinh(r/rb))/r**2
 
 gBulge = 4.d0*pi*rb**3*Mb*gBulge*GravConst
 VBulge = sqrt(r*gBulge)
+
+!Lau's Bulge for nightly test
+200 VBulge = sqrt(MB*GravConst/rb**3*(1.d0+r**2/rb**2)**-1.5)*r
+
 
 !!Disk
 !dM     = para(5)
@@ -505,7 +513,9 @@ VBulge = sqrt(r*gBulge)
 
 !LauDisk 
 VDisk  = VLauDisk(r)
-Omega = sqrt(VHalo**2+VBulge**2+dble(VDisk**2))/r
+!!ignore by nightly test
+!Omega = sqrt(VHalo**2+VBulge**2+dble(VDisk**2))/r
+Omega = sqrt(VBulge**2+dble(VDisk**2))/r
 !print *,r,V
 !CALL CheckResult
 CONTAINS
@@ -610,7 +620,7 @@ USE NUM
 IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION                ::curf
-DOUBLE PRECISION                ::r,tmp
+DOUBLE PRECISION                ::r,tmp,s
 INTEGER                         ::m=2
 
 if(r.lt.zerolimit)then
@@ -622,8 +632,11 @@ elseif(r.lt.3.d-2)then
         2.d0*dble(m)*(pi*GravConst*sigma0(r,spiral))/kappa(r,spiral)**2 &
         *sqrt(-(2.d0*r*Omega2(spiral))/(r*Omega(r,spiral)))
 else
+        s = -r/Omega(r,spiral)*dfunc(Omega,r,spiral)
+!       curf = &
+!       2.d0*dble(m)*(pi*GravConst*sigma0(r,spiral))/kappa(r,spiral)**2*sqrt(-2.d0*dfunc(Omega,r,spiral)/(2.d0*r*Omega(r,spiral)+dfunc(Omega,r,spiral)))
         curf = &
-        2.d0*dble(m)*(pi*GravConst*sigma0(r,spiral))/kappa(r,spiral)**2*sqrt(-dfunc(Omega,r,spiral)/(r*Omega(r,spiral)))
+        2.d0*dble(m)*(pi*GravConst*sigma0(r,spiral))/kappa(r,spiral)**2/r/sqrt(1.d0/s-0.5d0)
 endif
 
 CALL CheckResult
@@ -657,7 +670,10 @@ a2 = para(12)
 M1 = para(13)
 M2 = para(14)
 
-Omega2 = 4.d0*pi*GravConst*rhoh/5.d0/Lh**2 + 6.d0/5.d0*pi*GravConst*Mb/rb**2 &
+!ignored by nightly test
+!Omega2 = 4.d0*pi*GravConst*rhoh/5.d0/Lh**2 + 6.d0/5.d0*pi*GravConst*Mb/rb**2 &
+!       + 8.d0*GravConst/105.d0*(M1/a1**5-M2/a2**5)*1080.d0
+Omega2 = 3.d0/2.d0*GravConst*Mb/rb**5 &
        + 8.d0*GravConst/105.d0*(M1/a1**5-M2/a2**5)*1080.d0
 Omega2 = -Omega2/2.d0/Omega(0.d0,spiral)
 if(Omega2.gt.0.d0)then
