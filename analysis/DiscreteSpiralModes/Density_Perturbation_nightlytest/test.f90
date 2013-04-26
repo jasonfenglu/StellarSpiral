@@ -49,7 +49,7 @@ DO i = 1, N
         r = dr*dble(i)
 !      write(6,*)r,real(spiral.u(2,i)),imag(spiral.u(2,i))
 !      write(6,*)r,real(k3sqrt(r,spiral)),imag(k3sqrt(r,spiral))
-        write(6,*)r,F2(r)
+        write(6,*)r,curf(r,spiral)
         
 ENDDO
 
