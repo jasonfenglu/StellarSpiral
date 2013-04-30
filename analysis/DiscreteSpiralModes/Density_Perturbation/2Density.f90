@@ -48,6 +48,7 @@ DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::k3(:,:),u(:,:),h(:,:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
+DOUBLE PRECISION                ::modeth(2)
 INTEGER,PARAMETER               ::n=800
 INTEGER                         ::nmode
 type(typspiral)                 ::spiral(2)
@@ -58,13 +59,22 @@ open(10,file='para.list')
 read(10,nml=densitypara)
 close(10)
 
-if(iargc().eq.1)then
+SELECT CASE(iargc())
+CASE(1)
         CALL getarg(1,arg)
         READ(arg,*)argaline
-        print *,'read in argaline = ',argaline
-        else 
+        print *,'read in argaline for n0 = ',argaline
+CASE(2)
+        CALL getarg(1,arg)
+        READ(arg,*)argaline
+        print *,'read in argaline for n0 = ',argaline
+        CALL getarg(2,arg)
+        READ(arg,*)modeth(2)
+        print *,'read in argaline for n1 = ',modeth(2)
+        
+CASE DEFAULT 
         argaline = 3.d0
-endif
+ENDSELECT
 
 !Setup grid
 dx = domain/dble(n)
@@ -87,6 +97,8 @@ DO i = 1, 2
         CALL k3sqrtlog(spiral(i))
 ENDDO
 
+modeth(1) = 0.d0
+modeth(2) = 55.d0/180.d0*pi_n
 
 !mode loop
 DO nmode = 1, 2
@@ -98,7 +110,7 @@ DO j = 1, n*2
         pi = pf
         if(toproject)CALL projection(pi,pf)
         r  = sqrt(pi(1)**2+pi(2)**2)
-        th = atan2(pi(2),pi(1))
+        th = atan2(pi(2),pi(1)) + modeth(nmode)
         d  = sigma1(r,th,spiral(nmode))
         !===================
         !ignore d too high

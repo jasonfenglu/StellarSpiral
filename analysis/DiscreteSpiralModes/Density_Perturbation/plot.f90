@@ -159,7 +159,13 @@
         IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
         CALL output
         IF (PGBEG(0,'density.png/png',1,1) .NE. 1) STOP
+        CALL PGPAP(23.,0.618)
         CALL output
+        IF (PGBEG(0,'2density.png/png',1,1) .NE. 1) STOP
+        CALL PGPAP(20.,0.618)
+        CALL outputd
+
+
         
         CONTAINS
         SUBROUTINE output()
@@ -227,7 +233,7 @@
         CALL PGLAB('kpc','kpc','Density')
         CALL PGSFS(2)
         CALL PGSCI(0)
-!       CALL PGPT(4,points(:,1),points(:,2),2)
+        CALL PGPT(4,points(:,1),points(:,2),2)
         if(drawcir(2))then
                 CALL PGCIRC(0.,0.,1.26)
                 CALL PGCIRC(0.,0.,2.36)
@@ -277,16 +283,59 @@
                 CALL PGCIRC(0.,0.,4.72)
                 CALL PGCIRC(0.,0.,10.636)
         endif
+        CALL PGSCI(0)
+        CALL PGPT(4,points(:,1),points(:,2),2)
         CALL PGSCI(1)
 
         !summantion of u
         CALL PGENV(0.,real(domain),0.,8.,0,1)
-        CALL PGLINE(kn,real(r(:)),real(u(:,1)+u(:,2)))
+        CALL PGLINE(kn,real(r(:)),real(u(:,1)+u(:,2)*alpha))
 
         CALL PGCLOS
 
         ENDSUBROUTINE
 
+        SUBROUTINE outputd()
+        LOGICAL                                 ::rauto(2),drawcir(2)
+        REAL                                    ::den(2),alpha
+        namelist /plotpara/ rauto,den,drawcir,alpha
+
+        open(10,file='para.list')
+        read(10,nml=plotpara)
+        close(10)
+
+        CALL PGSVP(0.0,0.95,0.0,0.95)
+
+        !!map
+        CALL PALETT(2,CONTRA,Bright)
+        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+        !!Density
+        vmax = real(MAXVAL(F(:,:,1))+MAXVAL(F(:,:,2)))
+        vmin = -vmax
+        vmax = vmax * 1.1d0
+        vmin = vmin * 1.1d0
+        print *,vmax,vmin
+        if(.not.rauto(1))then
+                        vmax = den(1)
+                        vmin = -vmax
+        endif
+        CALL PGIMAG(REAL(F(:,:,1))+REAL(F(:,:,2))*alpha,2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+        if(drawcir(1))then
+                CALL PGSFS(2)
+                CALL PGSCI(0)
+                CALL PGCIRC(0.,0.,1.26)
+                CALL PGCIRC(0.,0.,2.36)
+                CALL PGCIRC(0.,0.,4.72)
+                CALL PGCIRC(0.,0.,10.636)
+        endif
+        CALL PGSCI(0)
+        CALL PGPT(4,points(:,1),points(:,2),2)
+        CALL PGSCI(1)
+
+        CALL PGCLOS
+
+        ENDSUBROUTINE
         ENDSUBROUTINE
 
         SUBROUTINE plotpspdsearch(F,n,m,domain)
