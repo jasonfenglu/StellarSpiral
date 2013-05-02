@@ -88,7 +88,7 @@ CALL stdpara.readstd
 !$OMP PARALLEL SHARED(searchgrid,stdpara) FIRSTPRIVATE(spiral)
 !$OMP DO 
 DO j = 1,n**2
-        CALL spiral.init(spiral,200,12.d0,stdpara,1)
+        CALL spiral.init(200,12.d0,stdpara,1)
         spiral.w = dcmplx(searchgrid.lcoord(j,1),searchgrid.lcoord(j,2))
         spiral.winit = .true.
         CALL FindSpiral(spiral)

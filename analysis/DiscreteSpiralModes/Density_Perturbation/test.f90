@@ -42,7 +42,7 @@ dr = (rf-ri)/dble(n)
 !!$OMP END PARALLEL
 
 CALL stdpara.readstd
-CALL spiral.init(spiral,N,12.d0,stdpara,1)
+CALL spiral.init(N,12.d0,stdpara,1)
 CALL spiral.readw(1)
 CALL FindSpiral(spiral)
 DO i = 1, N

@@ -78,7 +78,7 @@ ALLOCATE(errormpisend(chunk))
 !$OMP DO 
 !DO j = 1,m*n
 DO j = chunk*myid+1,chunk*(myid+1)
-        CALL spiral.init(spiral,100,15.d0,stdpara,1)
+        CALL spiral.init(100,15.d0,stdpara,1)
         wr = searchgrid%lcoord(j,1)
         wi = searchgrid%lcoord(j,2)
         spiral.w = dcmplx(wr,wi)

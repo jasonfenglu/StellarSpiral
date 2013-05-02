@@ -25,19 +25,21 @@ type,extends(typgalaxy_para)::typspiral
        DOUBLE PRECISION                 ::rmin
        DOUBLE PRECISION                 ::fortoone
        DOUBLE COMPLEX                   ::error
+       DOUBLE PRECISION                 ::phase     = 0.d0! starting angle for 2D plot
        LOGICAL                          ::ucaled    = .false.
        LOGICAL                          ::h1caled   = .false.
        LOGICAL                          ::phi1rcaled= .false.
        LOGICAL                          ::bndu0     = .true.
        LOGICAL                          ::winit     = .false.
        CONTAINS
-       PROCEDURE,NOPASS::init           =>spiral_init
-       PROCEDURE::printu                =>spiral_printu
-       PROCEDURE::printh1               =>spiral_printh1
-       PROCEDURE::printr                =>spiral_printr
-       PROCEDURE::final                 =>spiral_final
-       PROCEDURE::readw                 =>spiral_readw
-       PROCEDURE::printk3               =>spiral_printk3
+       PROCEDURE,PASS::init           =>spiral_init
+       PROCEDURE,PASS::printu                =>spiral_printu
+       PROCEDURE,PASS::printh1               =>spiral_printh1
+       PROCEDURE,PASS::printr                =>spiral_printr
+       PROCEDURE,PASS::final                 =>spiral_final
+       PROCEDURE,PASS::readw                 =>spiral_readw
+       PROCEDURE,PASS::printk3               =>spiral_printk3
+       PROCEDURE,PASS::setw             =>spiral_setw
 endtype
 CONTAINS
 
@@ -131,11 +133,22 @@ close(10)
 this.w = dcmplx(w(mode*2-1),w(mode*2))
 this.winit = .true.
 ENDSUBROUTINE
+ 
+SUBROUTINE spiral_setw(this,w,mode)
+IMPLICIT NONE
+class(typspiral)                        ::this
+DOUBLE COMPLEX                          ::w
+INTEGER                                 ::mode
+
+this.mode = mode
+this.w = w 
+this.winit = .true.
+ENDSUBROUTINE
 
 SUBROUTINE spiral_init(this,n,domain,para,mode)
 USE OMP_LIB
 IMPLICIT NONE
-type(typspiral)                         ::this
+class(typspiral)                        ::this
 type(typgalaxy_para)                    ::para
 INTEGER                                 ::n,mode
 DOUBLE PRECISION                        ::domain
@@ -217,7 +230,7 @@ IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
 
 if(.not.spiral.inited)then
-        write(0,*)'spiral object not initialized, stop'
+        write(0,*)'spiral object not initialized, stop. init flag:',spiral.inited
         stop
 endif
 if(.not.spiral.winit)then
@@ -875,8 +888,8 @@ IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
 DOUBLE COMPLEX                  ::uu,hh1
 DOUBLE PRECISION                ::sigma1
-DOUBLE PRECISION,INTENT(IN)     ::r,th
-DOUBLE PRECISION                ::rad
+DOUBLE PRECISION,INTENT(IN)     ::r
+DOUBLE PRECISION                ::rad,th
 INTEGER                         ::i,j,k,l,n
 !interploting u at non-grid point r
 n = spiral.n
@@ -890,6 +903,7 @@ enddo
 
 
 !find density
+th = th + spiral.phase
 sigma1 = real(hh1*sigma0(r,spiral)/snsd(r,spiral)**2*exp(-2.d0*th*(0.d0,1.d0)))
 
 

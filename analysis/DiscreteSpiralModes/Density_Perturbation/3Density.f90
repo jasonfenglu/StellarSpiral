@@ -33,7 +33,7 @@ INVC(2,2) = 1.d0
 ENDFUNCTION
 endmodule
 
-PROGRAM caldensity2
+PROGRAM caldensity3
 USE PLOTTING
 USE STELLARDISK_MODEL
 USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,k3sqrtlog
@@ -41,36 +41,33 @@ USE projections,only:argaline
 IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
-DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th,pf(2),pi(2)
+DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,pf(2),pi(2)
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::k3(:,:),u(:,:),h(:,:)
-DOUBLE PRECISION                ::limit = 100.d0
-DOUBLE PRECISION                ::d
+DOUBLE PRECISION                ::limit = 100.d0 !detection limit
+DOUBLE PRECISION                ::d,w(6),phase(3),th
+DOUBLE COMPLEX                  ::ww
 INTEGER,PARAMETER               ::n=800
 INTEGER                         ::nmode
-type(typspiral)                 ::spiral(2)
+type(typspiral)                 ::spiral(3)
 LOGICAL                         ::toproject
 namelist /densitypara/ toproject
+namelist /SPIRALNML3/  w, phase
 
 open(10,file='para.list')
 read(10,nml=densitypara)
 close(10)
-
-if(iargc().eq.1)then
-        CALL getarg(1,arg)
-        READ(arg,*)argaline
-        print *,'read in argaline = ',argaline
-        else 
-        argaline = 3.d0
-endif
+open(10,file='para.list')
+read(10,nml=SPIRALNML3)
+close(10)
 
 !Setup grid
 dx = domain/dble(n)
 dy = domain/dble(n)
 
-ALLOCATE(density(2*n,2*n,2))
+ALLOCATE(density(2*n,2*n,3))
 ALLOCATE(xcoord(2*n))
 ALLOCATE(ycoord(2*n))
 
@@ -80,16 +77,16 @@ DO i = 1, n*2
 ENDDO
 
 CALL stdpara.readstd
-DO i = 1, 2
-        CALL spiral.init(spiral(i),200,12.d0,stdpara,i)
-        CALL spiral(i).readw(i)
+DO i = 1, 3 ! go through each mode
+        CALL spiral(i).init(200,12.d0,stdpara,i)
+        CALL spiral(i).setw(dcmplx(w(2*i-1),w(2*i)),i)
+        spiral(i).phase = phase(i)
         CALL FindSpiral(spiral(i))
         CALL k3sqrtlog(spiral(i))
 ENDDO
 
-
 !mode loop
-DO nmode = 1, 2
+DO nmode = 1, 3
 !$OMP PARALLEL SHARED(density) PRIVATE(j,r,th,pi,pf,d) FIRSTPRIVATE(spiral)
 !$OMP DO 
 DO i = 1, n*2
@@ -115,7 +112,6 @@ ENDDO
 !$OMP END DO
 !$OMP END PARALLEL 
 ENDDO
-
 if(maxval(abs(spiral(:).error)).gt.1d-5)write(0,*)'!!!!!! wrong pspd'
 
 points(1,:) = (/0.0,10.636/)
@@ -124,15 +120,14 @@ points(3,:) = (/0.0,4.727/)
 points(4,:) = (/0.0,-4.727/)
 CALL dprojection(points)
 ALLOCATE(k3(spiral(1).n,2))
-k3(:,1) = real(spiral(1).k3)
-k3(:,2) = real(spiral(2).k3)
 ALLOCATE(u(spiral(1).n,2))
-u(:,1) = abs(spiral(1).u(2,:))
-u(:,2) = abs(spiral(2).u(2,:))
 ALLOCATE(h(spiral(1).n,2))
-h(:,1) = abs(spiral(1).h1(:))
-h(:,2) = abs(spiral(2).h1(:))
-CALL plotdensity2(density,n,domain,spiral(1).r,k3,spiral(1).n,u)
+DO i = 1, 3
+        k3(:,i) = real(spiral(i).k3)
+        u(:,i) = abs(spiral(i).u(2,:))
+        h(:,i) = abs(spiral(i).h1(:))
+ENDDO
+CALL plotdensity3(density,n,domain,spiral(1).r,k3,spiral(1).n,u)
 DEALLOCATE(k3)
 DEALLOCATE(u)
 DEALLOCATE(h)
