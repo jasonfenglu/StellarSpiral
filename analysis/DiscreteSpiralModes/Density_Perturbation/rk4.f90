@@ -169,7 +169,7 @@ do l = 2,n
  k = 0.d0
  !find k_i
  do i = 1,4
-         uu = u(:,l)
+         uu = 0.d0
          do j =  1,5
                 uu = uu + a(i,j)*k(:,j)
          enddo
@@ -285,13 +285,12 @@ ENDSUBROUTINE
 
 SUBROUTINE rk4d1(ri,rf,N,p,q,u,ui)
 IMPLICIT NONE
-DOUBLE COMPLEX          ::u(2,N),ui(2),uu(2)
+DOUBLE COMPLEX          ::u(:,:),ui(2),uu(2)
 DOUBLE COMPLEX          ::K(2,4)
 DOUBLE COMPLEX,EXTERNAL ::p,q
-DOUBLE PRECISION        ::a(4,5)
+DOUBLE COMPLEX          ::a(4,5)
 DOUBLE PRECISION        ::C(4)
 DOUBLE PRECISION        ::b(4)
-DOUBLE PRECISION        ::r
 DOUBLE PRECISION        ::ri,rf,h
 INTEGER                 ::N
 INTEGER                 ::I,J,L
@@ -299,8 +298,6 @@ INTEGER                 ::I,J,L
 
 !init boundary
 h = (rf-ri)/dble(N)
-r = ri
-
 !init RKF Tableau
 
 a = 0.d0
@@ -316,19 +313,19 @@ b = (/1.d0/6.d0,1.d0/3.d0,1.d0/3.d0,1.d0/6.d0/)
 C = (/0.d0,0.5d0,0.5d0,1.d0/)
 
 
-u(:,1) = ui
+u(:,1) = ui(:)
 
 !iteration u
 do l = 2,n
  !iterating k
- k = 0.d0
+ k = dcmplx(0.d0,0.d0)
  !find k_i
  do i = 1,4
-         uu = u(:,l)
-         do j =  1,4
-                uu = uu + a(i,j)*k(:,j)
+         uu(:) = 0.d0
+         do j =  1,5
+                uu(:) = uu(:) + a(i,j)*k(:,j)
          enddo
-         k(:,i) = f(u(:,l-1) + h*uu,p,q)
+        k(:,i) = f(u(:,l-1) + h*uu,p,q)
  enddo
 
  uu = 0.d0
