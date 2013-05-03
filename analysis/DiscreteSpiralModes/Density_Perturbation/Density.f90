@@ -68,7 +68,8 @@ endif
 
 
 CALL stdpara.readstd
-CALL spiral.init(spiral,200,12.d0,stdpara,1)
+CALL spiral.init(500,12.d0,stdpara,2)
+CALL spiral.readw(2)
 CALL FindSpiral(spiral)
 dx = domain/dble(n)
 dy = domain/dble(n)
@@ -107,6 +108,11 @@ ENDDO
 !$OMP END DO
 !$OMP END PARALLEL 
 
+if(abs(spiral.error).gt.1d-5)then
+        write(0,*)'!!!!!! wrong pspd:'
+        write(0,*)'error:',abs(spiral.error)
+        write(0,*)'pspd:',spiral.w
+endif
 
 !
 !!!Find 2d Potential

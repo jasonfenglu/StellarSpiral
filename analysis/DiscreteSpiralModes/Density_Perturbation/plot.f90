@@ -53,11 +53,11 @@
         SUBROUTINE output()
         LOGICAL                                 ::rauto,drawcir
         REAL                                    ::den
-        namelist /plotpara/ rauto,den,drawcir
+        namelist /plotpara1/ rauto,den,drawcir
 
-        open(10,file='para.list')
-        read(10,nml=plotpara)
-        close(10)
+        open(20,file='para.list')
+        read(20,nml=plotpara1)
+        close(20)
 
         CALL PGSVP(0.0,0.95,0.0,0.95)
         m = n

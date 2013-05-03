@@ -7,7 +7,7 @@ FFLAGS=  -O3 -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -limf  -open
 LIB   = -L. -lslatecomp -limf -lpthread -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -liomp5 
 
 UTILS  = plot.o rk4.o k3sqrt.o
-EXE    = FindOne.exe test.exe 2Density.exe 3Density.exe
+EXE    = FindOne.exe test.exe 2Density.exe Density.exe
 MPIEXE = SearchAll.exe
 
 OUTILS := $(addprefix obj/,$(UTILS))

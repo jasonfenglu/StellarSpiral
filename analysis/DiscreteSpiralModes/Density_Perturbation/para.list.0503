@@ -39,3 +39,5 @@ toproject= .true.
 
 
 !!DM,DA,DB are useless now
+!!second mode only
+hydrodynamic case candidate
