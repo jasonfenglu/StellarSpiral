@@ -36,7 +36,7 @@ endmodule
 PROGRAM density1
 USE PLOTTING
 USE STELLARDISK_MODEL
-USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1
+USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,phi1,FindPhi1
 USE projections,only:argaline
 IMPLICIT NONE
 INTEGER                         ::i,j,k
@@ -71,6 +71,7 @@ CALL stdpara.readstd
 CALL spiral.init(500,12.d0,stdpara,2)
 CALL spiral.readw(2)
 CALL FindSpiral(spiral)
+CALL FindPhi1(spiral)
 dx = domain/dble(n)
 dy = domain/dble(n)
 
@@ -117,13 +118,30 @@ endif
 !
 !!!Find 2d Potential
  ALLOCATE(potential(2*n,2*n))
-!DO i = 1, n*2
-!DO j = 1, n*2
-!        r = sqrt(xcoord(i)**2+ycoord(j)**2)
-!        th = atan2(ycoord(j),xcoord(i))
-!        potential(i,j) = phi1(r,th)
-!ENDDO
-!ENDDO
+!$OMP PARALLEL SHARED(potential,spiral) PRIVATE(j,r,th,pi,pf,d)
+!$OMP DO 
+DO i = 1, n*2
+DO j = 1, n*2
+        pf = (/xcoord(i),ycoord(j)/)
+        pi = pf
+        if(toproject)CALL projection(pi,pf)
+        r  = sqrt(pi(1)**2+pi(2)**2)
+        th = atan2(pi(2),pi(1))
+        d  = phi1(r,th,spiral,0.d0)
+        !===================
+        !ignore d too high
+        if(r.gt.12.d0)d = 0.d0
+        !ignore inside r=1.26  
+!       if(r.lt.2.26)d = d*(1.d0 - cos(r/2.26d0*pi_n/2.d0))
+        !ignore d that is not exist during coordinate transformation
+        if(isnan(d))d = 0.d0
+        !ignore value below detection limit
+!       if(abs(d).lt.limit)d = 0.d0
+        potential(i,j) = d
+ENDDO
+ENDDO
+!$OMP END DO
+!$OMP END PARALLEL 
 
 !!Find Force
 ALLOCATE(force(n/4,n/4,2))

@@ -91,7 +91,7 @@ ENDDO
 
 CALL stdpara.readstd
 DO i = 1, 2
-        CALL spiral(i).init(200,12.d0,stdpara,i)
+        CALL spiral(i).init(500,12.d0,stdpara,i)
         CALL spiral(i).readw(i)
         CALL FindSpiral(spiral(i))
         CALL k3sqrtlog(spiral(i))

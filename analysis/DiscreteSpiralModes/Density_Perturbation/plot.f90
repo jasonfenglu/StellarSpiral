@@ -60,6 +60,7 @@
         close(20)
 
         CALL PGSVP(0.0,0.95,0.0,0.95)
+        CALL PGSUBP(2,1)
         m = n
         dx = real(domain)/real(n)
         dy = real(domain)/real(m)
@@ -107,15 +108,16 @@
         CALL PGLINE(2,(/2.,7./),(/-8.,-8/))
 
         !!Potential
-!       vmax = real(MAXVAL(F2(:,:)))
-!       vmin = real(MINVAL(F2(:,:)))
-!       vmax = 100.
-!       vmin = -100.
-!       CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
-!       CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-!       CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, '')
-!       CALL PGSCH(1.0)
-!       CALL PGLAB('kpc','kpc','Potential')
+        CALL PGSCI(1)
+        vmax = real(MAXVAL(F2(:,:)))
+        vmin = real(MINVAL(F2(:,:)))
+!       vmax = 50.
+!       vmin = -50.
+        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+        CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+        CALL PGSCH(1.0)
+        CALL PGLAB('kpc','kpc','Potential')
 
         !!Force
 !       TR2 = 0.
