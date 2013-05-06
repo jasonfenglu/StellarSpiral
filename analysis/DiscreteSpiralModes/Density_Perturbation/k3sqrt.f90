@@ -853,18 +853,19 @@ FUNCTION q(r)
 IMPLICIT NONE
 DOUBLE COMPLEX          ::q
 DOUBLE PRECISION        ::r
-q = &
-dcmplx(intplt(real(spiral.h1),spiral.r,r),intplt(imag(spiral.h1),spiral.r,r))
+!q = &
+!dcmplx(intplt(real(spiral.h1),spiral.r,r),intplt(imag(spiral.h1),spiral.r,r))
+q = cintplt(spiral.h1,spiral.r,r)
 q = q*(0.d0,1.d0)*Sigma(r,spiral)
 ENDFUNCTION
 
 ENDSUBROUTINE
 
-FUNCTION dsimplifiedPoisson(r,phi,h)
+FUNCTION dsimplifiedPoisson(r,spiral)
 IMPLICIT NONE
+class(typspiral),INTENT(IN)     ::spiral
 DOUBLE COMPLEX                  ::dsimplifiedPoisson
-DOUBLE COMPLEX,INTENT(IN)       ::phi,h
-DOUBLE PRECISION                ::r
+DOUBLE PRECISION,INTENT(IN)     ::r
 !
 !dsimplifiedPoisson = -phi/(2.d0*r)+(0.d0,1.d0)*cmplx(Sigma(r),0)*h
 !dsimplifiedPoisson = dsimplifiedPoisson + 3.75d0/(0.d0,1.d0)/Sigma(r)/r**2*phi
@@ -875,6 +876,11 @@ DOUBLE PRECISION                ::r
 !!!solution is
 !!!phi = exp(-r**2/2)+ i
 !!!dsimplifiedPoisson = -phi*r
+
+dsimplifiedPoisson = (0.d0,1.d0)*Sigma(r,spiral)*cintplt(spiral.h1,spiral.r,r) &
+                   - (0.5d0/r - (4.d0-0.25d0)/(0.d0,1.d0)/Sigma(r,spiral)/r**2)&
+                   *cintplt(spiral.phi1r,spiral.r,r)
+
 ENDFUNCTION
 
 function Sigma(r,spiral) RESULT(ans)
@@ -887,7 +893,7 @@ DOUBLE PRECISION,INTENT(IN)     ::r
 ans = 2.d0*pi*GravConst*sigma0(r,spiral)/snsd(r,spiral)**2
 ENDFUNCTION
 
-SUBROUTINE FindForce(force,r,th)
+FUNCTION Force(r,th,spiral)
 USE STELLARDISK_MODEL
 IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
@@ -896,23 +902,26 @@ DOUBLE COMPLEX                  ::hh1,phir
 DOUBLE PRECISION                ::runit(2),thunit(2)
 INTEGER                         ::i,n
 !interploting u at non-grid point r
-n = spiral.n/2
-do i = 1, n
-        if(spiral.r(2*i).gt.r)then
-                exit
-        endif
-enddo
-phir =(r-spiral.u(1,2*i-2))/(spiral.u(1,2*i)-spiral.u(1,2*i-2))*(spiral.phi1r(i)-spiral.phi1r(i-1)) + spiral.phi1r(i-1)
-i = i*2
-hh1 =(r-spiral.u(1,i-1))/(spiral.u(1,i)-spiral.u(1,i-1))*(spiral.h1(i)-spiral.h1(i-1)) + spiral.h1(i-1)
+!n = spiral.n/2
+!do i = 1, n
+!        if(spiral.r(2*i).gt.r)then
+!                exit
+!        endif
+!enddo
+!phir =(r-spiral.u(1,2*i-2))/(spiral.u(1,2*i)-spiral.u(1,2*i-2))*(spiral.phi1r(i)-spiral.phi1r(i-1)) + spiral.phi1r(i-1)
+!i = i*2
+!hh1 =(r-spiral.u(1,i-1))/(spiral.u(1,i)-spiral.u(1,i-1))*(spiral.h1(i)-spiral.h1(i-1)) + spiral.h1(i-1)
+
+phir = cintplt(spiral.phi1r,spiral.r,r)
+hh1  = cintplt(spiral.h1,spiral.r,r)
 
 runit = (/cos(th),sin(th)/)
 thunit = (/-sin(th),cos(th)/)
 
-force = real(dsimplifiedPoisson(r,phir,hh1)*exp((0.d0,-2.d0)*th)*runit &
+force = real(dsimplifiedPoisson(r,spiral)*exp((0.d0,-2.d0)*th)*runit &
       + (0.d0,-2.d0)*phir/r*exp((0.d0,-2.d0)*th)*thunit)
 
-ENDSUBROUTINE
+ENDFUNCTION
 
 FUNCTION sigma1(r,th,spiral)
 USE STELLARDISK_MODEL
@@ -1019,7 +1028,7 @@ endfunction
 
 FUNCTION intplt(dat,rs,r)
 IMPLICIT NONE
-DOUBLE PRECISION                ::dat(:),rs(:)
+DOUBLE PRECISION,INTENT(IN)     ::dat(:),rs(:)
 DOUBLE PRECISION                ::intplt
 DOUBLE PRECISION,INTENT(IN)     ::r
 DOUBLE PRECISION                ::X(4),Y(4),C(4)
@@ -1050,6 +1059,24 @@ CALL DPLINT(N,X,Y,C)
 XX = r
 CALL DPOLVL (NDER, XX, YFIT, YP, N, X, C, WORK, IERR)
 intplt = YFIT
+        
+ENDFUNCTION
+
+FUNCTION cintplt(dat,rs,r)
+IMPLICIT NONE
+DOUBLE COMPLEX,INTENT(IN)       ::dat(:)
+DOUBLE PRECISION,INTENT(IN)     ::rs(:)
+DOUBLE PRECISION,INTENT(IN)     ::r
+DOUBLE COMPLEX                  ::cintplt
+DOUBLE PRECISION                ::X(4),Y(4),C(4)
+INTEGER,PARAMETER               ::N = 4
+INTEGER                         ::NDER = 0,IERR
+DOUBLE PRECISION                ::XX,YFIT,YP,WORK
+INTEGER                         ::i
+
+cintplt = dcmplx( &
+        intplt(real(dat),rs,r), &
+        intplt(imag(dat),rs,r))
         
 ENDFUNCTION
 
