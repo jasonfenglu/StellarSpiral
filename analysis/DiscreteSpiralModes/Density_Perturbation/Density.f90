@@ -36,14 +36,14 @@ endmodule
 PROGRAM density1
 USE PLOTTING
 USE STELLARDISK_MODEL
-USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,phi1,FindPhi1
+USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,phi1,FindPhi1,SpiralForce
 USE projections,only:argaline
 IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
 DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th,pf(2),pi(2)
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
-DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:)
+DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:),potential2(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
@@ -117,8 +117,9 @@ endif
 
 !
 !!!Find 2d Potential
- ALLOCATE(potential(2*n,2*n))
-!$OMP PARALLEL SHARED(potential,spiral) PRIVATE(j,r,th,pi,pf,d)
+ALLOCATE(potential(2*n,2*n))
+ALLOCATE(force(n*2,n*2,2))
+!$OMP PARALLEL SHARED(force,potential,spiral) PRIVATE(j,r,th,pi,pf,d)
 !$OMP DO 
 DO i = 1, n*2
 DO j = 1, n*2
@@ -128,6 +129,7 @@ DO j = 1, n*2
         r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
         d  = phi1(r,th,spiral,0.d0)
+        force(i,j,:) = SpiralForce(r,th,spiral)
         !===================
         !ignore d too high
         if(r.gt.12.d0)d = 0.d0
@@ -143,22 +145,28 @@ ENDDO
 !$OMP END DO
 !$OMP END PARALLEL 
 
-!!Find Force
-ALLOCATE(force(n/4,n/4,2))
-!DO i = 1,n/4
-!DO j = 1, n/4
+!!!Find Force
+!!$OMP PARALLEL SHARED(force,potential,spiral) PRIVATE(j,r,th,pi,pf,d)
+!!$OMP DO 
+!DO i = 1,n*2
+!DO j = 1, n*2
 !        r = sqrt(xcoord(i*8)**2+ycoord(j*8)**2)
 !        th = atan2(ycoord(j*8),xcoord(i*8))
-!        call FindForce(force(i,j,:),r,th)
+!        force(i,j,:) = SpiralForce(r,th,spiral)
 !ENDDO
 !ENDDO
+!!$OMP END DO
+!!$OMP END PARALLEL 
 
 points(1,:) = (/0.0,10.636/)
 points(2,:) = (/0.0,-10.636/)
 points(3,:) = (/0.0,4.727/)
 points(4,:) = (/0.0,-4.727/)
 CALL dprojection(points)
+!CALL SOLVE(density,potential2,n,domain)
+
 CALL plotdensity(density,potential,force,n,domain)
+!CALL plotdensity(potential,potential2,force,n,domain)
 
 DEALLOCATE(potential)
 DEALLOCATE(xcoord)
@@ -281,4 +289,51 @@ IMPLICIT NONE
 DOUBLE PRECISION                ::r,G
 g = REAL(sqrt(k3sqrt(r,spiral)))
 ENDFUNCTION
+ENDSUBROUTINE
+
+SUBROUTINE SOLVE(rho,phi,N,L)
+IMPLICIT NONE
+DOUBLE PRECISION        ::rho(2*n,2*n),phi(2*n,2*n),L
+REAL,ALLOCATABLE        ::rrho(:,:)
+real        ::A,B,C,D,ELMBDA,PERTRB
+real,ALLOCATABLE::BDA(:),BDB(:),BDC(:),BDD(:),w(:)
+INTEGER                 ::IDIMF,MBDCND,NBDCND
+INTEGER                 ::IERROR,wdim,n,i
+
+
+IDIMF = 2*n
+A = -real(l)
+B = real(l)
+MBDCND = 1
+C = -real(l)
+D = real(l)
+NBDCND = 1
+ELMBDA = 0.0
+wdim = 13 + INT(LOG(dble(N))/log(2.))*N + 4*N
+wdim = wdim*4
+
+ALLOCATE(rrho(2*n,2*n))
+ALLOCATE(BDA(2*n))
+ALLOCATE(BDB(2*n))
+ALLOCATE(BDC(2*n))
+ALLOCATE(BDD(2*n))
+ALLOCATE(W(wdim))
+
+!print *,n,size(rho),size(rrho)
+rrho = real(rho)
+BDA(:) = 0.
+BDB = BDA
+BDC = BDA
+BDD = BDA
+
+CALL HSTCRT (A, B, 2*N, MBDCND, BDA, BDB, C, D, 2*N, NBDCND, BDC, BDD, ELMBDA, rrho,IDIMF, PERTRB, IERROR, W)
+phi = dble(rrho)
+
+DEALLOCATE(rrho)
+DEALLOCATE(BDA)
+DEALLOCATE(BDB)
+DEALLOCATE(BDC)
+DEALLOCATE(BDD)
+DEALLOCATE(W)
+
 ENDSUBROUTINE

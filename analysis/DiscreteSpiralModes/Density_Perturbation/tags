@@ -27,7 +27,6 @@ F	Density.f90	/^FU/;"	f
 F	plot.f90	/^        DOUBLE PRECISION                        ::F(/;"	v
 F	test.f90	/^FU/;"	f	program:test
 FUN	k3sqrt.f90	/^function FUN(/;"	f	function:k3sqrt
-FindForce	k3sqrt.f90	/^SUBROUTINE FindForce(/;"	s	subroutine:findh1
 FindSpiral	k3sqrt.f90	/^SUBROUTINE FindSpiral(/;"	s	subroutine:spiral_printk3
 G	Density.f90	/^DOUBLE PRECISION                ::r,G$/;"	v
 H	k3sqrt.f90	/^FUNCTION H(/;"	f
@@ -75,6 +74,8 @@ R	Density.f90	/^FUNCTION R(/;"	f	module:projections
 RE	Density.f90	/^DOUBLE PREC/;"	v
 RK	rk4.f90	/^MODULE RK$/;"	m
 RR	Density.f90	/^DOUBLE PRECISION                ::RE,AE,RR,/;"	v
+SOLVE	Density.f90	/^SUBROUTINE SOLVE(/;"	s
+SpiralForce	k3sqrt.f90	/^FUNCTION SpiralForce(/;"	f	subroutine:findh1
 TR	plot.f90	/^        REAL                                    ::TR(/;"	v
 TR2	plot.f90	/^        REAL                                    ::TR2(/;"	v
 TRANS	2Density.f90	/^CHARACTER(1)                    ::TRANS$/;"	v
@@ -91,6 +92,9 @@ X	Density.f90	/^DOUBLE PRECISION                ::X(/;"	v
 Y	2Density.f90	/^DOUBLE PRECISION                ::X(2),Y(/;"	v
 Y	3Density.f90	/^DOUBLE PRECISION                ::X(2),Y(/;"	v
 Y	Density.f90	/^DOUBLE PRECISION                ::X(2),Y(/;"	v
+Y	test.f90	/^DOUBLE COMPLEX          ::Y(/;"	v	program:test
+Y1	test.f90	/^DOUBLE COMPLEX          ::Y(2,100),Y1(/;"	v	program:test
+a	rk4.f90	/^DOUBLE COMPLEX          ::a(/;"	v
 a	rk4.f90	/^DOUBLE PRECISION        ::a(/;"	v
 a1	k3sqrt.f90	/^DOUBLE PRECISION                ::a1,/;"	v
 a2	k3sqrt.f90	/^DOUBLE PRECISION                ::a1,a2,/;"	v
@@ -128,6 +132,7 @@ domain	SearchAll.f90	/^DOUBLE PRECISION                ::domain(/;"	v	program:te
 domain	plot.f90	/^        DOUBLE PRECISION                        ::domain(/;"	v
 dpDisk	k3sqrt.f90	/^DOUBLE PRECISION        ::dpDisk$/;"	v
 dr	SearchAll.f90	/^DOUBLE PRECISION                ::dr,/;"	v	program:test
+dr	k3sqrt.f90	/^       DOUBLE PRECISION                 ::dr /;"	v
 dr	k3sqrt.f90	/^DOUBLE PRECISION                ::dr$/;"	v
 dr	test.f90	/^DOUBLE PRECISION        ::ri,rf,dr,/;"	v	program:test
 dsimplifiedPoisson	k3sqrt.f90	/^FUNCTION dsimplifiedPoisson(/;"	f	subroutine:findh1
@@ -138,6 +143,7 @@ err	SearchAll.f90	/^DOUBLE PRECISION                ::dr,wri,wii,di,err$/;"	v	pr
 error	FindOne.f90	/^        DOUBLE PRECISION,ALLOCATABLE::error(/;"	k	type:searchgrid_type
 error	SearchAll.f90	/^        DOUBLE PRECISION,ALLOCATABLE::error(/;"	k	type:searchgrid_type
 error	k3sqrt.f90	/^       DOUBLE COMPLEX                   ::error$/;"	v
+error	k3sqrt.f90	/^function error(/;"	f	subroutine:findh1
 errormpisend	SearchAll.f90	/^DOUBLE PRECISION,ALLOCATABLE    ::errormpisend(/;"	v	program:test
 f	rk4.f90	/^FUNCTION f(/;"	f
 f	rk4.f90	/^FUNCTION f(/;"	f	subroutine:rk45
@@ -145,12 +151,13 @@ find_all	FindOne.f90	/^PROGRAM find_all$/;"	p
 findh1	k3sqrt.f90	/^SUBROUTINE findh1(/;"	s	subroutine:findu
 findu	k3sqrt.f90	/^SUBROUTINE findu(/;"	s
 fortoone	k3sqrt.f90	/^       DOUBLE PRECISION                 ::fortoone$/;"	v
-four21	k3sqrt.f90	/^function four21(/;"	f
+four21	k3sqrt.f90	/^function four21(/;"	f	function:error
 funcs	k3sqrt.f90	/^DOUBLE PRECISION                ::dfunc,ans,funcs(/;"	v
 gBulge	k3sqrt.f90	/^DOUBLE PRECISION                ::rb,Mb,gBulge,/;"	v
 gHalo	k3sqrt.f90	/^DOUBLE PRECISION                ::Lh,rhoh,gHalo,/;"	v
 h	rk4.f90	/^DOUBLE PRECISION        ::ri,rf,h$/;"	v
 h1	k3sqrt.f90	/^       DOUBLE COMPLEX,ALLOCATABLE       ::h1(/;"	v
+h1	test.f90	/^DOUBLE COMPLEX          ::h1$/;"	v	program:test
 h1caled	k3sqrt.f90	/^       LOGICAL                          ::h1caled /;"	v
 i	2Density.f90	/^INTEGER                         ::i$/;"	v
 i	3Density.f90	/^INTEGER                         ::i$/;"	v
@@ -161,6 +168,7 @@ i	plot.f90	/^        INTEGER                                 ::npanel,i$/;"	v
 i	test.f90	/^INTEGER                 ::n,i$/;"	v	program:test
 ierr	SearchAll.f90	/^INTEGER                         ::mpi_size,myid,info,ierr,/;"	v	program:test
 info	SearchAll.f90	/^INTEGER                         ::mpi_size,myid,info,/;"	v	program:test
+intplt	k3sqrt.f90	/^FUNCTION intplt(/;"	f	function:error
 ipc	SearchAll.f90	/^INTEGER                         ::ipc$/;"	v	program:test
 j	SearchAll.f90	/^INTEGER                         ::l,i,j,/;"	v	program:test
 k3	k3sqrt.f90	/^       DOUBLE COMPLEX,ALLOCATABLE       ::k3(/;"	v
@@ -195,6 +203,7 @@ p	2Density.f90	/^REAL                            ::p(/;"	v
 p	3Density.f90	/^REAL                            ::p(/;"	v
 p	Density.f90	/^REAL                            ::p(/;"	v
 p	SearchAll.f90	/^INTEGER                         ::l,i,j,p(/;"	v	program:test
+p	k3sqrt.f90	/^FUNCTION p(/;"	f	subroutine:findh1
 p	k3sqrt.f90	/^RECURSIVE FUNCTION p(/;"	f	subroutine:findu
 p	rk4.f90	/^DOUBLE COMPLEX,EXTERNAL ::p,/;"	v
 pDisk	k3sqrt.f90	/^FUNCTION pDisk(/;"	f
@@ -206,7 +215,7 @@ pf	2Density.f90	/^DOUBLE PRECISION                ::pi(2),pf(/;"	v
 pf	3Density.f90	/^DOUBLE PRECISION                ::pi(2),pf(/;"	v
 pf	Density.f90	/^DOUBLE PRECISION                ::pi(2),pf(/;"	v
 phase	k3sqrt.f90	/^       DOUBLE PRECISION                 ::phase /;"	v
-phi1	k3sqrt.f90	/^FUNCTION phi1(/;"	f
+phi1	k3sqrt.f90	/^FUNCTION phi1(/;"	f	subroutine:findh1
 phi1r	k3sqrt.f90	/^       DOUBLE COMPLEX,ALLOCATABLE       ::phi1r(/;"	v
 phi1rcaled	k3sqrt.f90	/^       LOGICAL                          ::phi1rcaled=/;"	v
 pi	2Density.f90	/^DOUBLE PRECISION                ::pi(/;"	v
@@ -279,7 +288,9 @@ u	k3sqrt.f90	/^       DOUBLE COMPLEX,ALLOCATABLE       ::u(/;"	v
 u	rk4.f90	/^DOUBLE COMPLEX          ::u(/;"	v
 ucaled	k3sqrt.f90	/^       LOGICAL                          ::ucaled /;"	v
 ui	rk4.f90	/^DOUBLE COMPLEX          ::u(2,N),ui(/;"	v
+ui	rk4.f90	/^DOUBLE COMPLEX          ::u(:,:),ui(/;"	v
 uu	rk4.f90	/^DOUBLE COMPLEX          ::u(2,N),ui(2),uu(/;"	v
+uu	rk4.f90	/^DOUBLE COMPLEX          ::u(:,:),ui(2),uu(/;"	v
 vmax	plot.f90	/^        REAL                                    ::vmax,/;"	v
 vmin	plot.f90	/^        REAL                                    ::vmax,vmin$/;"	v
 w	k3sqrt.f90	/^       DOUBLE COMPLEX                   ::w$/;"	v

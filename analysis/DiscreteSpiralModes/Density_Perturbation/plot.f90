@@ -31,7 +31,7 @@
         SUBROUTINE plotdensity(F,F2,force,n,domain)
         IMPLICIT NONE
         DOUBLE PRECISION,ALLOCATABLE,INTENT(IN) ::F(:,:),F2(:,:)!plotting data
-        DOUBLE PRECISION                        ::force(:,:,:)
+        DOUBLE PRECISION                        ::force(2*n,2*n,2)
         DOUBLE PRECISION                        ::domain!plot range
         REAL                                    ::TR(6) !plot geometry
         REAL                                    ::TR2(6) !plot geometry
@@ -60,7 +60,7 @@
         close(20)
 
         CALL PGSVP(0.0,0.95,0.0,0.95)
-        CALL PGSUBP(2,1)
+        CALL PGSUBP(-2,2)
         m = n
         dx = real(domain)/real(n)
         dy = real(domain)/real(m)
@@ -120,23 +120,34 @@
         CALL PGLAB('kpc','kpc','Potential')
 
         !!Force
-!       TR2 = 0.
-!       TR2(2) = 8.d0*dx
-!       TR2(1) = -domain-dx*4.d0
-!       TR2(6) = 8.d0*dy
-!       TR2(4) = -domain-dy*4.d0
-!       CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,-1)
-!       CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-!       CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, '')
-!       CALL PGSCH(1.0)
-!       CALL PGLAB('kpc','kpc','Force')
-!       CALL PGSCH(0.8)
-!       CALL PGSCI(0)
-!       CALL PGSAH(1,20.,0.3)
-!       CALL PGVECT(real(force(:,:,1)),real(force(:,:,2)),n/4,n/4,         &
-!                   2,n/4-2, &
-!                   2,n/4-2, &
-!                   0.02,2,TR2,-1.E10)
+!        TR2 = 0.
+!        TR2(2) = 8.d0*dx
+!        TR2(1) = -domain-dx*4.d0
+!        TR2(6) = 8.d0*dy
+!        TR2(4) = -domain-dy*4.d0
+!        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,-1)
+!        CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+!        CALL PGWEDG('RI', 1.0, 4.0, vmax, vmin, '')
+!        CALL PGSCH(1.0)
+!        CALL PGLAB('kpc','kpc','Force')
+!        CALL PGSCH(0.8)
+!        CALL PGSCI(0)
+!        CALL PGSAH(1,20.,0.3)
+!        CALL PGVECT(real(force(:,:,1)),real(force(:,:,2)),n/4,n/4,         &
+!                    2,n/4-2, &
+!                    2,n/4-2, &
+!                    0.02,2,TR2,-1.E10)
+        CALL PGSCI(1)
+        vmax = real(MAXVAL(FORCE(:,:,1)))
+        vmin = real(MINVAL(FORCE(:,:,1)))
+        print *,'force',vmax,vmin
+        vmax = 50.
+        vmin = -50.
+        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+        CALL PGIMAG(REAL(FORCE(:,:,1)),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+        CALL PGSCH(1.0)
+        CALL PGLAB('kpc','kpc','FORCE X')
         CALL PGCLOS
 
         ENDSUBROUTINE

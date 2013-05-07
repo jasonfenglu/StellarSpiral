@@ -812,6 +812,7 @@ ENDSUBROUTINE findh1
 SUBROUTINE FindPhi1(spiral)
 USE STELLARDISK_MODEL
 USE RK
+USE NUM
 IMPLICIT NONE
 type(typspiral)                         ::spiral
 DOUBLE COMPLEX                  ::k(4)
@@ -841,7 +842,11 @@ ALLOCATE(u(2,spiral.n))
 CALL rk4d1(a,b,spiral.n,p,q,u,ui)
 spiral.phi1r = u(2,:)
 DEALLOCATE(u)
-
+spiral.phi1rcaled = .true.
+!DO i = 1, spiral.n
+!        print *,spiral.r(i),abs(spiral.phi1r(i)),imag(spiral.phi1r(i))
+!ENDDO
+!stop
 CONTAINS
 FUNCTION p(r)
 IMPLICIT NONE
@@ -893,11 +898,11 @@ DOUBLE PRECISION,INTENT(IN)     ::r
 ans = 2.d0*pi*GravConst*sigma0(r,spiral)/snsd(r,spiral)**2
 ENDFUNCTION
 
-FUNCTION Force(r,th,spiral)
+FUNCTION SpiralForce(r,th,spiral)
 USE STELLARDISK_MODEL
 IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
-DOUBLE PRECISION                ::force(2),r,th
+DOUBLE PRECISION                ::SpiralForce(2),r,th
 DOUBLE COMPLEX                  ::hh1,phir
 DOUBLE PRECISION                ::runit(2),thunit(2)
 INTEGER                         ::i,n
@@ -911,15 +916,25 @@ INTEGER                         ::i,n
 !phir =(r-spiral.u(1,2*i-2))/(spiral.u(1,2*i)-spiral.u(1,2*i-2))*(spiral.phi1r(i)-spiral.phi1r(i-1)) + spiral.phi1r(i-1)
 !i = i*2
 !hh1 =(r-spiral.u(1,i-1))/(spiral.u(1,i)-spiral.u(1,i-1))*(spiral.h1(i)-spiral.h1(i-1)) + spiral.h1(i-1)
-
+if(.not.spiral.phi1rcaled)then
+        write(0,*)'phi not init'
+        stop
+endif
 phir = cintplt(spiral.phi1r,spiral.r,r)
 hh1  = cintplt(spiral.h1,spiral.r,r)
 
 runit = (/cos(th),sin(th)/)
 thunit = (/-sin(th),cos(th)/)
 
-force = real(dsimplifiedPoisson(r,spiral)*exp((0.d0,-2.d0)*th)*runit &
-      + (0.d0,-2.d0)*phir/r*exp((0.d0,-2.d0)*th)*thunit)
+SpiralForce = real(dsimplifiedPoisson(r,spiral)*exp((0.d0,-2.d0)*th)*runit &
+            + (0.d0,-2.d0)*phir/r*exp((0.d0,-2.d0)*th)*thunit)
+
+!if(abs(maxval(SpiralForce)).gt.huge(r))then
+!        write(0,*)'force infinite at r =',r
+!        write(0,*)'dphi = ', dsimplifiedPoisson(r,spiral)
+!        write(0,*)'phi  = ', phir
+!        write(0,*)'h1   = ', hh1
+!endif
 
 ENDFUNCTION
 
@@ -935,14 +950,15 @@ DOUBLE PRECISION                ::rad,th
 INTEGER                         ::i,j,k,l,n
 !interploting u at non-grid point r
 n = spiral.n
-do i = 1, n
-        if(spiral.r(i).gt.r)then
-                hh1 =(r-spiral.r(i-1))/(spiral.r(i)-spiral.r(i-1))*(spiral.h1(i)-spiral.h1(i-1)) + spiral.h1(i-1)
-                exit
-        endif
-enddo
+!do i = 1, n
+!        if(spiral.r(i).gt.r)then
+!                hh1 =(r-spiral.r(i-1))/(spiral.r(i)-spiral.r(i-1))*(spiral.h1(i)-spiral.h1(i-1)) + spiral.h1(i-1)
+!                exit
+!        endif
+!enddo
 !uu = (r-u(1,i-1))/(u(1,i)-u(1,i-1))*(u(2,i)-u(2,i-1)) + u(2,i-1)
 
+hh1 = cintplt(spiral.h1,spiral.r,r)
 
 !find density
 th = th + spiral.phase
@@ -954,12 +970,12 @@ ENDFUNCTION
 FUNCTION phi1(r,th,spiral,t)
 USE STELLARDISK_MODEL
 !IMPLICIT NONE
-type(typspiral),TARGET                  ::spiral
+type(typspiral),INTENT(IN)              ::spiral
 DOUBLE PRECISION                ::phi1
+DOUBLE COMPLEX                  ::cphi1
 DOUBLE PRECISION,INTENT(IN)     ::r,th
-DOUBLE COMPLEX                  ::h1
 DOUBLE PRECISION                ::t
-!DOUBLE COMPLEX                  ::uu,hh1
+DOUBLE COMPLEX                  ::uu,hh1
 !DOUBLE PRECISION                ::rad
 !INTEGER                         ::i,j,k,l,n
 !!!interploting u at non-grid point r
@@ -976,8 +992,9 @@ DOUBLE PRECISION                ::t
 !!find potential
 !phi1 = real(hh1*exp(-2.d0*th*(0.d0,1.d0)))
 
-h1 = dcmplx(intplt(real(spiral.h1),spiral.r,r),intplt(imag(spiral.h1),spiral.r,r))
-phi1 = real(h1*exp((spiral.w*t-2.d0*th)*(0.d0,1.d0)))
+!cphi1 = dcmplx(intplt(real(spiral.phi1),spiral.r,r),intplt(imag(spiral.phi1),spiral.r,r))
+cphi1  = cintplt(spiral.phi1r,spiral.r,r)
+phi1 = real(cphi1*exp(-2.d0*th*(0.d0,1.d0)))
 
 ENDFUNCTION
 

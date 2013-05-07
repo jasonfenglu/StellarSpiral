@@ -11,7 +11,7 @@ type tst
      integer,allocatable::dat(:)
 endtype
 type(tst) tt
-DOUBLE COMPLEX          ::Y(2,20),Y1(2)
+DOUBLE COMPLEX          ::Y(2,100),Y1(2)
 
 ri = 0.d0
 rf = 15.d0
@@ -44,16 +44,18 @@ dr = (rf-ri)/dble(n)
 !ENDDO
 !!$OMP END PARALLEL
 
-!CALL stdpara.readstd
-!CALL spiral.init(N,12.d0,stdpara,1)
-!CALL spiral.readw(1)
-!CALL FindSpiral(spiral)
-!DO i = 1, N
-!        r = dr*dble(i)
-!!      write(6,*)r,real(spiral.u(2,i)),imag(spiral.u(2,i))
-!!      write(6,*)r,real(k3sqrt(r,spiral)),imag(k3sqrt(r,spiral))
-!        write(6,*)r,F2(r)
-!ENDDO
+CALL stdpara.readstd
+CALL spiral.init(N,12.d0,stdpara,1)
+CALL spiral.readw(1)
+CALL FindSpiral(spiral)
+CALL FindPhi1(spiral)
+DO i = 1, N
+        r = dr*dble(i)
+!      write(6,*)r,real(spiral.u(2,i)),imag(spiral.u(2,i))
+!      write(6,*)r,real(k3sqrt(r,spiral)),imag(k3sqrt(r,spiral))
+        write(6,*)r,real(cintplt(spiral.h1,spiral.r,r)),&
+        real(cintplt(spiral.phi1r,spiral.r,r))
+ENDDO
 
 !CALL stdpara.readstd
 !CALL spiral.init(500,12.d0,stdpara,2)
@@ -66,21 +68,21 @@ dr = (rf-ri)/dble(n)
 !        print *,r,intplt(real(spiral.h1),spiral.r,r)
 !ENDDO
 
-Y1(1) = dcmplx(0.d0,0.d0)
-Y1(2) = dcmplx(1.d0,0.d0)
-CALL rk4d1(0.d0,3.d0,20,F,F3,Y,Y1)
-DO i = 1, 20
-        print *,real(Y(1,i)),real(Y(2,i))
-ENDDO
-
-stop
+!Y1(1) = dcmplx(0.d0,0.d0)
+!Y1(2) = dcmplx(1.d0,0.d0)
+!CALL rk4d1(0.d0,3.d0,100,F,F3,Y,Y1)
+!DO i = 1, 100
+!        print *,real(Y(1,i)),Y(2,i)
+!ENDDO
+!
+!stop
 CONTAINS
 
 FUNCTION F(r)
 IMPLICIT NONE
 DOUBLE PRECISION                ::r
 DOUBLE COMPLEX                  ::F
-F = (0.d0,0.d0)
+F = (1.d0,0.d0)
 ENDFUNCTION
 Function F2(r) result(ans)
 USE NUM
