@@ -129,7 +129,7 @@ DO j = 1, n*2
         r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
         d  = phi1(r,th,spiral,0.d0)
-        force(i,j,:) = SpiralForce(r,th,spiral)
+!       force(i,j,:) = SpiralForce(r,th,spiral)
         !===================
         !ignore d too high
         if(r.gt.12.d0)d = 0.d0
@@ -139,7 +139,7 @@ DO j = 1, n*2
         if(isnan(d))d = 0.d0
         !ignore value below detection limit
 !       if(abs(d).lt.limit)d = 0.d0
-        potential(i,j) = d
+!       potential(i,j) = d
 ENDDO
 ENDDO
 !$OMP END DO

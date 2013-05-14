@@ -60,7 +60,7 @@
         close(20)
 
         CALL PGSVP(0.0,0.95,0.0,0.95)
-        CALL PGSUBP(-2,2)
+!       CALL PGSUBP(-2,2)
         m = n
         dx = real(domain)/real(n)
         dy = real(domain)/real(m)
@@ -108,16 +108,16 @@
         CALL PGLINE(2,(/2.,7./),(/-8.,-8/))
 
         !!Potential
-        CALL PGSCI(1)
-        vmax = real(MAXVAL(F2(:,:)))
-        vmin = real(MINVAL(F2(:,:)))
+!       CALL PGSCI(1)
+!       vmax = real(MAXVAL(F2(:,:)))
+!       vmin = real(MINVAL(F2(:,:)))
 !       vmax = 50.
 !       vmin = -50.
-        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
-        CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
-        CALL PGSCH(1.0)
-        CALL PGLAB('kpc','kpc','Potential')
+!       CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+!       CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+!       CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+!       CALL PGSCH(1.0)
+!       CALL PGLAB('kpc','kpc','Potential')
 
         !!Force
 !        TR2 = 0.
@@ -137,18 +137,18 @@
 !                    2,n/4-2, &
 !                    2,n/4-2, &
 !                    0.02,2,TR2,-1.E10)
-        CALL PGSCI(1)
-        vmax = real(MAXVAL(FORCE(:,:,1)))
-        vmin = real(MINVAL(FORCE(:,:,1)))
-        print *,'force',vmax,vmin
-        vmax = 50.
-        vmin = -50.
-        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
-        CALL PGIMAG(REAL(FORCE(:,:,1)),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
-        CALL PGSCH(1.0)
-        CALL PGLAB('kpc','kpc','FORCE X')
-        CALL PGCLOS
+!       CALL PGSCI(1)
+!       vmax = real(MAXVAL(FORCE(:,:,1)))
+!       vmin = real(MINVAL(FORCE(:,:,1)))
+!       print *,'force',vmax,vmin
+!       vmax = 50.
+!       vmin = -50.
+!       CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+!       CALL PGIMAG(REAL(FORCE(:,:,1)),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+!       CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+!       CALL PGSCH(1.0)
+!       CALL PGLAB('kpc','kpc','FORCE X')
+!       CALL PGCLOS
 
         ENDSUBROUTINE
 
