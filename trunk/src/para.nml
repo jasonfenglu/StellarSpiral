@@ -5,8 +5,8 @@ eos=3 => polytropic
 
 &run_params
 ncell=512,512,0
-xrange=-15.,15.
-yrange=-15.,15.
+xrange=-10.,10.
+yrange=-10.,10.
 zrange=-0.,0.
 tend=0.2644
 CFL=0.4

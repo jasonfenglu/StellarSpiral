@@ -1,7 +1,7 @@
 subroutine force2d(q_loc,fx,fy)
 use common_params
-use STELLARDISK
 use simcontroll
+use GALAXY, only:RC
 implicit none
 double precision::q_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR)
 double precision::fx(1:ncell_loc(1),1:ncell_loc(2)),fy(1:ncell_loc(1),1:ncell_loc(2))
@@ -26,19 +26,19 @@ integer::i,j
     enddo
   enddo
 
-!spiral potential
-do j=1, ncell_loc(2)
-  do i=1, ncell_loc(1)
-     r_loc = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
-     th    = atan2(y_loc(j),x_loc(i))
-      CALL FindForce(fspi,r_loc,th-wr*t/2.d0)
-      !force is 1%
-      fspi = fspi * dmin1(t/tend*dble(simcon%ncir),1.d0) *2.5d0
-      fx(i,j)= fspi(1) + fx(i,j)
-      fy(i,j)= fspi(2) + fy(i,j)
-      force(i,j,:) = fspi(:)
-  enddo
-enddo
+!!spiral potential
+!do j=1, ncell_loc(2)
+!  do i=1, ncell_loc(1)
+!     r_loc = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
+!     th    = atan2(y_loc(j),x_loc(i))
+!      CALL FindForce(fspi,r_loc,th-wr*t/2.d0)
+!      !force is 1%
+!      fspi = fspi * dmin1(t/tend*dble(simcon%ncir),1.d0) *2.5d0
+!      fx(i,j)= fspi(1) + fx(i,j)
+!      fy(i,j)= fspi(2) + fy(i,j)
+!      force(i,j,:) = fspi(:)
+!  enddo
+!enddo
 
 #ifdef GRAVITY
  allocate(den(1:ncell_loc(1),1:ncell_loc(2)))

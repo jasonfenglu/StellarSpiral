@@ -1,7 +1,8 @@
 program antares
 use common_params
 use simcontroll
-use STELLARDISK,only:INIT_STELLARDISK,k3sqrtlog,force,ENDSTELLARDISK
+use STELLARDISK,ONLY:FindSpiral,stdpara
+USE GALAXY,GravConst1=>GravConst
 implicit none
 include 'mpif.h'
 include 'fftw_f77.i'
@@ -65,9 +66,10 @@ close(1)
 
 !!init by ccfeng
 call init_simcon(dtout,tend)
-call INIT_STELLARDISK(ncell(2),xrange(2))
-if(myid .eq. 0)CALL k3sqrtlog
-
+call stdpara.readstd
+CALL spiral.init(500,12.d0,stdpara,2)
+CALL spiral.readw(2)
+CALL FindSpiral(spiral)
 
 #ifdef VERBOSE
 if(myid .eq. 0) then
@@ -102,8 +104,6 @@ allocate(q_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR))
 allocate(temp1_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR))
 allocate(temp2_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR))
 allocate(den_temp(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf))
-allocate(force(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,2))
-force = 0.d0
 
 #ifdef FORCE
 allocate(fx(1:ncell_loc(1),1:ncell_loc(2)))

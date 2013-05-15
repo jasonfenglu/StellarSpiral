@@ -1,6 +1,5 @@
 subroutine write_collective2d(q_loc,fnum)
 use common_params
-use STELLARDISK,only:force
 implicit none
 integer::fnum
 double precision::q_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR)
@@ -41,10 +40,6 @@ dsetname='momx'
 call output2d(q_loc(:,:,2),ncell(1),ncell(2),ncell_loc(1),ncell_loc(2),ibuf,jbuf,2,2,flnm,dsetname,0)
 dsetname='momy'
 call output2d(q_loc(:,:,3),ncell(1),ncell(2),ncell_loc(1),ncell_loc(2),ibuf,jbuf,2,2,flnm,dsetname,0)
-dsetname='forcex'
-call output2d(force(:,:,1),ncell(1),ncell(2),ncell_loc(1),ncell_loc(2),ibuf,jbuf,2,2,flnm,dsetname,0)
-dsetname='forcey'
-call output2d(force(:,:,2),ncell(1),ncell(2),ncell_loc(1),ncell_loc(2),ibuf,jbuf,2,2,flnm,dsetname,0)
 
 #ifdef ADIABATIC
 #ifdef MHD

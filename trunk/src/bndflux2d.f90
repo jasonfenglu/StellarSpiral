@@ -29,8 +29,7 @@ end subroutine
 !!!==========================================================
        subroutine bndflux_outgoing_isothermal(U1, Fx, dd)
        use common_params
-       use STELLARDISK,only:RC
-       use GALAXY,only:density
+       use GALAXY,only:gasdensity,RC
        implicit none
        dimension U1(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,nvar)
        dimension Fx(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,nvar)
@@ -48,7 +47,7 @@ end subroutine
       do j = 1,ncell_loc(2)
          i   = 1
          r   = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
-         rho = density(r,0.d0)
+         rho = gasdensity(r,0.d0)
           ux = -RC(r)*y_loc(j)/r
           uy =  RC(r)*x_loc(i)/r
           dW = U1(1,j,1)-rho
@@ -76,7 +75,7 @@ end subroutine
       do j = 1,ncell_loc(2)
          i   = ncell_loc(1)
          r   = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
-         rho = density(r,0.d0)
+         rho = gasdensity(r,0.d0)
           ux = -RC(r)*y_loc(j)/r
           uy =  RC(r)*x_loc(i)/r
           dW = U1(ncell_loc(1),j,1)-rho
@@ -104,7 +103,7 @@ end subroutine
       do i = 1,ncell_loc(1)
          j   = 1
          r   = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
-         rho = density(r,0.d0)
+         rho = gasdensity(r,0.d0)
           ux =  RC(r)*x_loc(i)/r
           uy =  RC(r)*y_loc(j)/r
           dW = U1(i,1,1)-rho
@@ -132,7 +131,7 @@ end subroutine
       do i = 1,ncell_loc(1)
          j   = ncell_loc(2)
          r   = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
-         rho = density(r,0.d0)
+         rho = gasdensity(r,0.d0)
           ux =  RC(r)*x_loc(i)/r
           uy =  RC(r)*y_loc(j)/r
           dW = U1(i,ncell_loc(2),1)-rho

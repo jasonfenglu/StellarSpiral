@@ -3,17 +3,17 @@ close all
 
 for i = 0:length(dir('../*.h5'))-1
 filename=sprintf('../M%04d.h5',i);
-den = hdf5read(filename,'density');
+den = hdf5read(filename,'momy');
 x = hdf5read(filename,'x');
 y = hdf5read(filename,'y');
 den = den';
-imagesc(x,y,log10(den));
+imagesc(x,y,(den));
 title(sprintf('frame %d',i)) 
 axis xy
 axis equal
 axis tight
 colorbar
-%caxis([0 10])
+caxis([-100 100])
 
 pause(0.001);
 end
