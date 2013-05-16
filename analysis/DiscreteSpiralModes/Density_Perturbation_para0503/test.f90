@@ -48,13 +48,14 @@ CALL stdpara.readstd
 CALL spiral.init(N,12.d0,stdpara,1)
 CALL spiral.readw(1)
 CALL FindSpiral(spiral)
-CALL FindPhi1(spiral)
+!CALL FindPhi1(spiral)
 DO i = 1, N
         r = dr*dble(i)
 !      write(6,*)r,real(spiral.u(2,i)),imag(spiral.u(2,i))
 !      write(6,*)r,real(k3sqrt(r,spiral)),imag(k3sqrt(r,spiral))
-        write(6,*)r,real(cintplt(spiral.h1,spiral.r,r)),&
-        real(cintplt(spiral.phi1r,spiral.r,r))
+!       write(6,*)r,real(cintplt(spiral.h1,spiral.r,r)),&
+!       real(cintplt(spiral.phi1r,spiral.r,r))
+        write(6,*)r,abs(cintplt(spiral.h1,spiral.r,r))/snsd(r,spiral)**2,sigma0(r,spiral)
 ENDDO
 
 !CALL stdpara.readstd

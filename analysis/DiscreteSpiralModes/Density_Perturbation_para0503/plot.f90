@@ -108,16 +108,16 @@
         CALL PGLINE(2,(/2.,7./),(/-8.,-8/))
 
         !!Potential
-        CALL PGSCI(1)
-        vmax = real(MAXVAL(F2(:,:)))
-        vmin = real(MINVAL(F2(:,:)))
+!       CALL PGSCI(1)
+!       vmax = real(MAXVAL(F2(:,:)))
+!       vmin = real(MINVAL(F2(:,:)))
 !       vmax = 50.
 !       vmin = -50.
-        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
-        CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
-        CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
-        CALL PGSCH(1.0)
-        CALL PGLAB('kpc','kpc','Potential')
+!       CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+!       CALL PGIMAG(REAL(F2),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+!       CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+!       CALL PGSCH(1.0)
+!       CALL PGLAB('kpc','kpc','Potential')
 
         !!Force
 !        TR2 = 0.
@@ -332,7 +332,7 @@
                         vmax = den(1)
                         vmin = -vmax
         endif
-        CALL PGIMAG(REAL(F(:,:,1))+REAL(F(:,:,2))*alpha,2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+        CALL PGIMAG(REAL(F(:,:,2)),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
         CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
         if(drawcir(1))then
                 CALL PGSFS(2)
@@ -343,7 +343,7 @@
                 CALL PGCIRC(0.,0.,10.636)
         endif
         CALL PGSCI(0)
-        CALL PGPT(4,points(:,1),points(:,2),2)
+!       CALL PGPT(4,points(:,1),points(:,2),2)
         CALL PGSCI(1)
 
         CALL PGCLOS

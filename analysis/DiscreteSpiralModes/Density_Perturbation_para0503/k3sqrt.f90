@@ -294,7 +294,7 @@ SUBROUTINE rlog
 !DEALLOCATE(dat)
 ENDSUBROUTINE
 
-function ToomreQ(r,spiral)
+FUNCTION ToomreQ(r,spiral)
 DOUBLE PRECISION                        ::Q,r,Qod,ToomreQ,rq
 type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION,POINTER                ::para(:)
@@ -302,7 +302,7 @@ para=>spiral.para
 Qod = para(8)
 q   = para(9)
 rq  = para(10)
-ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2))
+ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2) + 1.2d0*dexp(-r**2/0.8**2))
 endfunction
 
 function nu(r,spiral)
