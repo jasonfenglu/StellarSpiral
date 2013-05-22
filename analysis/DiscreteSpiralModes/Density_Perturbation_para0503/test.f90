@@ -2,6 +2,7 @@ program test
 USE STELLARDISK_MODEL
 USE STELLARDISK
 USE RK
+USE io
 DOUBLE PRECISION        ::ri,rf,dr,r
 DOUBLE COMPLEX          ::h1
 INTEGER                 ::n,i
@@ -12,6 +13,7 @@ type tst
 endtype
 type(tst) tt
 DOUBLE COMPLEX          ::Y(2,100),Y1(2)
+DOUBLE PRECISION        ::tmp(2,2)
 
 ri = 0.d0
 rf = 15.d0
@@ -19,6 +21,14 @@ rf = 15.d0
 N  = 1000
 
 dr = (rf-ri)/dble(n)
+
+tmp = 2.d0
+CALL h5io(tmp,2,2,"dsetf.h5","dset")
+CALL h5io(tmp(1,:),2,"dsetf.h5","dset2")
+!write(6,*)'return',checkfileext('123')
+!write(6,*)'return',checkfileext('234')
+!write(6,*)'return',checkfileext('123')
+!call printpt
 
 !CALL stdpara.readstd
 !CALL stdpara.printpara
@@ -44,19 +54,19 @@ dr = (rf-ri)/dble(n)
 !ENDDO
 !!$OMP END PARALLEL
 
-CALL stdpara.readstd
-CALL spiral.init(N,12.d0,stdpara,1)
-CALL spiral.readw(1)
-CALL FindSpiral(spiral)
-!CALL FindPhi1(spiral)
-DO i = 1, N
-        r = dr*dble(i)
-!      write(6,*)r,real(spiral.u(2,i)),imag(spiral.u(2,i))
-!      write(6,*)r,real(k3sqrt(r,spiral)),imag(k3sqrt(r,spiral))
-!       write(6,*)r,real(cintplt(spiral.h1,spiral.r,r)),&
-!       real(cintplt(spiral.phi1r,spiral.r,r))
-        write(6,*)r,abs(cintplt(spiral.h1,spiral.r,r))/snsd(r,spiral)**2,sigma0(r,spiral)
-ENDDO
+!CALL stdpara.readstd
+!CALL spiral.init(N,12.d0,stdpara,1)
+!CALL spiral.readw(1)
+!CALL FindSpiral(spiral)
+!!CALL FindPhi1(spiral)
+!DO i = 1, N
+!        r = dr*dble(i)
+!!      write(6,*)r,real(spiral.u(2,i)),imag(spiral.u(2,i))
+!!      write(6,*)r,real(k3sqrt(r,spiral)),imag(k3sqrt(r,spiral))
+!!       write(6,*)r,real(cintplt(spiral.h1,spiral.r,r)),&
+!!       real(cintplt(spiral.phi1r,spiral.r,r))
+!        write(6,*)r,abs(cintplt(spiral.h1,spiral.r,r))/snsd(r,spiral)**2,sigma0(r,spiral)
+!ENDDO
 
 !CALL stdpara.readstd
 !CALL spiral.init(500,12.d0,stdpara,2)

@@ -184,9 +184,11 @@ SUBROUTINE spiral_printu(this)
 IMPLICIT NONE
 class(typspiral),INTENT(IN)             ::this
 INTEGER                                 ::i
+open(10,file='u.dat')
 DO i = 1, this.n
-        write(6,*)real(this.u(1,i)),abs(this.u(2,i))
+        write(10,*)real(this.u(1,i)),abs(this.u(2,i))
 ENDDO
+close(10)
 ENDSUBROUTINE
 
 SUBROUTINE spiral_printh1(this)
@@ -196,9 +198,11 @@ INTEGER                                 ::i
 if(.not.this.h1caled)then
         write(0,*)'h1 does not calculated, quit'
 endif
+open(10,file='h1.dat')
 DO i = 1, this.n
-        write(6,*)this.r(i),abs(this.h1(i))
+        write(10,*)this.r(i),abs(this.h1(i))
 ENDDO
+close(10)
 ENDSUBROUTINE
 
 SUBROUTINE spiral_printr(this)
@@ -550,6 +554,122 @@ write(errormsg,"(E10.3)")r
 errormsg = trim(errormsg)
 errormsg = 'Omega nan.@r = '//errormsg
 if(isnan(Omega))CALL XERMSG('k3sqrt','Omega',errormsg,-99,2)
+ENDSUBROUTINE
+
+FUNCTION VLauDisk(r)
+IMPLICIT NONE
+DOUBLE COMPLEX                  ::VLauDisk
+DOUBLE PRECISION                ::r
+DOUBLE PRECISION                ::x1,x2
+DOUBLE PRECISION                ::a1,a2,M1,M2
+
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+x1 = sqrt(1.d0+(r/a1)**2)
+x2 = sqrt(1.d0+(r/a2)**2)
+
+VLauDisk = (M1*GravConst/a1**3*H(x1))
+VLauDisk = VLauDisk - (M2*GravConst/a2**3*H(x2))
+VLauDisk = sqrt(16.d0/105.d0*VLauDisk)
+VLauDisk = VLauDisk*r
+ENDFUNCTION
+
+FUNCTION H(x)
+IMPLICIT NONE
+DOUBLE PRECISION                ::H,x
+
+H = 0.d0
+H = 59.0625/x**11 + H
+H = 26.25  /x**9  + H
+H = 16.875 /x**7  + H
+H = 11.25  /x**5  + H
+H = 6.5625 /x**3  + H
+
+ENDFUNCTION
+
+ENDFUNCTION
+
+FUNCTION StellarOmega(r,spiral)
+USE NUM
+IMPLICIT NONE
+DOUBLE PRECISION          ::StellarOmega
+DOUBLE PRECISION,INTENT(IN)::r
+!bulge
+DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
+!disk
+DOUBLE PRECISION          ::dM,da,db
+DOUBLE COMPLEX            ::VDisk
+DOUBLE PRECISION          ::a1,a2,M1,M2
+!spiral
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)=>null()
+
+para=>spiral.para
+
+!Bulge
+Mb   = para(3)
+rb   = para(4)
+!Disk
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+
+!!Limit case when r->0:
+if(r.lt.zerolimit)then
+        StellarOmega = 4.d0/3.d0*pi*GravConst*(MB) &
+              + 16.d0/105*GravConst*(M1/a1**3-M2/a2**3)*120.d0
+        StellarOmega = StellarOmega**0.5
+        return
+endif
+
+
+!Bulge
+Mb   = para(3)
+rb   = para(4)
+gBulge = (-r/sqrt(1.d0+r**2/rb**2)/rb+dasinh(r/rb))/r**2
+
+gBulge = 4.d0*pi*rb**3*Mb*gBulge*GravConst
+VBulge = sqrt(r*gBulge)
+
+!!Disk
+!dM     = para(5)
+!da     = para(6)
+!db     = para(7)
+!!VDisk  = sqrt(dfunc(pDisk,r)*r)
+!VDisk  = sqrt(dpDisk(r)*r)
+
+!LauDisk 
+VDisk  = VLauDisk(r)
+StellarOmega = sqrt(VBulge**2+dble(VDisk**2))/r
+!print *,r,V
+!CALL CheckResult
+CONTAINS
+
+FUNCTION pDisk(r)
+IMPLICIT NONE
+DOUBLE PRECISION        ::pDisk,r
+pDisk  = -GravConst*dM
+pDisk  = pDisk/sqrt(r**2+(da+db)**2)
+ENDFUNCTION
+
+FUNCTION dpDisk(r)
+IMPLICIT NONE
+DOUBLE PRECISION        ::dpDisk
+DOUBLE PRECISION        ::r
+dpDisk = GravConst*dM*r
+dpDisk = dpDisk/((da+db)**2+r**2)**1.5
+ENDFUNCTION
+
+SUBROUTINE CheckResult
+IMPLICIT NONE
+CHARACTER(len=72)                       ::errormsg
+write(errormsg,"(E10.3)")r
+errormsg = trim(errormsg)
+errormsg = 'Omega nan.@r = '//errormsg
+if(isnan(StellarOmega))CALL XERMSG('k3sqrt','Omega',errormsg,-99,2)
 ENDSUBROUTINE
 
 FUNCTION VLauDisk(r)
@@ -1061,7 +1181,7 @@ if(rs(4).gt.r)then
 !       write(0,*)'less than 4!!!!!!'
 !       write(0,*)Y
 !       write(0,*)'!!!'
-else
+elseif(r.lt.maxval(rs))then
         DO i = 4, size(dat)
                 if(rs(i).gt.r)then
                         exit
@@ -1069,8 +1189,11 @@ else
         ENDDO
         Y(1:4) = dat(i-2:i+1)
         X(1:4) = rs(i-2:i+1)
+ELSE
+        i = maxloc(rs,1)
+        Y(1:4) = dat(i-3:i)
+        X(1:4) =  rs(i-3:i)
 ENDIF        
-
 
 CALL DPLINT(N,X,Y,C)
 XX = r

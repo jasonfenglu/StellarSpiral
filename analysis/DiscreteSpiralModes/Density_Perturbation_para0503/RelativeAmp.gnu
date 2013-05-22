@@ -133,5 +133,5 @@ set colorbox vertical origin 0.9,0.2 size 0.1,0.63 bdefault
 set loadpath 
 set fontpath 
 set fit noerrorvariables
-plot 'ReAmpKendall.csv' using 1:2, 'ReAmpKendall.csv' using 1:3, 'ReAmpKendall.csv' using 1:4, 'RelativeAmp.dat' using 1:($2*4e4)
+plot 'ReAmpKendall.csv' using 1:2, 'ReAmpKendall.csv' using 1:3, 'ReAmpKendall.csv' using 1:4, 'RelativeAmp.dat' using 1:($2*4.96e4)
 #    EOF
