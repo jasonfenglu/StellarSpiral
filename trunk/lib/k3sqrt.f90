@@ -184,9 +184,11 @@ SUBROUTINE spiral_printu(this)
 IMPLICIT NONE
 class(typspiral),INTENT(IN)             ::this
 INTEGER                                 ::i
+open(10,file='u.dat')
 DO i = 1, this.n
-        write(6,*)real(this.u(1,i)),abs(this.u(2,i))
+        write(10,*)real(this.u(1,i)),abs(this.u(2,i))
 ENDDO
+close(10)
 ENDSUBROUTINE
 
 SUBROUTINE spiral_printh1(this)
@@ -196,9 +198,11 @@ INTEGER                                 ::i
 if(.not.this.h1caled)then
         write(0,*)'h1 does not calculated, quit'
 endif
+open(10,file='h1.dat')
 DO i = 1, this.n
-        write(6,*)this.r(i),abs(this.h1(i))
+        write(10,*)this.r(i),abs(this.h1(i))
 ENDDO
+close(10)
 ENDSUBROUTINE
 
 SUBROUTINE spiral_printr(this)
@@ -293,7 +297,7 @@ SUBROUTINE rlog
 !DEALLOCATE(dat)
 ENDSUBROUTINE
 
-function ToomreQ(r,spiral)
+FUNCTION ToomreQ(r,spiral)
 DOUBLE PRECISION                        ::Q,r,Qod,ToomreQ,rq
 type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION,POINTER                ::para(:)
@@ -301,7 +305,7 @@ para=>spiral.para
 Qod = para(8)
 q   = para(9)
 rq  = para(10)
-ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2))
+ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2) + 1.2d0*dexp(-r**2/0.8**2))
 endfunction
 
 function nu(r,spiral)

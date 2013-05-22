@@ -18,7 +18,7 @@ FFTWHOME=$(FFTW_HOME)
 HDF5HOME=$(HDF5_HOME)
 AntaresHOME=$(PWD)
  
-FFLAGS= -cpp -O2 -DNDIM=$(NDIM) -DFORCE -DVERBOSE -DISOTHERMAL -D$(Rie_type) -module bin -DRK2  -prec-div -prec-sqrt  -module bin/
+FFLAGS= -cpp -O2 -DNDIM=$(NDIM) -DSTELLARSPIRAL -DFORCE -DVERBOSE -DISOTHERMAL -D$(Rie_type) -module bin -DRK2  -prec-div -prec-sqrt  -module bin/
 
 LIB = -L$(MPIHOME)/lib -lmpi -lz -limf -lm -L$(FFTWHOME)/lib -ldrfftw_mpi -ldfftw_mpi -ldrfftw -ldfftw -L$(HDF5HOME)/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5 -fPIC -lm -limf -L./src -lslatecomp 
 INCL=-I$(MPIHOME)/include -I$(FFTWHOME)/include -I$(HDF5HOME)/include
@@ -40,4 +40,4 @@ clean:
 	-rm bin/*.o $(EXEC)*d bin/*.mod 
 
 rm:
-	rm *.h5 
+	rm M*.h5 

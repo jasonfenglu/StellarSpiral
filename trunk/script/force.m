@@ -1,22 +1,23 @@
-clear all
+%clear all
 close all
 
-for i = 0:length(dir('../*.h5'))-1
-filename=sprintf('../M%04d.h5',i);
-fx = hdf5read(filename,'forcex');
-fy = hdf5read(filename,'forcey');
+i=0;
+filename='../force.h5';
+fx = hdf5read(filename,'stellarfx');
+fy = hdf5read(filename,'stellarfy');
+den = hdf5read(filename,'density');
 x = hdf5read(filename,'x');
 y = hdf5read(filename,'y');
 fx = fx';
 fy = fy';
-%fx = (fx.^2+fy.^2).^0.5;
-imagesc(x,y,(fx));
+f = (fx.^2+fy.^2).^0.5;
+imagesc(x,y,(den));
 title(sprintf('frame %d',i)) 
 axis xy
 axis equal
 axis tight
 colorbar
-%caxis([-80 80])
+%caxis([-.03 .03])
 
 pause(0.001);
-end
+

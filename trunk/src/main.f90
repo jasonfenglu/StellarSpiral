@@ -64,12 +64,6 @@ open(1,file=infile)
 read(1,NML=run_params)
 close(1)
 
-!!init by ccfeng
-call init_simcon(dtout,tend)
-call stdpara.readstd
-CALL spiral.init(500,12.d0,stdpara,2)
-CALL spiral.readw(2)
-CALL FindSpiral(spiral)
 
 #ifdef VERBOSE
 if(myid .eq. 0) then
@@ -112,11 +106,12 @@ allocate(fy(1:ncell_loc(1),1:ncell_loc(2)))
 
 #ifdef GRAVITY
 allocate(den(1:ncell_loc(1),1:ncell_loc(2)))
+#endif
 allocate(sgx(1:ncell_loc(1),1:ncell_loc(2)))
 allocate(sgy(1:ncell_loc(1),1:ncell_loc(2)))
 allocate(sgxker(1:2*ncell_loc(1),1:2*ncell_loc(2)))
 allocate(sgyker(1:2*ncell_loc(1),1:2*ncell_loc(2)))
-#endif
+
 
 dx = (xrange(2)-xrange(1))/dble(ncell(1))
 dy = (yrange(2)-yrange(1))/dble(ncell(2))
@@ -137,6 +132,38 @@ do i=1-jbuf, ncell(2)+jbuf
    y(i) = yrange(1)+(dble(i)-0.5d0)*dy
 enddo
 
+!!init by ccfeng
+if(myid.eq.0)then
+        write(6,*)achar(27)//'[95m init by ccfeng'//achar(27)//'[0m'
+ENDIF
+call init_simcon(dtout,tend)
+call stdpara.readstd
+CALL spiral.init(500,12.d0,stdpara,2)
+CALL spiral.readw(2)
+CALL FindSpiral(spiral)
+if(myid.eq.0)then
+        write(6,*)achar(27)//'[95m [main] spiral error:',abs(spiral.error),achar(27)//'[0m'
+        call spiral.printu
+        call spiral.printh1
+ENDIF
+#ifdef STELLARSPIRAL
+ALLOCATE(stellarforce.den(1:ncell_loc(1),1:ncell_loc(2)))
+ALLOCATE(stellarforce.sgx(1:ncell_loc(1),1:ncell_loc(2)))
+ALLOCATE(stellarforce.sgy(1:ncell_loc(1),1:ncell_loc(2)))
+CALL InitStellarDensity
+call sgkernel2d() !!prepare the complex kernel FFT
+call selfgravity2d(stellarforce.den)
+stellarforce.sgx = sgx*1.d-6
+stellarforce.sgy = sgy*1.d-6
+call write_stellargravity2d()
+#endif
+if(myid.eq.0)then
+        write(6,*)achar(27)//'[95m init by ccfeng complete'//achar(27)//'[0m'
+ENDIF
+!init complete
+
+
+
 if(fstart .eq. 0) then
   t = 0.d0
   step = 0
@@ -147,7 +174,7 @@ if(fstart .eq. 0) then
   endif
   call write_collective2d(q_loc,fnum)
 #ifdef GRAVITY
-  call sgkernel2d() !!prepare the complex kernel FFT
+  !call sgkernel2d() !!prepare the complex kernel FFT
   if(myid .eq. 0) then
   write(*,*) "calculating self-gravity for the initial condition......"
   endif
@@ -278,7 +305,9 @@ call dt_loc2d(q_loc,dt_loc)
 call dt_all(dt_loc)
 !!add by ccfeng
 if(dt.lt.1d-10)then
-        if(myid.eq.0)print *,'dt too small, quit'
+        if(myid.eq.0)then
+        write(6,*)achar(27)//'[34m dt too small, quit.'//achar(27)//'[0m'
+        ENDIF
         call write_collective2d(q_loc,fnum+1)
         call MPI_BARRIER(MPI_COMM_WORLD)
         exit

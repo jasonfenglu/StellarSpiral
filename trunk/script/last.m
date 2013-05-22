@@ -3,7 +3,7 @@ close all
 
 i =length(dir('../*.h5'))-2;
 filename=sprintf('../M%04d.h5',i);
-momx = hdf5read(filename,'momx');
+momx = hdf5read(filename,'momy');
 den  = hdf5read(filename,'density');
 x = hdf5read(filename,'x');
 y = hdf5read(filename,'y');

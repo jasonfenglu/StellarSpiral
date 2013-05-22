@@ -1,21 +1,25 @@
 subroutine force2d(q_loc,fx,fy)
 use common_params
 use simcontroll
-use GALAXY, only:RC
+use GALAXY, only:RC,stellarforce,spiral
 implicit none
 double precision::q_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR)
 double precision::fx(1:ncell_loc(1),1:ncell_loc(2)),fy(1:ncell_loc(1),1:ncell_loc(2))
 #ifdef GRAVITY
 double precision,dimension(:,:),allocatable::den
 #endif
-double precision::r_loc,CV,Orsq
-double precision::pspd,bfam,a1,p0,rsq,p1,psi,dpsi
-double precision::cs2s,sn2s,cs2t,sn2t,cs2st,sn2st
-double precision::px,py
-!spiral potential
-double precision::fspi(2),th
 integer::i,j
+!!gas
+double precision::r_loc,CV,Orsq
+!!bar
+!double precision::pspd,bfam,a1,p0,rsq,p1,psi,dpsi
+!double precision::cs2s,sn2s,cs2t,sn2t,cs2st,sn2st
+!double precision::px,py
+!!rotating frame
+DOUBLE PRECISION::pspd,Omega,tmp
+
 ! implement your external force here !!
+! gas pressure
   do j=1, ncell_loc(2)
     do i=1, ncell_loc(1)
        r_loc = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
@@ -26,7 +30,8 @@ integer::i,j
     enddo
   enddo
 
-!!spiral potential
+
+!!old spiral potential, not using 
 !do j=1, ncell_loc(2)
 !  do i=1, ncell_loc(1)
 !     r_loc = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
@@ -39,6 +44,17 @@ integer::i,j
 !      force(i,j,:) = fspi(:)
 !  enddo
 !enddo
+
+#ifdef STELLARSPIRAL
+if(myid.eq.0)then
+        write(6,*)achar(27)//'[95m applying stellar force'//achar(27)//'[0m'
+ENDIF
+fx = fx + stellarforce.sgx
+fy = fy + stellarforce.sgy
+if(myid.eq.0)then
+        write(6,*)achar(27)//'[95m stellar complete'//achar(27)//'[0m'
+ENDIF
+#endif
 
 #ifdef GRAVITY
  allocate(den(1:ncell_loc(1),1:ncell_loc(2)))
