@@ -180,6 +180,17 @@ DEALLOCATE(this.r)
 DEALLOCATE(this.k3)
 ENDSUBROUTINE
 
+SUBROUTINE spiral_printsigma1(this)
+IMPLICIT NONE
+class(typspiral),INTENT(IN)             ::this
+INTEGER                                 ::i
+open(10,file='u.dat')
+DO i = 1, this.n
+        write(10,*)real(this.u(1,i)),abs(this.u(2,i))
+ENDDO
+close(10)
+ENDSUBROUTINE
+
 SUBROUTINE spiral_printu(this)
 IMPLICIT NONE
 class(typspiral),INTENT(IN)             ::this
@@ -879,7 +890,7 @@ do i = 1, spiral.n
 enddo
 spiral.h1(1) = (0.d0,0.d0)
 
-!CALL refineh1
+CALL refineh1
 spiral.h1caled = .true.
 
 CONTAINS
@@ -909,10 +920,9 @@ DOUBLE PRECISION                ::F,r
 F = Sigma(r,spiral)
 ENDFUNCTION
 
-
 SUBROUTINE refineh1
 IMPLICIT NONE
-DOUBLE PRECISION,PARAMETER      ::cutoff = 9.5
+DOUBLE PRECISION,PARAMETER      ::cutoff = 10.76d0
 INTEGER                         ::i,f
 DO i =1, spiral.n
         if(spiral.r(i).gt.cutoff)then

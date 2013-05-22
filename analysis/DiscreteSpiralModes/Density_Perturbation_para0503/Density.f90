@@ -48,7 +48,7 @@ DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:),potential2(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
-INTEGER,PARAMETER               ::n=800
+INTEGER,PARAMETER               ::n=512
 type(typspiral)                 ::spiral
 LOGICAL                         ::toproject
 namelist /densitypara/ toproject
@@ -97,7 +97,7 @@ DO j = 1, n*2
         d  = sigma1(r,th,spiral)
         !===================
         !ignore d too high
-        if(r.gt.12.d0)d = 0.d0
+        !if(r.gt.12.d0)d = 0.d0
         !ignore d that is not exist during coordinate transformation
         if(isnan(d))d = 0.d0
         density(i,j) = d
