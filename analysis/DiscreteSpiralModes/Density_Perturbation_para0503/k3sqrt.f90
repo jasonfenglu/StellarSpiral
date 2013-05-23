@@ -211,7 +211,7 @@ if(.not.this.h1caled)then
 endif
 open(10,file='h1.dat')
 DO i = 1, this.n
-        write(10,*)this.r(i),abs(this.h1(i))
+        write(10,'(4(E12.5,1X))')this.r(i),abs(this.h1(i)),real(this.h1(i)),imag(this.h1(i))
 ENDDO
 close(10)
 ENDSUBROUTINE

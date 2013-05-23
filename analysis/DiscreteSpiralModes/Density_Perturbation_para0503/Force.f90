@@ -4,6 +4,7 @@ USE STELLARDISK_MODEL
 USE &
 STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,phi1,FindPhi1,SpiralForce,GravConst,Omega,intplt,Sigma0,StellarOmega
 USE projections,only:argaline
+USE io
 IMPLICIT NONE
 INTEGER                         ::i,j,k,l
 CHARACTER(len=32)               ::arg
@@ -14,7 +15,8 @@ DOUBLE PRECISION,ALLOCATABLE    ::fr(:,:),frsorted(:,:)
 INTEGER,ALLOCATABLE             ::sortindex(:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d,co,fmax,fratio
-INTEGER,PARAMETER               ::n=200
+DOUBLE PRECISION                ::x,y
+INTEGER,PARAMETER               ::n=512
 type(typspiral)                 ::spiral
 LOGICAL                         ::toproject
 INTEGER                         ::ierr
@@ -32,33 +34,34 @@ CALL spiral.init(500,12.d0,stdpara,2)
 CALL spiral.readw(2)
 CALL FindSpiral(spiral)
 CALL FindPhi1(spiral)
-dx = domain/dble(n)
-dy = domain/dble(n)
+dx = domain/dble(n)*2.d0
+dy = domain/dble(n)*2.d0
 
-ALLOCATE(density(2*n,2*n))
-ALLOCATE(xcoord(2*n))
-ALLOCATE(ycoord(2*n))
-ALLOCATE(force(2*n,2*n,3))
-ALLOCATE(fr(4*n**2,3))
-ALLOCATE(frsorted(4*n**2,3))
-ALLOCATE(sortindex(4*n**2))
+ALLOCATE(density(n,n))
+ALLOCATE(xcoord(n))
+ALLOCATE(ycoord(n))
+ALLOCATE(force(n,n,4))
+ALLOCATE(fr(n**2,3))
+ALLOCATE(frsorted(n**2,3))
+ALLOCATE(sortindex(n**2))
 
-DO i = 1, n*2
-        xcoord(i) =  dx*0.5d0 - domain + dble(i)*dx
-        ycoord(i) =  dy*0.5d0 - domain + dble(i)*dx
+DO i = 1, n
+        xcoord(i) = 0.5d0*dx - domain + dble(i-1)*dx
+        ycoord(i) = 0.5d0*dy - domain + dble(i-1)*dy
 ENDDO
 
 !!Filling density map
 !$OMP PARALLEL SHARED(density,spiral) PRIVATE(j,r,th,pi,pf,d)
 !$OMP DO 
-DO i = 1, n*2
-DO j = 1, n*2
+DO i = 1, n
+DO j = 1, n
         pf = (/xcoord(i),ycoord(j)/)
         pi = pf
         r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
-        d  = sigma1(r,th,spiral)
+!       d  = sigma1(r,th,spiral)
 !       d  = sigma0(r,spiral)
+        d  = exp(-r**2)*(4.d0*r**2-4.d0)/(4.d0*pi_n*GravConst)
         !===================
         !ignore d too high
         if(r.gt.12.d0)d = 0.d0
@@ -84,23 +87,28 @@ Force = 0.d0
 !!Filling Force Map
 !$OMP PARALLEL SHARED(density,Force) PRIVATE(j,k,l,dx,dy,r)
 !$OMP DO 
-DO i = 1, n*2
-DO j = 1, n*2
-        !x-direction
-        DO k = 1, n*2
-        DO l = 1, n*2
-                IF((i.ne.k).and.(j.ne.l))THEN
-                        dx = xcoord(i) - xcoord(k)
-                        dy = ycoord(j) - xcoord(l)
-                        r = sqrt(dx**2+dy**2)
-                        Force(i,j,:) = Force(i,j,:) - density(k,l)*GravConst/r**3*(/dx,dy/)
-                ENDIF
+DO i = 1, n
+DO j = 1, n
+        DO k = 1, n
+        DO l = 1, n
+                IF((i.eq.k).and.(j.eq.l))cycle
+                dx = xcoord(i) - xcoord(k)
+                dy = ycoord(j) - xcoord(l)
+                r = sqrt(dx**2+dy**2)
+                Force(i,j,1) = Force(i,j,1) - density(k,l)*GravConst/r**3*dx
+                Force(i,j,2) = Force(i,j,2) - density(k,l)*GravConst/r**3*dy
         ENDDO
         ENDDO
+        Force(i,j,:) = Force(i,j,:)/dble(n**2)*domain**2*4.d0
         Force(i,j,3) = &
-        sqrt(Force(i,j,1)**2+Force(i,j,2)**2)/dble(n**2)*domain**2
+        sqrt(Force(i,j,1)**2+Force(i,j,2)**2)
         fr(i+(j-1)*2*n,1) = sqrt(xcoord(i)**2+ycoord(j)**2)
         fr(i+(j-1)*2*n,2) = Force(i,j,3)
+        pf = (/xcoord(i),ycoord(j)/)
+        pi = pf
+        r  = sqrt(pi(1)**2+pi(2)**2)
+        th = atan2(pi(2),pi(1))
+        Force(i,j,4) = 2.d0*r*Exp(-r**2)
 ENDDO
 ENDDO
 !$OMP END DO
@@ -112,11 +120,11 @@ points(2,:) = (/0.0,-10.636/)
 points(3,:) = (/0.0,4.727/)
 points(4,:) = (/0.0,-4.727/)
 
-CALL plotforce(Force(:,:,3),Force(:,:,2),n,domain)
+!CALL plotforce(Force(:,:,3),Force(:,:,2),n,domain)
 
 !!Sorting force in r-direction
-CALL DPSORT(fr(:,1),4*n**2,sortindex,1,ierr)
-DO i = 1, 4*n**2
+CALL DPSORT(fr(:,1),n**2,sortindex,1,ierr)
+DO i = 1, n**2
         j = sortindex(i)
         frsorted(i,:) = fr(j,:)
 ENDDO
@@ -124,7 +132,7 @@ ENDDO
 !!Find Corrotation
 CALL findco(co,spiral)
 !!Find max force near co
-DO i = 1, 4*n**2
+DO i = 1, n**2
         if((abs(frsorted(i,1) - co)<1.d0).and.(frsorted(i,2)>fmax))then
                 fmax = frsorted(i,2)
                 r = frsorted(i,1)
@@ -137,12 +145,18 @@ write(6,200)r,fmax,StellarOmega(r,spiral)**2*r,fmax/StellarOmega(r,spiral)**2/r*
 
 !!!Print fr and centirfugal force
 open(10,file='force.log')
-DO i = 1, 4*n**2
+DO i = 1, n**2
         r = frsorted(i,1)
         write(10,*)r,frsorted(i,2),Omega(r,spiral)/r**2
 ENDDO
 close(10)
 
+CALL h5io(xcoord,N,'force.h5','xcoord')
+CALL h5io(ycoord,N,'force.h5','ycoord')
+CALL h5io(force(:,:,1),N,N,'force.h5','fx')
+CALL h5io(force(:,:,2),N,N,'force.h5','fy')
+CALL h5io(force(:,:,3),N,N,'force.h5','f')
+CALL h5io(force(:,:,4),N,N,'force.h5','fa')
 
 DEALLOCATE(fr)
 DEALLOCATE(Force)
