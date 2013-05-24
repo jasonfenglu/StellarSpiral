@@ -2,8 +2,8 @@
 ###### Job name ######
 #PBS -N force
 ###### Output files ######
-#PBS -o force.out
-#PBS -e force.err
+#PBS -o force/force.out
+#PBS -e force/force.err
 ###### Number of nodes and cores ######
 #PBS -l nodes=1:ppn=12:dl
 ###### Queue name ######

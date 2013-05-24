@@ -2,7 +2,7 @@ F90=ifort
 MPIF77=mpif77
 FCC=icc
 
-FFLAGS=  -O3 -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -limf  -openmp -g
+FFLAGS=  -O3 -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -limf  -openmp -g -module obj
 
 LIB   = -L. -lslatecomp -limf -lpthread -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -liomp5  -L$(HDF5HOME)/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5
 INCL  = -I$(HDF5_HOME)/include/

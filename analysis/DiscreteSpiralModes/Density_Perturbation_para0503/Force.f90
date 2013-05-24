@@ -8,6 +8,7 @@ USE io
 IMPLICIT NONE
 INTEGER                         ::i,j,k,l
 CHARACTER(len=32)               ::arg
+CHARACTER(len=20),PARAMETER     ::hdfname='force/force.h5'
 DOUBLE PRECISION                ::domain= 10.d0,dx,dy,r,th,pf(2),pi(2)
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
@@ -40,7 +41,7 @@ dy = domain/dble(n)*2.d0
 ALLOCATE(density(n,n))
 ALLOCATE(xcoord(n))
 ALLOCATE(ycoord(n))
-ALLOCATE(force(n,n,4))
+ALLOCATE(force(n,n,3))
 ALLOCATE(fr(n**2,3))
 ALLOCATE(frsorted(n**2,3))
 ALLOCATE(sortindex(n**2))
@@ -59,9 +60,8 @@ DO j = 1, n
         pi = pf
         r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
-!       d  = sigma1(r,th,spiral)
+        d  = sigma1(r,th,spiral)
 !       d  = sigma0(r,spiral)
-        d  = exp(-r**2)*(4.d0*r**2-4.d0)/(4.d0*pi_n*GravConst)
         !===================
         !ignore d too high
         if(r.gt.12.d0)d = 0.d0
@@ -102,13 +102,12 @@ DO j = 1, n
         Force(i,j,:) = Force(i,j,:)/dble(n**2)*domain**2*4.d0
         Force(i,j,3) = &
         sqrt(Force(i,j,1)**2+Force(i,j,2)**2)
-        fr(i+(j-1)*2*n,1) = sqrt(xcoord(i)**2+ycoord(j)**2)
-        fr(i+(j-1)*2*n,2) = Force(i,j,3)
+        fr(i+(j-1)*n,1) = sqrt(xcoord(i)**2+ycoord(j)**2)
+        fr(i+(j-1)*n,2) = Force(i,j,3)
         pf = (/xcoord(i),ycoord(j)/)
         pi = pf
         r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
-        Force(i,j,4) = 2.d0*r*Exp(-r**2)
 ENDDO
 ENDDO
 !$OMP END DO
@@ -120,13 +119,14 @@ points(2,:) = (/0.0,-10.636/)
 points(3,:) = (/0.0,4.727/)
 points(4,:) = (/0.0,-4.727/)
 
-!CALL plotforce(Force(:,:,3),Force(:,:,2),n,domain)
 
 !!Sorting force in r-direction
 CALL DPSORT(fr(:,1),n**2,sortindex,1,ierr)
 DO i = 1, n**2
         j = sortindex(i)
         frsorted(i,:) = fr(j,:)
+        r = frsorted(i,1)
+        frsorted(i,3) = Omega(r,spiral)/r**2
 ENDDO
 
 !!Find Corrotation
@@ -139,24 +139,20 @@ DO i = 1, n**2
         ENDIF
 ENDDO
 200 FORMAT(6(G12.4,3X))
-write(6,200)'corrotation','spiral f','centri f','percentage','factor'
+write(6,200)'max at','spiral f','centri f','percentage','factor'
 write(6,200)r,fmax,StellarOmega(r,spiral)**2*r,fmax/StellarOmega(r,spiral)**2/r*100.d0,fratio/fmax*StellarOmega(r,spiral)**2*r/100.d0
 
 
-!!!Print fr and centirfugal force
-open(10,file='force.log')
-DO i = 1, n**2
-        r = frsorted(i,1)
-        write(10,*)r,frsorted(i,2),Omega(r,spiral)/r**2
-ENDDO
-close(10)
+!save fr and centrifugal force
+CALL h5io(frsorted(:,1),n**2,hdfname,'r')
+CALL h5io(frsorted(:,2),n**2,hdfname,'fr')
+CALL h5io(frsorted(:,3),n**2,hdfname,'centri')
 
-CALL h5io(xcoord,N,'force.h5','xcoord')
-CALL h5io(ycoord,N,'force.h5','ycoord')
-CALL h5io(force(:,:,1),N,N,'force.h5','fx')
-CALL h5io(force(:,:,2),N,N,'force.h5','fy')
-CALL h5io(force(:,:,3),N,N,'force.h5','f')
-CALL h5io(force(:,:,4),N,N,'force.h5','fa')
+CALL h5io(xcoord,N,hdfname,'xcoord')
+CALL h5io(ycoord,N,hdfname,'ycoord')
+CALL h5io(force(:,:,1),N,N,hdfname,'fx')
+CALL h5io(force(:,:,2),N,N,hdfname,'fy')
+CALL h5io(force(:,:,3),N,N,hdfname,'f')
 
 DEALLOCATE(fr)
 DEALLOCATE(Force)
