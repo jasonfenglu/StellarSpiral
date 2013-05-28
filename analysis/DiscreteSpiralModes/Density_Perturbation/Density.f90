@@ -38,16 +38,17 @@ USE PLOTTING
 USE STELLARDISK_MODEL
 USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,phi1,FindPhi1,SpiralForce
 USE projections,only:argaline
+USE io
 IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
-DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th,pf(2),pi(2)
+DOUBLE PRECISION                ::domain= 10.d0,dx,dy,r,th,pf(2),pi(2)
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:),potential2(:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
-INTEGER,PARAMETER               ::n=800
+INTEGER,PARAMETER               ::n=512
 type(typspiral)                 ::spiral
 LOGICAL                         ::toproject
 namelist /densitypara/ toproject
@@ -71,7 +72,6 @@ CALL stdpara.readstd
 CALL spiral.init(500,12.d0,stdpara,2)
 CALL spiral.readw(2)
 CALL FindSpiral(spiral)
-CALL FindPhi1(spiral)
 dx = domain/dble(n)
 dy = domain/dble(n)
 
@@ -96,27 +96,25 @@ DO j = 1, n*2
         d  = sigma1(r,th,spiral)
         !===================
         !ignore d too high
-        if(r.gt.12.d0)d = 0.d0
-        !ignore inside r=1.26  
-!       if(r.lt.2.26)d = d*(1.d0 - cos(r/2.26d0*pi_n/2.d0))
+        !if(r.gt.12.d0)d = 0.d0
         !ignore d that is not exist during coordinate transformation
         if(isnan(d))d = 0.d0
-        !ignore value below detection limit
-!       if(abs(d).lt.limit)d = 0.d0
         density(i,j) = d
 ENDDO
 ENDDO
 !$OMP END DO
 !$OMP END PARALLEL 
 
+!!Check if pspd is true
+print *,'error',abs(spiral.error)
 if(abs(spiral.error).gt.1d-5)then
         write(0,*)'!!!!!! wrong pspd:'
         write(0,*)'error:',abs(spiral.error)
         write(0,*)'pspd:',spiral.w
 endif
 
-!
-!!!Find 2d Potential
+if(.false.)then
+!!!Find 2d Potential, not using.
 ALLOCATE(potential(2*n,2*n))
 ALLOCATE(force(n*2,n*2,2))
 !$OMP PARALLEL SHARED(force,potential,spiral) PRIVATE(j,r,th,pi,pf,d)
@@ -133,42 +131,27 @@ DO j = 1, n*2
         !===================
         !ignore d too high
         if(r.gt.12.d0)d = 0.d0
-        !ignore inside r=1.26  
-!       if(r.lt.2.26)d = d*(1.d0 - cos(r/2.26d0*pi_n/2.d0))
         !ignore d that is not exist during coordinate transformation
         if(isnan(d))d = 0.d0
-        !ignore value below detection limit
-!       if(abs(d).lt.limit)d = 0.d0
 !       potential(i,j) = d
 ENDDO
 ENDDO
 !$OMP END DO
 !$OMP END PARALLEL 
-
-!!!Find Force
-!!$OMP PARALLEL SHARED(force,potential,spiral) PRIVATE(j,r,th,pi,pf,d)
-!!$OMP DO 
-!DO i = 1,n*2
-!DO j = 1, n*2
-!        r = sqrt(xcoord(i*8)**2+ycoord(j*8)**2)
-!        th = atan2(ycoord(j*8),xcoord(i*8))
-!        force(i,j,:) = SpiralForce(r,th,spiral)
-!ENDDO
-!ENDDO
-!!$OMP END DO
-!!$OMP END PARALLEL 
-
+endif
+call spiral.printu
+call spiral.printh1
 points(1,:) = (/0.0,10.636/)
 points(2,:) = (/0.0,-10.636/)
 points(3,:) = (/0.0,4.727/)
 points(4,:) = (/0.0,-4.727/)
 CALL dprojection(points)
-!CALL SOLVE(density,potential2,n,domain)
 
-CALL plotdensity(density,potential,force,n,domain)
-!CALL plotdensity(potential,potential2,force,n,domain)
+CALL plotdensity(density,n,domain)
+CALL h5io(xcoord,2*N,'density.h5','xcoord')
+CALL h5io(ycoord,2*N,'density.h5','ycoord')
+CALL h5io(density,2*N,2*N,'density.h5','density')
 
-DEALLOCATE(potential)
 DEALLOCATE(xcoord)
 DEALLOCATE(ycoord)
 DEALLOCATE(density)

@@ -1,16 +1,15 @@
 #!/bin/bash
 ###### Job name ######
-#PBS -N bc
+#PBS -N force
 ###### Output files ######
-#PBS -o bc.out
-#PBS -e bc.err
+#PBS -o force/force.out
+#PBS -e force/force.err
 ###### Number of nodes and cores ######
-#PBS -l nodes=1:ppn=16:px
+#PBS -l nodes=1:ppn=12:dl
 ###### Queue name ######
-#PBS -q small
+#PBS -q serial
 ###### Specific the shell types ######
 #PBS -S /bin/bash
-#PBS -M ccfeng@tiara.sinica.edu.tw
 
 ###### Enter this job's working directory ######
 cd $PBS_O_WORKDIR
@@ -18,12 +17,11 @@ cd $PBS_O_WORKDIR
 ###### Load modules to setup environment ######
 . /etc/profile.d/modules.sh
 module purge
-module load torque ifc icc pgplot
-OMP_NUM_THREADS=$PBS_NUM_PPN
-export OMP_NUM_THREADS
+module load torque fftw/2.1.5_ic13.0_lam_7.1.4 HDF/5-1.8.10_ic13.0_lam_7.1.4 lam/7.1.4_ic13.0
+module add pgplot
 
-rm -rf bc.log bc.err
 ###### Run your jobs with parameters ######
-#./Density.exe 
-./SearchAll.exe $start $end > searchall.log
-#./FindOne.exe
+# Set the number of OpenMP threads to share the work.
+export OMP_NUM_THREADS=12
+
+./Force.exe 

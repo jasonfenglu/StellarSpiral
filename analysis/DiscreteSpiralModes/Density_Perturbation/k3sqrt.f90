@@ -180,13 +180,26 @@ DEALLOCATE(this.r)
 DEALLOCATE(this.k3)
 ENDSUBROUTINE
 
+SUBROUTINE spiral_printsigma1(this)
+IMPLICIT NONE
+class(typspiral),INTENT(IN)             ::this
+INTEGER                                 ::i
+open(10,file='u.dat')
+DO i = 1, this.n
+        write(10,*)real(this.u(1,i)),abs(this.u(2,i))
+ENDDO
+close(10)
+ENDSUBROUTINE
+
 SUBROUTINE spiral_printu(this)
 IMPLICIT NONE
 class(typspiral),INTENT(IN)             ::this
 INTEGER                                 ::i
+open(10,file='u.dat')
 DO i = 1, this.n
-        write(6,*)real(this.u(1,i)),abs(this.u(2,i))
+        write(10,*)real(this.u(1,i)),abs(this.u(2,i))
 ENDDO
+close(10)
 ENDSUBROUTINE
 
 SUBROUTINE spiral_printh1(this)
@@ -196,9 +209,11 @@ INTEGER                                 ::i
 if(.not.this.h1caled)then
         write(0,*)'h1 does not calculated, quit'
 endif
+open(10,file='h1.dat')
 DO i = 1, this.n
-        write(6,*)this.r(i),abs(this.h1(i))
+        write(10,'(4(E12.5,1X))')this.r(i),abs(this.h1(i)),real(this.h1(i)),imag(this.h1(i))
 ENDDO
+close(10)
 ENDSUBROUTINE
 
 SUBROUTINE spiral_printr(this)
@@ -223,7 +238,6 @@ ENDMODULE
 
 MODULE STELLARDISK
 USE STELLARDISK_MODEL,only:stdpara,typspiral
-USE PLOTTING
 IMPLICIT NONE
 DOUBLE PRECISION,PARAMETER::GravConst   = 4.3d-6 
 DOUBLE PRECISION,PARAMETER::g           = 4.3d0
@@ -294,7 +308,7 @@ SUBROUTINE rlog
 !DEALLOCATE(dat)
 ENDSUBROUTINE
 
-function ToomreQ(r,spiral)
+FUNCTION ToomreQ(r,spiral)
 DOUBLE PRECISION                        ::Q,r,Qod,ToomreQ,rq
 type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION,POINTER                ::para(:)
@@ -302,7 +316,7 @@ para=>spiral.para
 Qod = para(8)
 q   = para(9)
 rq  = para(10)
-ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2))
+ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2) + 1.2d0*dexp(-r**2/0.8**2))
 endfunction
 
 function nu(r,spiral)
@@ -352,6 +366,7 @@ snsd = ToomreQ(r,spiral)*pi*GravConst*sigma0(r,spiral)/kappa(r,spiral)
 ENDFUNCTION
  
 function Sigma0(rr,spiral)
+!This is surface density of disk
 IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION,POINTER                ::para(:)
@@ -587,6 +602,122 @@ ENDFUNCTION
 
 ENDFUNCTION
 
+FUNCTION StellarOmega(r,spiral)
+USE NUM
+IMPLICIT NONE
+DOUBLE PRECISION          ::StellarOmega
+DOUBLE PRECISION,INTENT(IN)::r
+!bulge
+DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
+!disk
+DOUBLE PRECISION          ::dM,da,db
+DOUBLE COMPLEX            ::VDisk
+DOUBLE PRECISION          ::a1,a2,M1,M2
+!spiral
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)=>null()
+
+para=>spiral.para
+
+!Bulge
+Mb   = para(3)
+rb   = para(4)
+!Disk
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+
+!!Limit case when r->0:
+if(r.lt.zerolimit)then
+        StellarOmega = 4.d0/3.d0*pi*GravConst*(MB) &
+              + 16.d0/105*GravConst*(M1/a1**3-M2/a2**3)*120.d0
+        StellarOmega = StellarOmega**0.5
+        return
+endif
+
+
+!Bulge
+Mb   = para(3)
+rb   = para(4)
+gBulge = (-r/sqrt(1.d0+r**2/rb**2)/rb+dasinh(r/rb))/r**2
+
+gBulge = 4.d0*pi*rb**3*Mb*gBulge*GravConst
+VBulge = sqrt(r*gBulge)
+
+!!Disk
+!dM     = para(5)
+!da     = para(6)
+!db     = para(7)
+!!VDisk  = sqrt(dfunc(pDisk,r)*r)
+!VDisk  = sqrt(dpDisk(r)*r)
+
+!LauDisk 
+VDisk  = VLauDisk(r)
+StellarOmega = sqrt(VBulge**2+dble(VDisk**2))/r
+!print *,r,V
+!CALL CheckResult
+CONTAINS
+
+FUNCTION pDisk(r)
+IMPLICIT NONE
+DOUBLE PRECISION        ::pDisk,r
+pDisk  = -GravConst*dM
+pDisk  = pDisk/sqrt(r**2+(da+db)**2)
+ENDFUNCTION
+
+FUNCTION dpDisk(r)
+IMPLICIT NONE
+DOUBLE PRECISION        ::dpDisk
+DOUBLE PRECISION        ::r
+dpDisk = GravConst*dM*r
+dpDisk = dpDisk/((da+db)**2+r**2)**1.5
+ENDFUNCTION
+
+SUBROUTINE CheckResult
+IMPLICIT NONE
+CHARACTER(len=72)                       ::errormsg
+write(errormsg,"(E10.3)")r
+errormsg = trim(errormsg)
+errormsg = 'Omega nan.@r = '//errormsg
+if(isnan(StellarOmega))CALL XERMSG('k3sqrt','Omega',errormsg,-99,2)
+ENDSUBROUTINE
+
+FUNCTION VLauDisk(r)
+IMPLICIT NONE
+DOUBLE COMPLEX                  ::VLauDisk
+DOUBLE PRECISION                ::r
+DOUBLE PRECISION                ::x1,x2
+DOUBLE PRECISION                ::a1,a2,M1,M2
+
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+x1 = sqrt(1.d0+(r/a1)**2)
+x2 = sqrt(1.d0+(r/a2)**2)
+
+VLauDisk = (M1*GravConst/a1**3*H(x1))
+VLauDisk = VLauDisk - (M2*GravConst/a2**3*H(x2))
+VLauDisk = sqrt(16.d0/105.d0*VLauDisk)
+VLauDisk = VLauDisk*r
+ENDFUNCTION
+
+FUNCTION H(x)
+IMPLICIT NONE
+DOUBLE PRECISION                ::H,x
+
+H = 0.d0
+H = 59.0625/x**11 + H
+H = 26.25  /x**9  + H
+H = 16.875 /x**7  + H
+H = 11.25  /x**5  + H
+H = 6.5625 /x**3  + H
+
+ENDFUNCTION
+
+ENDFUNCTION
+
 function dfunc(func,r,spiral)
 USE STELLARDISK_MODEL
 !
@@ -760,7 +891,7 @@ do i = 1, spiral.n
 enddo
 spiral.h1(1) = (0.d0,0.d0)
 
-!CALL refineh1
+CALL refineh1
 spiral.h1caled = .true.
 
 CONTAINS
@@ -790,10 +921,9 @@ DOUBLE PRECISION                ::F,r
 F = Sigma(r,spiral)
 ENDFUNCTION
 
-
 SUBROUTINE refineh1
 IMPLICIT NONE
-DOUBLE PRECISION,PARAMETER      ::cutoff = 9.5
+DOUBLE PRECISION,PARAMETER      ::cutoff = 10.76d0
 INTEGER                         ::i,f
 DO i =1, spiral.n
         if(spiral.r(i).gt.cutoff)then
@@ -967,6 +1097,20 @@ sigma1 = real(hh1*sigma0(r,spiral)/snsd(r,spiral)**2*exp(-2.d0*th*(0.d0,1.d0)))
 
 ENDFUNCTION
 
+FUNCTION sigma1r(r,spiral)
+USE STELLARDISK_MODEL
+!This is to find density perturbation by solve the k3sqr ODE
+IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,INTENT(IN)             ::r
+DOUBLE COMPLEX                          ::h1
+DOUBLE PRECISION                        ::sigma1r
+
+h1 = cintplt(spiral.h1,spiral.r,r)
+sigma1r = abs(h1)/snsd(r,spiral)**2*sigma0(r,spiral)
+
+ENDFUNCTION
+
 FUNCTION phi1(r,th,spiral,t)
 USE STELLARDISK_MODEL
 !IMPLICIT NONE
@@ -1061,7 +1205,7 @@ if(rs(4).gt.r)then
 !       write(0,*)'less than 4!!!!!!'
 !       write(0,*)Y
 !       write(0,*)'!!!'
-else
+elseif(r.lt.maxval(rs))then
         DO i = 4, size(dat)
                 if(rs(i).gt.r)then
                         exit
@@ -1069,8 +1213,11 @@ else
         ENDDO
         Y(1:4) = dat(i-2:i+1)
         X(1:4) = rs(i-2:i+1)
+ELSE
+        i = maxloc(rs,1)
+        Y(1:4) = dat(i-3:i)
+        X(1:4) =  rs(i-3:i)
 ENDIF        
-
 
 CALL DPLINT(N,X,Y,C)
 XX = r
@@ -1095,6 +1242,60 @@ cintplt = dcmplx( &
         intplt(real(dat),rs,r), &
         intplt(imag(dat),rs,r))
         
+ENDFUNCTION
+
+FUNCTION BulgeSurfaceDensity(r,Spiral)
+DOUBLE PRECISION                        ::BulgeSurfaceDensity
+DOUBLE PRECISION,INTENT(IN)             ::r
+type(typspiral),INTENT(IN),TARGET       ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)
+DOUBLE PRECISION                        ::BOUND,EPSREL,EPSABS
+DOUBLE PRECISION                        ::ans
+DOUBLE PRECISION                        ::ABSERR
+INTEGER                                 ::NEVAL,IERR,LIMIT,LENW,LAST,INF
+DOUBLE PRECISION,ALLOCATABLE            ::WORK(:)
+INTEGER,ALLOCATABLE                     ::IWORK(:)
+DOUBLE PRECISION                        ::Mb,rb !bulge parameters
+DOUBLE PRECISION                        ::rr
+
+para=>spiral.para
+
+rr = r
+Mb    = para(3)
+rb    = para(4)
+
+BOUND = 0.d0
+INF   = 2
+EPSREL = 10d-12
+EPSABS = 10d-15
+LIMIT  = 2000
+LENW   = LIMIT*4+2
+ALLOCATE(WORK(LENW))
+ALLOCATE(IWORK(LIMIT))
+CALL DQAGI(FUN,BOUND,INF,EPSABS,EPSREL,ANS,ABSERR,NEVAL,IERR,  &
+           LIMIT,LENW,LAST,IWORK,WORK)
+BulgeSurfaceDensity = ANS
+DEALLOCATE(WORK)
+DEALLOCATE(IWORK)
+CONTAINS 
+FUNCTION FUN(z)
+DOUBLE PRECISION                        ::FUN,z
+        FUN = Mb*(1+(r**2+z**2)/rb**2)**-1.5
+ENDFUNCTION
+ENDFUNCTION
+
+FUNCTION BulgeSurfaceDensityA(r,Spiral)
+DOUBLE PRECISION                        ::BulgeSurfaceDensityA
+type(typspiral),INTENT(IN),TARGET       ::spiral
+DOUBLE PRECISION,INTENT(IN)             ::r
+DOUBLE PRECISION,POINTER                ::para(:)
+DOUBLE PRECISION                        ::Mb,rb !bulge parameters
+DOUBLE PRECISION                        ::rr
+para=>spiral.para
+
+Mb    = para(3)
+rb    = para(4)
+BulgeSurfaceDensityA = 2.d0*Mb/(1.d0+r**2/rb**2)**1.5*sqrt(r**2+rb**2)
 ENDFUNCTION
 
 ENDMODULE STELLARDISK
