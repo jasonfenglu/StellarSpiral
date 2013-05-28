@@ -38,7 +38,7 @@ toproject= .false.
 /
 
 &FORCENML
-fratio   = 20.D0
+amp   = 34146.0094022332
 /
 
 

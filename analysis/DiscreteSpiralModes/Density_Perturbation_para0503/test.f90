@@ -18,27 +18,29 @@ DOUBLE PRECISION        ::tmp(2,2)
 ri = 0.d0
 rf = 15.d0
 !rf = 10.d0
-N  = 1000
+N  = 500
 
 dr = (rf-ri)/dble(n)
 
 tmp = 2.d0
-CALL h5io(tmp,2,2,"dsetf.h5","dset")
-CALL h5io(tmp(1,:),2,"dsetf.h5","dset2")
+!CALL h5io(tmp,2,2,"dsetf.h5","dset")
+!CALL h5io(tmp(1,:),2,"dsetf.h5","dset2")
+
+!!test file names stack
 !write(6,*)'return',checkfileext('123')
 !write(6,*)'return',checkfileext('234')
 !write(6,*)'return',checkfileext('123')
 !call printpt
 
-!CALL stdpara.readstd
 !CALL stdpara.printpara
 
-!CALL spiral.init(spiral,100,12.d0,stdpara,1)
+!CALL stdpara.readstd
+!CALL spiral.init(500,12.d0,stdpara,2)
+!CALL spiral.readw(2)
 !CALL FindSpiral(spiral)
-!CALL spiral.printh1
 !DO i = 0, N
 !        r = dr*dble(i)
-!       write(6,*)r,sigma0(r,spiral)
+!       write(6,*)r,BulgeSurfaceDensity(r,spiral),Sigma0(r,spiral)
 !ENDDO
 
 

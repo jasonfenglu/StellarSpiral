@@ -366,6 +366,7 @@ snsd = ToomreQ(r,spiral)*pi*GravConst*sigma0(r,spiral)/kappa(r,spiral)
 ENDFUNCTION
  
 function Sigma0(rr,spiral)
+!This is surface density of disk
 IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION,POINTER                ::para(:)
@@ -1096,6 +1097,20 @@ sigma1 = real(hh1*sigma0(r,spiral)/snsd(r,spiral)**2*exp(-2.d0*th*(0.d0,1.d0)))
 
 ENDFUNCTION
 
+FUNCTION sigma1r(r,spiral)
+USE STELLARDISK_MODEL
+!This is to find density perturbation by solve the k3sqr ODE
+IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,INTENT(IN)             ::r
+DOUBLE COMPLEX                          ::h1
+DOUBLE PRECISION                        ::sigma1r
+
+h1 = cintplt(spiral.h1,spiral.r,r)
+sigma1r = abs(h1)/snsd(r,spiral)**2*sigma0(r,spiral)
+
+ENDFUNCTION
+
 FUNCTION phi1(r,th,spiral,t)
 USE STELLARDISK_MODEL
 !IMPLICIT NONE
@@ -1227,6 +1242,60 @@ cintplt = dcmplx( &
         intplt(real(dat),rs,r), &
         intplt(imag(dat),rs,r))
         
+ENDFUNCTION
+
+FUNCTION BulgeSurfaceDensity(r,Spiral)
+DOUBLE PRECISION                        ::BulgeSurfaceDensity
+DOUBLE PRECISION,INTENT(IN)             ::r
+type(typspiral),INTENT(IN),TARGET       ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)
+DOUBLE PRECISION                        ::BOUND,EPSREL,EPSABS
+DOUBLE PRECISION                        ::ans
+DOUBLE PRECISION                        ::ABSERR
+INTEGER                                 ::NEVAL,IERR,LIMIT,LENW,LAST,INF
+DOUBLE PRECISION,ALLOCATABLE            ::WORK(:)
+INTEGER,ALLOCATABLE                     ::IWORK(:)
+DOUBLE PRECISION                        ::Mb,rb !bulge parameters
+DOUBLE PRECISION                        ::rr
+
+para=>spiral.para
+
+rr = r
+Mb    = para(3)
+rb    = para(4)
+
+BOUND = 0.d0
+INF   = 2
+EPSREL = 10d-12
+EPSABS = 10d-15
+LIMIT  = 2000
+LENW   = LIMIT*4+2
+ALLOCATE(WORK(LENW))
+ALLOCATE(IWORK(LIMIT))
+CALL DQAGI(FUN,BOUND,INF,EPSABS,EPSREL,ANS,ABSERR,NEVAL,IERR,  &
+           LIMIT,LENW,LAST,IWORK,WORK)
+BulgeSurfaceDensity = ANS
+DEALLOCATE(WORK)
+DEALLOCATE(IWORK)
+CONTAINS 
+FUNCTION FUN(z)
+DOUBLE PRECISION                        ::FUN,z
+        FUN = Mb*(1+(r**2+z**2)/rb**2)**-1.5
+ENDFUNCTION
+ENDFUNCTION
+
+FUNCTION BulgeSurfaceDensityA(r,Spiral)
+DOUBLE PRECISION                        ::BulgeSurfaceDensityA
+type(typspiral),INTENT(IN),TARGET       ::spiral
+DOUBLE PRECISION,INTENT(IN)             ::r
+DOUBLE PRECISION,POINTER                ::para(:)
+DOUBLE PRECISION                        ::Mb,rb !bulge parameters
+DOUBLE PRECISION                        ::rr
+para=>spiral.para
+
+Mb    = para(3)
+rb    = para(4)
+BulgeSurfaceDensityA = 2.d0*Mb/(1.d0+r**2/rb**2)**1.5*sqrt(r**2+rb**2)
 ENDFUNCTION
 
 ENDMODULE STELLARDISK

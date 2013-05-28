@@ -15,14 +15,14 @@ DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 DOUBLE PRECISION,ALLOCATABLE    ::fr(:,:),frsorted(:,:)
 INTEGER,ALLOCATABLE             ::sortindex(:)
 DOUBLE PRECISION                ::limit = 100.d0
-DOUBLE PRECISION                ::d,co,fmax,fratio
+DOUBLE PRECISION                ::d,co,fmax,amp
 DOUBLE PRECISION                ::x,y
 INTEGER,PARAMETER               ::n=512
 type(typspiral)                 ::spiral
 LOGICAL                         ::toproject
 INTEGER                         ::ierr
 namelist /densitypara/ toproject
-namelist /forcenml/                fratio 
+namelist /forcenml/               amp 
 
 !read in density plot related options
 open(10,file='para.list')
@@ -133,15 +133,15 @@ ENDDO
 CALL findco(co,spiral)
 !!Find max force near co
 DO i = 1, n**2
-        if((abs(frsorted(i,1) - co)<1.d0).and.(frsorted(i,2)>fmax))then
-                fmax = frsorted(i,2)
+        if(abs(frsorted(i,1) - co)<1.d-3)then
+                fmax = max(frsorted(i,2),fmax)
                 r = frsorted(i,1)
         ENDIF
 ENDDO
+fmax = fmax*amp
 200 FORMAT(6(G12.4,3X))
-write(6,200)'max at','spiral f','centri f','percentage','factor'
-write(6,200)r,fmax,StellarOmega(r,spiral)**2*r,fmax/StellarOmega(r,spiral)**2/r*100.d0,fratio/fmax*StellarOmega(r,spiral)**2*r/100.d0
-
+write(6,200)'max at','spiral f','centri f','percentage'
+write(6,200)r,fmax,StellarOmega(r,spiral)**2*r,fmax/StellarOmega(r,spiral)**2/r*100.d0
 
 !save fr and centrifugal force
 CALL h5io(frsorted(:,1),n**2,hdfname,'r')

@@ -72,7 +72,6 @@ CALL stdpara.readstd
 CALL spiral.init(500,12.d0,stdpara,2)
 CALL spiral.readw(2)
 CALL FindSpiral(spiral)
-CALL FindPhi1(spiral)
 dx = domain/dble(n)
 dy = domain/dble(n)
 
