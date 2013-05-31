@@ -5,9 +5,9 @@
 #PBS -e searchall.err
 #PBS -o searchall.mpi.log
 ###### Queue name ######
-#PBS -q medium
+#PBS -q long
 ###### Number of nodes and cores(ppn), time(walltime) and memory size(mem) ######
-#PBS -l nodes=8:ppn=8
+#PBS -l nodes=16:ppn=4:bc
 ###### Sends mail to yourself when the job begins and ends ######
 #PBS -m be
 ###### Specific the shell types ######
@@ -33,6 +33,6 @@ module load torque lam ifc pgplot
 ###### Run parallel jobs ######
 cat $PBS_NODEFILE | uniq > LAMHOST
 $LAM_HOME/bin/lamboot -v LAMHOST
-$LAM_HOME/bin/mpiexec C ./SearchAll.exe $start $end> searchall.log
+$LAM_HOME/bin/mpiexec C ./SearchAll.exe $rstart $rend  $istart $iend> searchall.log
 $LAM_HOME/bin/lamhalt
 rm LAMHOST

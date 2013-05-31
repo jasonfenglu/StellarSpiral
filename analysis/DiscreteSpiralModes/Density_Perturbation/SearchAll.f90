@@ -6,7 +6,6 @@ USE STELLARDISK_MODEL
 IMPLICIT NONE
 include 'mpif.h'
 type searchgrid_type
-sequence
         DOUBLE PRECISION,ALLOCATABLE::coord(:,:,:)
         DOUBLE PRECISION,ALLOCATABLE::error(:,:)
         DOUBLE PRECISION,ALLOCATABLE::lcoord(:,:)
@@ -16,7 +15,7 @@ type(searchgrid_type)           ::searchgrid,recvgrid
 type(typspiral)                 ::spiral
 CHARACTER(len=32)                 ::arg
 DOUBLE PRECISION                ::dr,wri,wii,di,err
-DOUBLE PRECISION                ::domain(4) = (/40d0,120d0,0d0,-7d0/)  !better resolution 40-120
+DOUBLE PRECISION                ::domain(4) = (/40d0,100d0,0d0,-3d0/)  !better resolution 40-120,40 for 1 kpc
 DOUBLE PRECISION                ::wr,wi
 DOUBLE PRECISION,ALLOCATABLE    ::errormpisend(:),mpiall(:)
 INTEGER                         ::l,i,j,p(1),n,m
@@ -30,18 +29,25 @@ CALL MPI_INIT(ierr)
 CALL MPI_COMM_RANK(MPI_COMM_WORLD,myid,ierr)
 CALL MPI_COMM_SIZE(MPI_COMM_WORLD,mpi_size,ierr)
 print *,'MPI started',myid
-narg = iargc()
 
+
+!reading hand put search range
+narg = iargc()
 SELECT CASE(narg)
 CASE(2)
-                CALL getarg(1,arg)
-                READ(arg,*)domain(1)
-                CALL getarg(2,arg)
-                READ(arg,*)domain(2)
+        CALL getarg(1,arg)
+        READ(arg,*)domain(1)
+        CALL getarg(2,arg)
+        READ(arg,*)domain(2)
+CASE(4)
+        DO i = 1, 4
+                CALL getarg(i,arg)
+                READ(arg,*)domain(4)
+        ENDDO
 CASE DEFAULT
 ENDSELECT
 
-m = int(domain(2)-domain(1))*40
+m = int(domain(2)-domain(1))*20
 n = m/10
 if(mod(m,mpi_size).eq.0)then
         chunk = m/mpi_size
@@ -52,9 +58,7 @@ m = chunk*mpi_size
 chunk = chunk *n
 
 ALLOCATE(searchgrid.coord(m,n,2))
-ALLOCATE(searchgrid.error(m,n))
 ALLOCATE(searchgrid.lcoord(m*n,2))
-ALLOCATE(searchgrid.lerror(m*n))
 
 dr = (domain(2)-domain(1))/dble(m)
 di = (domain(4)-domain(3))/dble(n)
@@ -70,6 +74,7 @@ DO i = 1,n
 !       searchgrid%coord(:,i,2) =                wii
 enddo
 searchgrid.lcoord = reshape(searchgrid.coord,(/m*n,2/))
+DEALLOCATE(searchgrid.coord)
 
 CALL stdpara.readstd
 print *,myid,m,n,chunk
@@ -78,7 +83,7 @@ ALLOCATE(errormpisend(chunk))
 !$OMP DO 
 !DO j = 1,m*n
 DO j = chunk*myid+1,chunk*(myid+1)
-        CALL spiral.init(100,15.d0,stdpara,1)
+        CALL spiral.init(100,10.d0,stdpara,1)
         wr = searchgrid%lcoord(j,1)
         wi = searchgrid%lcoord(j,2)
         spiral.w = dcmplx(wr,wi)
@@ -99,7 +104,11 @@ ENDDO
 !$OMP END DO
 !$OMP END PARALLEL
 print *,'collecting data',myid
+
+ALLOCATE(searchgrid.lerror(m*n))
 CALL MPI_GATHER(errormpisend,chunk,MPI_DOUBLE_PRECISION,searchgrid.lerror,chunk,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+DEALLOCATE(errormpisend)
+ALLOCATE(searchgrid.error(m,n))
 
 !p = MINLOC(searchgrid%lerror(:))
 !wri = searchgrid%lcoord(p(1),1)
@@ -112,7 +121,6 @@ CALL MPI_GATHER(errormpisend,chunk,MPI_DOUBLE_PRECISION,searchgrid.lerror,chunk,
 !ENDDO
 
 if(myid.eq.0)then
-        searchgrid.coord = reshape(searchgrid.coord,(/m,n,2/))
         searchgrid.error = reshape(searchgrid.lerror,(/m,n/))
         print *,'min error',minval(searchgrid.error(:,:))
         CALL plotpspdsearch(searchgrid.error,m,n,domain)
@@ -125,10 +133,10 @@ endif
 !DO i = 1, 100
 !        write(10,*)spiral.r(i),real(k3sqrt(spiral.r(i)))
 !enddo
-DEALLOCATE(searchgrid.coord)
-DEALLOCATE(searchgrid.error)
-DEALLOCATE(searchgrid.lcoord)
-DEALLOCATE(searchgrid.lerror)
+!DEALLOCATE(searchgrid.coord)
+!DEALLOCATE(searchgrid.error)
+!DEALLOCATE(searchgrid.lcoord)
+!DEALLOCATE(searchgrid.lerror)
 
 CALL MPI_FINALIZE(ierr)
 ENDPROGRAM
