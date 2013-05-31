@@ -34,7 +34,7 @@ drawcir  = .false.,
 /
 
 &DENSITYPARA
-toproject= .false.		   
+toproject= .true.		   
 /
 
 &FORCENML

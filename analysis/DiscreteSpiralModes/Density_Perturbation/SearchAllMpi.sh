@@ -2,12 +2,12 @@
 ###### Job name ######
 #PBS -N Search_All 
 ###### Output files ######
-#PBS -e searchall.err
+#PBS -e searchall.mpi.err
 #PBS -o searchall.mpi.log
 ###### Queue name ######
 #PBS -q long
 ###### Number of nodes and cores(ppn), time(walltime) and memory size(mem) ######
-#PBS -l nodes=16:ppn=4:bc
+#PBS -l nodes=12:ppn=4:bc
 ###### Sends mail to yourself when the job begins and ends ######
 #PBS -m be
 ###### Specific the shell types ######
@@ -18,11 +18,12 @@ cd $PBS_O_WORKDIR
 
 ###### Load modules to setup environment ######
 . /etc/profile.d/modules.sh
-module purge
-module load torque lam ifc pgplot
-#rm searchall.err
-#rm searchall.mpi.log
-#rm searchall.log
+
+. ~/.module
+
+rm searchall.mpi.err
+rm searchall.mpi.log
+rm searchall.log
 
 # Set the number of OpenMP threads to share the work.
 # This is actually the same as the default value as each node has 8 cores
@@ -33,6 +34,7 @@ module load torque lam ifc pgplot
 ###### Run parallel jobs ######
 cat $PBS_NODEFILE | uniq > LAMHOST
 $LAM_HOME/bin/lamboot -v LAMHOST
+$LAM_HOME/bin/lamclean -v
 $LAM_HOME/bin/mpiexec C ./SearchAll.exe $rstart $rend  $istart $iend> searchall.log
 $LAM_HOME/bin/lamhalt
 rm LAMHOST

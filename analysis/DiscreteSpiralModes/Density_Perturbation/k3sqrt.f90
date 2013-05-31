@@ -602,6 +602,220 @@ ENDFUNCTION
 
 ENDFUNCTION
 
+FUNCTION Omega2(r,spiral)
+!use summantion instead of put in the same subroutine
+USE NUM
+IMPLICIT NONE
+DOUBLE PRECISION          ::Omega2
+DOUBLE PRECISION,INTENT(IN)::r
+!spiral
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)=>null()
+
+para=>spiral.para
+
+Omega2 = bOmega(r,spiral)**2 &
+       + dOmega(r,spiral)**2 &
+       + hOmega(r,spiral)**2
+
+Omega2 = sqrt(Omega2)
+
+ENDFUNCTION
+
+FUNCTION bOmega(r,spiral)
+USE NUM
+IMPLICIT NONE
+DOUBLE PRECISION          ::bOmega
+DOUBLE PRECISION,INTENT(IN)::r
+!bulge
+DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
+!spiral
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)=>null()
+
+para=>spiral.para
+
+!Bulge
+Mb   = para(3)
+rb   = para(4)
+
+!!Limit case when r->0:
+if(r.lt.zerolimit)then
+        bOmega = 4.d0/3.d0*pi*GravConst*(MB) 
+        bOmega = bOmega**0.5
+        return
+endif
+
+
+!Bulge
+Mb   = para(3)
+rb   = para(4)
+gBulge = (-r/sqrt(1.d0+r**2/rb**2)/rb+dasinh(r/rb))/r**2
+
+gBulge = 4.d0*pi*rb**3*Mb*gBulge*GravConst
+VBulge = sqrt(r*gBulge)
+
+bOmega = VBulge/r
+!print *,r,V
+!CALL CheckResult
+CONTAINS 
+SUBROUTINE CheckResult
+IMPLICIT NONE
+CHARACTER(len=72)                       ::errormsg
+write(errormsg,"(E10.3)")r
+errormsg = trim(errormsg)
+errormsg = 'bOmega nan.@r = '//errormsg
+if(isnan(bOmega))CALL XERMSG('k3sqrt','bOmega',errormsg,-99,2)
+ENDSUBROUTINE
+
+ENDFUNCTION
+
+FUNCTION dOmega(r,spiral)
+USE NUM
+IMPLICIT NONE
+DOUBLE PRECISION          ::dOmega
+DOUBLE PRECISION,INTENT(IN)::r
+!disk
+DOUBLE PRECISION          ::dM,da,db
+DOUBLE COMPLEX            ::VDisk
+DOUBLE PRECISION          ::a1,a2,M1,M2
+!spiral
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)=>null()
+
+para=>spiral.para
+
+!Disk
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+
+!!Limit case when r->0:
+if(r.lt.zerolimit)then
+        dOmega = 16.d0/105*GravConst*(M1/a1**3-M2/a2**3)*120.d0
+        dOmega = dOmega**0.5
+        return
+endif
+
+
+
+!LauDisk 
+VDisk  = VLauDisk(r)
+dOmega = VDisk/r
+!print *,r,V
+!CALL CheckResult
+CONTAINS
+
+FUNCTION pDisk(r)
+IMPLICIT NONE
+DOUBLE PRECISION        ::pDisk,r
+pDisk  = -GravConst*dM
+pDisk  = pDisk/sqrt(r**2+(da+db)**2)
+ENDFUNCTION
+
+FUNCTION dpDisk(r)
+IMPLICIT NONE
+DOUBLE PRECISION        ::dpDisk
+DOUBLE PRECISION        ::r
+dpDisk = GravConst*dM*r
+dpDisk = dpDisk/((da+db)**2+r**2)**1.5
+ENDFUNCTION
+
+SUBROUTINE CheckResult
+IMPLICIT NONE
+CHARACTER(len=72)                       ::errormsg
+write(errormsg,"(E10.3)")r
+errormsg = trim(errormsg)
+errormsg = 'Omega nan.@r = '//errormsg
+if(isnan(dOmega))CALL XERMSG('k3sqrt','Omega',errormsg,-99,2)
+ENDSUBROUTINE
+
+FUNCTION VLauDisk(r)
+IMPLICIT NONE
+DOUBLE COMPLEX                  ::VLauDisk
+DOUBLE PRECISION                ::r
+DOUBLE PRECISION                ::x1,x2
+DOUBLE PRECISION                ::a1,a2,M1,M2
+
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+x1 = sqrt(1.d0+(r/a1)**2)
+x2 = sqrt(1.d0+(r/a2)**2)
+
+VLauDisk = (M1*GravConst/a1**3*H(x1))
+VLauDisk = VLauDisk - (M2*GravConst/a2**3*H(x2))
+VLauDisk = sqrt(16.d0/105.d0*VLauDisk)
+VLauDisk = VLauDisk*r
+ENDFUNCTION
+
+FUNCTION H(x)
+IMPLICIT NONE
+DOUBLE PRECISION                ::H,x
+
+H = 0.d0
+H = 59.0625/x**11 + H
+H = 26.25  /x**9  + H
+H = 16.875 /x**7  + H
+H = 11.25  /x**5  + H
+H = 6.5625 /x**3  + H
+
+ENDFUNCTION
+
+ENDFUNCTION
+
+FUNCTION hOmega(r,spiral)
+USE NUM
+IMPLICIT NONE
+DOUBLE PRECISION          ::hOmega
+DOUBLE PRECISION,INTENT(IN)::r
+!Halo
+DOUBLE PRECISION          ::Lh,rhoh,gHalo,VHalo
+!spiral
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)=>null()
+
+para=>spiral.para
+
+!Halo
+Lh   = para(1)
+rhoh = para(2)
+!!Limit case when r->0:
+if(r.lt.zerolimit)then
+        hOmega = 4.d0/3.d0*pi*GravConst*(RHOH) 
+        hOmega = hOmega**0.5
+        return
+endif
+
+
+!Halo
+Lh   = para(1)
+rhoh = para(2)
+gHalo = 4.d0*Lh**2.d0*pi*rhoh*(r - Lh*atan(r/Lh))/r**2
+gHalo = GravConst*gHalo
+VHalo = sqrt(r*gHalo)
+
+
+hOmega = VHalo/r
+!print *,r,V
+!CALL CheckResult
+CONTAINS
+
+
+SUBROUTINE CheckResult
+IMPLICIT NONE
+CHARACTER(len=72)                       ::errormsg
+write(errormsg,"(E10.3)")r
+errormsg = trim(errormsg)
+errormsg = 'Omega nan.@r = '//errormsg
+if(isnan(hOmega))CALL XERMSG('k3sqrt','Omega',errormsg,-99,2)
+ENDSUBROUTINE
+
+
+ENDFUNCTION
+
 FUNCTION StellarOmega(r,spiral)
 USE NUM
 IMPLICIT NONE
@@ -1093,7 +1307,7 @@ hh1 = cintplt(spiral.h1,spiral.r,r)
 !find density
 th = th + spiral.phase
 sigma1 = real(hh1*sigma0(r,spiral)/snsd(r,spiral)**2*exp(-2.d0*th*(0.d0,1.d0)))
-
+if(r>spiral.fortoone)sigma1 = sigma1 *exp(-(r-spiral.fortoone)**2/1.d0**2)
 
 ENDFUNCTION
 
@@ -1108,6 +1322,7 @@ DOUBLE PRECISION                        ::sigma1r
 
 h1 = cintplt(spiral.h1,spiral.r,r)
 sigma1r = abs(h1)/snsd(r,spiral)**2*sigma0(r,spiral)
+if(r>spiral.fortoone)sigma1r = sigma1r *exp(-(r-spiral.fortoone)**2/1.d0**2)
 
 ENDFUNCTION
 

@@ -3,6 +3,7 @@ USE PLOTTING
 USE STELLARDISK
 USE OMP_LIB
 USE STELLARDISK_MODEL
+USE io
 IMPLICIT NONE
 include 'mpif.h'
 type searchgrid_type
@@ -39,11 +40,17 @@ CASE(2)
         READ(arg,*)domain(1)
         CALL getarg(2,arg)
         READ(arg,*)domain(2)
+        IF(myid.eq.0)THEN
+                print *,'only r defined:',domain
+        ENDIF
 CASE(4)
         DO i = 1, 4
                 CALL getarg(i,arg)
-                READ(arg,*)domain(4)
+                READ(arg,*)domain(i)
         ENDDO
+        IF(myid.eq.0)THEN
+                print *,'defined region:',domain
+        ENDIF
 CASE DEFAULT
 ENDSELECT
 
@@ -124,6 +131,10 @@ if(myid.eq.0)then
         searchgrid.error = reshape(searchgrid.lerror,(/m,n/))
         print *,'min error',minval(searchgrid.error(:,:))
         CALL plotpspdsearch(searchgrid.error,m,n,domain)
+        !!Wrong Output, don't know why.
+        !CALL h5io(searchgrid.error,n,m,'FindPspd/error.h5','error')
+        !CALL h5io(searchgrid.coord(:,1,1),m,'FindPspd/error.h5','r')
+        !CALL h5io(searchgrid.coord(1,:,2),n,'FindPspd/error.h5','i')
 endif
 
 !1000 CALL INIT_STELLARDISK(100,40.d0)

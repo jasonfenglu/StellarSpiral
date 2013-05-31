@@ -2,7 +2,7 @@ PROGRAM kendall
 USE STELLARDISK_MODEL
 USE STELLARDISK
 IMPLICIT NONE
-CHARACTER(len=20),PARAMETER             ::datfname='ReAmpKendall.csv'
+CHARACTER(len=40),PARAMETER             ::datfname='data/ReAmpKendall.csv'
 type(typspiral)                         ::spiral
 INTEGER,PARAMETER                       ::datlength=207
 DOUBLE PRECISION                        ::dat(datlength,6)
@@ -93,7 +93,7 @@ INTEGER                                 ::i
 amperror = 0.d0
 DO i = 1, datlength
         r = dat(i,1)
-        if(r.gt.8.0d0)exit
+        if(r.gt.spiral.fortoone)exit
         tmp = sigma1r(r,spiral)/(sigma0(r,spiral)+BulgeSurfaceDensity(r,spiral))
         amperror = amperror + (amp*tmp-dat(i,2))**2
 ENDDO
