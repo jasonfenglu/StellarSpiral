@@ -2,10 +2,82 @@ module plotting
 REAL,SAVE                               ::points(4,2)
 CONTAINS
 
+SUBROUTINE countour(F,n,domain,contourn)
+IMPLICIT NONE
+DOUBLE PRECISION,INTENT(IN)             ::F(:,:)        !plotting data
+DOUBLE PRECISION,INTENT(IN)             ::domain        !plot range
+REAL                                    ::TR(6)         !plot geometry
+REAL                                    ::dx,dy
+REAL                                    ::BRIGHT,CONTRA
+REAL                                    ::ALEV(1)       !drawing elevation
+REAL                                    ::vmax,vmin     !range of z-direction
+INTEGER,INTENT(IN)                      ::n             !dimentsion
+INTEGER                                 ::PGBEG
+INTEGER                                 ::contourn      !countour number
+INTEGER                                 ::i             !iteration index
+
+!open plotting device
+IF (PGBEG(0,'/xs',1,1) .NE. 1)THEN
+        write(6,*)achar(27)//'[33m pgplot open failed',achar(27)//'[0m'
+        STOP
+ENDIF
+!call plotting routine
+CALL output
+IF (PGBEG(0,'countour.ps/ps',1,1) .NE. 1)THEN
+        write(6,*)achar(27)//'[33m pgplot open failed',achar(27)//'[0m'
+        STOP
+ENDIF
+!call plotting routine
+CALL output
+
+CONTAINS
+
+SUBROUTINE output
+CALL PGSVP(0.0,0.95,0.0,0.95)
+dx = real(domain)/real(n/2)
+dy = real(domain)/real(n/2)
+TR(3) = 0.
+TR(5) = 0.
+TR(2) = dx
+TR(1) = -domain-dx/2.d0
+TR(4) = -domain-dy/2.d0
+TR(6) = dy
+
+BRIGHT = 0.5
+CONTRA = 0.9
+
+vmax = real(MAXVAL(F(:,:)))
+vmin = real(MINVAL(F(:,:)))
+vmax = vmax * 1.1d0
+vmin = vmin * 1.1d0
+write(6,*)achar(27)//'[33m Ploting z scale :',vmax,vmin,achar(27)//'[0m'
+
+!setting color style
+CALL PALETT(2,CONTRA,Bright)
+CALL PGBBUF
+CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+CALL PGBBUF
+
+CALL PGSCI(3)
+DO I = 1, contourn
+        ALEV = vmin + (I-1)*(vmax - vmin)/real(contourn)
+        print *,I,ALEV
+        CALL PGCONS(real(F),N,N,1,N,1,N,ALEV,-1,TR)
+ENDDO
+!CALL PGIMAG(REAL(F(:,:)),n,n,1,n,1,n,vmin,vmax,TR)
+CALL PGPT(1,(/0./),(/0./),2)
+CALL PGSCI(1)
+CALL PGBBUF
+CALL PGCLOS
+
+
+ENDSUBROUTINE
+
+ENDSUBROUTINE
+
 SUBROUTINE plotdensity(F,n,domain)
 IMPLICIT NONE
 DOUBLE PRECISION,INTENT(IN)             ::F(:,:)        !plotting data
-DOUBLE PRECISION                        ::force(2*n,2*n,2)
 DOUBLE PRECISION                        ::domain        !plot range
 REAL                                    ::TR(6)         !plot geometry
 REAL                                    ::TR2(6)        !plot geometry

@@ -151,10 +151,13 @@ points(3,:) = (/0.0,4.727/)
 points(4,:) = (/0.0,-4.727/)
 CALL dprojection(points)
 
-CALL plotdensity(density,n,domain)
-CALL h5io(xcoord,2*N,'density.h5','xcoord')
-CALL h5io(ycoord,2*N,'density.h5','ycoord')
-CALL h5io(density,2*N,2*N,'density.h5','density')
+FORALL(i = 1:n*2,j = 1:n*2,density(i,j)<0)
+        density(i,j) = 0.d0
+ENDFORALL
+CALL countour(density,n*2,domain,4)
+!CALL h5io(xcoord,2*N,'density.h5','xcoord')
+!CALL h5io(ycoord,2*N,'density.h5','ycoord')
+!CALL h5io(density,2*N,2*N,'density.h5','density')
 
 DEALLOCATE(xcoord)
 DEALLOCATE(ycoord)
