@@ -147,6 +147,11 @@ if(myid.eq.0)then
         call spiral.printh1
 ENDIF
 #ifdef STELLARSPIRAL
+if(myid.eq.0)then
+        write(6,*)achar(27)//'[95m [main] Initializing spiral force',achar(27)//'[0m'
+        call spiral.printu
+        call spiral.printh1
+ENDIF
 ALLOCATE(stellarforce.den(1:ncell_loc(1),1:ncell_loc(2)))
 ALLOCATE(stellarforce.sgx(1:ncell_loc(1),1:ncell_loc(2)))
 ALLOCATE(stellarforce.sgy(1:ncell_loc(1),1:ncell_loc(2)))
@@ -161,8 +166,6 @@ if(myid.eq.0)then
         write(6,*)achar(27)//'[95m init by ccfeng complete'//achar(27)//'[0m'
 ENDIF
 !init complete
-
-
 
 if(fstart .eq. 0) then
   t = 0.d0

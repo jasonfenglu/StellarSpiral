@@ -11,13 +11,13 @@ y = hdf5read(filename,'y');
 fx = fx';
 fy = fy';
 f = (fx.^2+fy.^2).^0.5;
-imagesc(x,y,(den));
+imagesc(x,y,(fx));
 title(sprintf('frame %d',i)) 
 axis xy
 axis equal
 axis tight
 colorbar
-%caxis([-.03 .03])
+caxis([-3 3])
 
 pause(0.001);
 

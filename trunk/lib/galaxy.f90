@@ -123,6 +123,11 @@ INTEGER                                 ::i,j
 DOUBLE PRECISION                        ::x,y,r,th
 DOUBLE PRECISION                        ::amp
 namelist /FORCENML/ amp
+
+open(10,file='para.list')
+read(10,nml=FORCENML)
+close(10)
+
 DO j = 1, ncell_loc(2)
 DO i = 1, ncell_loc(1)
         x = x_loc(i)

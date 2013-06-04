@@ -5,9 +5,9 @@
 #PBS -o antares2d.out
 #PBS -e antares2d.err
 ###### Number of nodes and cores ######
-#PBS -l nodes=2:ppn=16:px
+#PBS -l nodes=8:ppn=8
 ###### Queue name ######
-#PBS -q small
+#PBS -q medium
 ###### Specific the shell types ######
 #PBS -S /bin/bash
 
@@ -24,7 +24,6 @@ rm antares2d.*
 ###### Run your jobs with parameters ######
 # Start a LAM multicomputer
 $LAM_HOME/bin/lamboot $PBS_NODEFILE
-$LAM_HOME/bin/lamclean
 
 $LAM_HOME/bin/mpiexec C ./antares2d  > log
 
