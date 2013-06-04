@@ -29,7 +29,7 @@ end subroutine
 !!!==========================================================
        subroutine bndflux_outgoing_isothermal(U1, Fx, dd)
        use common_params
-       use GALAXY,only:gasdensity,RC
+       use GALAXY,only:gasdensity,RC,spiral
        implicit none
        dimension U1(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,nvar)
        dimension Fx(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,nvar)
@@ -38,6 +38,8 @@ end subroutine
        double precision:: r,z1,z2,z3,dW,dU,dV
        double precision:: U1,Fx,Wb,Ub,Vb
        double precision:: c, xl, yl,v0
+       double precision:: pspd
+       pspd = real(spiral.w)/2.d0
         dx = x_loc(2)-x_loc(1)
        csq = snd**2.d0
          c = snd
@@ -48,16 +50,16 @@ end subroutine
          i   = 1
          r   = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
          rho = gasdensity(r,0.d0)
-          ux = -RC(r)*y_loc(j)/r
-          uy =  RC(r)*x_loc(i)/r
+          ux = -RC(r)*y_loc(j)/r + y_loc(j)*pspd
+          uy =  RC(r)*x_loc(i)/r - x_loc(i)*pspd
           dW = U1(1,j,1)-rho
           dU = U1(1,j,2)-rho*ux
           dV = U1(1,j,3)-rho*uy
          !i   = 0
          xl = x_loc(i)-0.5d0*dx
          r   = dsqrt(xl**2.d0+y_loc(j)**2.d0)
-          ux = -RC(r)*y_loc(j)/r
-          uy =  RC(r)*xl/r
+          ux = -RC(r)*y_loc(j)/r + y_loc(j)*pspd
+          uy =  RC(r)*xl/r - xl*pspd
           z1 =  ( ( ux+c )*dW-dU )/2.d0/c
           z2 =    (-uy   )*dW+dV
           z3 =  (-( ux-c )*dW+dU )/2.d0/c
@@ -76,15 +78,15 @@ end subroutine
          i   = ncell_loc(1)
          r   = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
          rho = gasdensity(r,0.d0)
-          ux = -RC(r)*y_loc(j)/r
-          uy =  RC(r)*x_loc(i)/r
+          ux = -RC(r)*y_loc(j)/r + y_loc(j)*pspd
+          uy =  RC(r)*x_loc(i)/r - x_loc(i)*pspd
           dW = U1(ncell_loc(1),j,1)-rho
           dU = U1(ncell_loc(1),j,2)-rho*ux
           dV = U1(ncell_loc(1),j,3)-rho*uy
           xl = x_loc(i)+0.5d0*dx
          r   = dsqrt(xl**2.d0+y_loc(j)**2.d0)
-          ux = -RC(r)*y_loc(j)/r
-          uy =  RC(r)*xl/r
+          ux = -RC(r)*y_loc(j)/r + y_loc(j)*pspd
+          uy =  RC(r)*xl/r - xl*pspd
           z1 =  ( ( ux+c )*dW-dU )/2.d0/c
           z2 =    (-uy   )*dW+dV
           z3 =  (-( ux-c )*dW+dU )/2.d0/c
@@ -104,16 +106,16 @@ end subroutine
          j   = 1
          r   = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
          rho = gasdensity(r,0.d0)
-          ux =  RC(r)*x_loc(i)/r
-          uy =  RC(r)*y_loc(j)/r
+          uy =  RC(r)*y_loc(j)/r - y_loc(j)*pspd
+          ux =  RC(r)*x_loc(i)/r - x_loc(i)*pspd
           dW = U1(i,1,1)-rho
           dU = U1(i,1,3)-rho*ux
           dV = -U1(i,1,2)-rho*uy
          !j   = 0
           yl = y_loc(j)-0.5d0*dx
          r   = dsqrt(x_loc(i)**2.d0+yl**2.d0)
-          ux =  RC(r)*x_loc(i)/r
-          uy =  RC(r)*yl/r
+          uy =  RC(r)*yl/r - yl*pspd
+          ux =  RC(r)*x_loc(i)/r - x_loc(i)*pspd
           z1 =  ( ( ux+c )*dW-dU )/2.d0/c
           z2 =    (-uy   )*dW+dV
           z3 =  (-( ux-c )*dW+dU )/2.d0/c
@@ -132,15 +134,15 @@ end subroutine
          j   = ncell_loc(2)
          r   = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
          rho = gasdensity(r,0.d0)
-          ux =  RC(r)*x_loc(i)/r
-          uy =  RC(r)*y_loc(j)/r
+          ux =  RC(r)*x_loc(i)/r - x_loc(i)*pspd
+          uy =  RC(r)*y_loc(j)/r - y_loc(j)*pspd
           dW = U1(i,ncell_loc(2),1)-rho
           dU = U1(i,ncell_loc(2),3)-rho*ux
           dV = -U1(i,ncell_loc(2),2)-rho*uy
           yl = y_loc(j)+0.5d0*dx
          r   = dsqrt(x_loc(i)**2.d0+yl**2.d0)
-          ux =  RC(r)*x_loc(i)/r
-          uy =  RC(r)*yl/r
+          ux =  RC(r)*x_loc(i)/r - x_loc(i)*pspd
+          uy =  RC(r)*yl/r - yl*pspd
           z1 =  ( ( ux+c )*dW-dU )/2.d0/c
           z2 =    (-uy   )*dW+dV
           z3 =  (-( ux-c )*dW+dU )/2.d0/c

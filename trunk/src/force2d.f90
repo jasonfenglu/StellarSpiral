@@ -16,17 +16,24 @@ double precision::r_loc,CV,Orsq
 !double precision::cs2s,sn2s,cs2t,sn2t,cs2st,sn2st
 !double precision::px,py
 !!rotating frame
-DOUBLE PRECISION::pspd,Omega,tmp
+DOUBLE PRECISION::pspd
+DOUBLE PRECISION::rho,vx,vy
 
+pspd = real(spiral.w)/2.d0
 ! implement your external force here !!
 ! gas pressure
   do j=1, ncell_loc(2)
     do i=1, ncell_loc(1)
+       rho = q_loc(i,j,1)
+       vx = q_loc(i,j,2)/rho
+       vy = q_loc(i,j,3)/rho
        r_loc = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
        CV = RC(r_loc)
        Orsq= (CV/r_loc)**2.d0
-       fx(i,j)=-x_loc(i)*Orsq
-       fy(i,j)=-y_loc(j)*Orsq
+       !fx(i,j)=-x_loc(i)*Orsq
+       !fy(i,j)=-y_loc(j)*Orsq
+       fx(i,j)=-x_loc(i)*Orsq + (pspd**2.d0)*x_loc(i) + 2.d0*pspd*vy
+       fy(i,j)=-y_loc(j)*Orsq + (pspd**2.d0)*y_loc(j) - 2.d0*pspd*vx
     enddo
   enddo
 

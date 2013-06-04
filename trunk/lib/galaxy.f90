@@ -16,7 +16,7 @@ FUNCTION RC(r)
 IMPLICIT NONE
 DOUBLE PRECISION        ::RC,r
 
-RC = Omega(r,spiral)
+RC = Omega(r,spiral)*r
 
 ENDFUNCTION
 
@@ -121,13 +121,15 @@ SUBROUTINE InitStellarDensity
 USE common_params,only:ncell_loc,x_loc,y_loc
 INTEGER                                 ::i,j
 DOUBLE PRECISION                        ::x,y,r,th
+DOUBLE PRECISION                        ::amp
+namelist /FORCENML/ amp
 DO j = 1, ncell_loc(2)
 DO i = 1, ncell_loc(1)
         x = x_loc(i)
         y = y_loc(j)
         r = sqrt(x**2+y**2)
         th = atan2(y,x)
-        stellarforce.den(i,j) = Sigma1(r,th,spiral)
+        stellarforce.den(i,j) = Sigma1(r,th,spiral)*amp
 ENDDO
 ENDDO
 ENDSUBROUTINE

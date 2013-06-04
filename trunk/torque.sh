@@ -5,7 +5,7 @@
 #PBS -o antares2d.out
 #PBS -e antares2d.err
 ###### Number of nodes and cores ######
-#PBS -l nodes=1:ppn=16px
+#PBS -l nodes=2:ppn=16:px
 ###### Queue name ######
 #PBS -q small
 ###### Specific the shell types ######
@@ -19,11 +19,14 @@ cd $PBS_O_WORKDIR
 module purge
 module load torque fftw/2.1.5_ic13.0_lam_7.1.4 HDF/5-1.8.10_ic13.0_lam_7.1.4 lam/7.1.4_ic13.0 torque
 
+rm antares2d.*
+
 ###### Run your jobs with parameters ######
 # Start a LAM multicomputer
 $LAM_HOME/bin/lamboot $PBS_NODEFILE
+$LAM_HOME/bin/lamclean
 
-$LAM_HOME/bin/mpiexec C ./antares2d 
+$LAM_HOME/bin/mpiexec C ./antares2d  > log
 
 # Shutdown the LAM/MPI run-time environment.
 $LAM_HOME/bin/lamhalt
