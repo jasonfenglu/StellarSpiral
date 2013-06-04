@@ -8,13 +8,95 @@ ENDTYPE
 TYPE(tyfiles),POINTER,SAVE      ::ptfiles
 TYPE(tyfiles),POINTER           ::ptfile
 
-INTERFACE h5io
-        MODULE PROCEDURE io2d
-        MODULE PROCEDURE io1d
+INTERFACE h5write
+        MODULE PROCEDURE w2d
+        MODULE PROCEDURE w1d
 ENDINTERFACE
+
+INTERFACE h5read
+        MODULE PROCEDURE r2d
+        MODULE PROCEDURE r1d
+ENDINTERFACE
+
 CONTAINS
 
-SUBROUTINE io2d(dat,M,N,filename,dsetname)
+SUBROUTINE r1d(dat,M,filename,dsetname)
+CHARACTER(LEN=*)                :: filename      ! File name
+CHARACTER(LEN=*)                :: dsetname      ! Dataset name
+DOUBLE PRECISION,INTENT(OUT)    :: dat(:)        ! input data
+INTEGER(HID_T)                  :: file_id       ! File identifier
+INTEGER(HID_T)                  :: dset_id       ! Dataset identifier
+INTEGER(HID_T)                  :: dspace_id     ! Dataspace identifier
+INTEGER(HSIZE_T)                :: dims(1)       ! Dataset dimensions
+INTEGER                         :: rank = 1      ! Dataset rank
+INTEGER                         :: error         ! Error flag
+INTEGER                         :: M             ! Dimension of data
+
+dims = M
+
+CALL h5open_f(error)
+CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
+CALL h5dopen_f(file_id, dsetname, dset_id, error)
+CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, dat, dims, error)
+CALL h5dclose_f(dset_id, error)
+CALL h5fclose_f(file_id, error)
+CALL h5close_f(error)
+
+
+!!prepare dataspace
+!CALL h5screate_simple_f(rank, dims, dspace_id, error)
+!!create dataset
+!CALL h5dcreate_f(file_id, dsetname, H5T_NATIVE_DOUBLE, dspace_id, &
+!     dset_id, error)
+!!! write the dataset
+!CALL h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, dat, dims, error)
+!!closing
+!CALL h5dclose_f(dset_id, error)
+!CALL h5sclose_f(dspace_id, error)
+!CALL h5fclose_f(file_id, error)
+!CALL h5close_f(error)
+
+ENDSUBROUTINE
+
+SUBROUTINE r2d(dat,M,N,filename,dsetname)
+CHARACTER(LEN=*)                :: filename      ! File name
+CHARACTER(LEN=*)                :: dsetname      ! Dataset name
+DOUBLE PRECISION,INTENT(OUT)    :: dat(:,:)      ! input data
+INTEGER(HID_T)                  :: file_id       ! File identifier
+INTEGER(HID_T)                  :: dset_id       ! Dataset identifier
+INTEGER(HID_T)                  :: dspace_id     ! Dataspace identifier
+INTEGER(HSIZE_T)                :: dims(2)       ! Dataset dimensions
+INTEGER                         :: rank = 2      ! Dataset rank
+INTEGER                         :: error         ! Error flag
+INTEGER                         :: M,N           ! Dimension of data
+
+dims = (/M,N/)
+
+CALL h5open_f(error)
+CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
+CALL h5dopen_f(file_id, dsetname, dset_id, error)
+CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, dat, dims, error)
+CALL h5dclose_f(dset_id, error)
+CALL h5fclose_f(file_id, error)
+CALL h5close_f(error)
+
+
+!!prepare dataspace
+!CALL h5screate_simple_f(rank, dims, dspace_id, error)
+!!create dataset
+!CALL h5dcreate_f(file_id, dsetname, H5T_NATIVE_DOUBLE, dspace_id, &
+!     dset_id, error)
+!!! write the dataset
+!CALL h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, dat, dims, error)
+!!closing
+!CALL h5dclose_f(dset_id, error)
+!CALL h5sclose_f(dspace_id, error)
+!CALL h5fclose_f(file_id, error)
+!CALL h5close_f(error)
+
+ENDSUBROUTINE
+
+SUBROUTINE w2d(dat,M,N,filename,dsetname)
 CHARACTER(LEN=*)                :: filename      ! File name
 CHARACTER(LEN=*)                :: dsetname      ! Dataset name
 DOUBLE PRECISION,INTENT(IN)     :: dat(:,:)
@@ -50,7 +132,7 @@ CALL h5close_f(error)
 
 ENDSUBROUTINE
 
-SUBROUTINE io1d(dat,M,filename,dsetname)
+SUBROUTINE w1d(dat,M,filename,dsetname)
 CHARACTER(LEN=*)                :: filename      ! File name
 CHARACTER(LEN=*)                :: dsetname      ! Dataset name
 DOUBLE PRECISION,INTENT(IN)     :: dat(:)        ! input data
