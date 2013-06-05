@@ -27,6 +27,7 @@ type,extends(typgalaxy_para)::typspiral
        DOUBLE COMPLEX                   ::error
        DOUBLE PRECISION                 ::phase     = 0.d0! starting angle for 2D plot
        DOUBLE PRECISION                 ::dr              ! deparation btwn two points
+       DOUBLE PRECISION                 ::pspd            ! pattern speed
        LOGICAL                          ::ucaled    = .false.
        LOGICAL                          ::h1caled   = .false.
        LOGICAL                          ::phi1rcaled= .false.
@@ -133,6 +134,7 @@ close(10)
 
 this.w = dcmplx(w(mode*2-1),w(mode*2))
 this.winit = .true.
+this.pspd = real(this.w)/2.d0
 ENDSUBROUTINE
  
 SUBROUTINE spiral_setw(this,w,mode)
@@ -144,6 +146,7 @@ INTEGER                                 ::mode
 this.mode = mode
 this.w = w 
 this.winit = .true.
+this.pspd = real(this.w)/2.d0
 ENDSUBROUTINE
 
 SUBROUTINE spiral_init(this,n,domain,para,mode)

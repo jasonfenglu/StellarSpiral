@@ -22,9 +22,11 @@ N  = 500
 
 dr = (rf-ri)/dble(n)
 
-tmp = 2.d0
-!CALL h5io(tmp,2,2,"dsetf.h5","dset")
-!CALL h5io(tmp(1,:),2,"dsetf.h5","dset2")
+!tmp = 2.d0
+!CALL h5write(tmp,2,2,"dsetf.h5","dset")
+!CALL h5write(tmp(1,:),2,"dsetf.h5","dset2")
+!CALL h5read(tmp,2,2,"dsetf.h5","dset")
+!print *,tmp
 
 !!test file names stack
 !write(6,*)'return',checkfileext('123')
@@ -70,17 +72,17 @@ tmp = 2.d0
 !        write(6,*)r,abs(cintplt(spiral.h1,spiral.r,r))/snsd(r,spiral)**2,sigma0(r,spiral)
 !ENDDO
 
-CALL stdpara.readstd
-CALL spiral.init(500,12.d0,stdpara,2)
-CALL spiral.readw(2)
-CALL FindSpiral(spiral)
-DO i = 1, N
-        r = dr*dble(i)
-!       print *,spiral.r(i),&
-!       real(spiral.h1(i)),intplt(real(spiral.h1),spiral.r,r)
-!       print *,r,intplt(real(spiral.h1),spiral.r,r)
-        print *,r,sigma1r(r,spiral)
-ENDDO
+!CALL stdpara.readstd
+!CALL spiral.init(500,12.d0,stdpara,2)
+!CALL spiral.readw(2)
+!CALL FindSpiral(spiral)
+!DO i = 1, N
+!        r = dr*dble(i)
+!!       print *,spiral.r(i),&
+!!       real(spiral.h1(i)),intplt(real(spiral.h1),spiral.r,r)
+!!       print *,r,intplt(real(spiral.h1),spiral.r,r)
+!        print *,r,sigma1r(r,spiral)
+!ENDDO
 
 !Y1(1) = dcmplx(0.d0,0.d0)
 !Y1(2) = dcmplx(1.d0,0.d0)

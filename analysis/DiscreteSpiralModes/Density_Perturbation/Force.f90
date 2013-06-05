@@ -144,15 +144,15 @@ write(6,200)'max at','spiral f','centri f','percentage'
 write(6,200)r,fmax,StellarOmega(r,spiral)**2*r,fmax/StellarOmega(r,spiral)**2/r*100.d0
 
 !save fr and centrifugal force
-CALL h5io(frsorted(:,1),n**2,hdfname,'r')
-CALL h5io(frsorted(:,2),n**2,hdfname,'fr')
-CALL h5io(frsorted(:,3),n**2,hdfname,'centri')
+CALL h5write(frsorted(:,1),n**2,hdfname,'r')
+CALL h5write(frsorted(:,2),n**2,hdfname,'fr')
+CALL h5write(frsorted(:,3),n**2,hdfname,'centri')
 
-CALL h5io(xcoord,N,hdfname,'xcoord')
-CALL h5io(ycoord,N,hdfname,'ycoord')
-CALL h5io(force(:,:,1),N,N,hdfname,'fx')
-CALL h5io(force(:,:,2),N,N,hdfname,'fy')
-CALL h5io(force(:,:,3),N,N,hdfname,'f')
+CALL h5write(xcoord,N,hdfname,'xcoord')
+CALL h5write(ycoord,N,hdfname,'ycoord')
+CALL h5write(force(:,:,1),N,N,hdfname,'fx')
+CALL h5write(force(:,:,2),N,N,hdfname,'fy')
+CALL h5write(force(:,:,3),N,N,hdfname,'f')
 
 DEALLOCATE(fr)
 DEALLOCATE(Force)

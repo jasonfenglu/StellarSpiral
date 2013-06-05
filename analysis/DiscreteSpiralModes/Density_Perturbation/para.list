@@ -34,7 +34,7 @@ drawcir  = .false.,
 /
 
 &DENSITYPARA
-toproject= .false.		   
+toproject= .ture.		   
 /
 
 &FORCENML
@@ -43,6 +43,3 @@ amp   = 69547.1473012585
 
 
 !!DM,DA,DB are useless now
- corrotation       spiral f       centri f     percentage         factor
-    6.683         0.1113E-01      8188.         0.1360E-03     0.3677E+05
-

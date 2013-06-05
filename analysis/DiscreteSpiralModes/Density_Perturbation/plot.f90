@@ -23,7 +23,7 @@ IF (PGBEG(0,'/xs',1,1) .NE. 1)THEN
 ENDIF
 !call plotting routine
 CALL output
-IF (PGBEG(0,'countour.ps/ps',1,1) .NE. 1)THEN
+IF (PGBEG(0,'countour.ps/vcps',1,1) .NE. 1)THEN
         write(6,*)achar(27)//'[33m pgplot open failed',achar(27)//'[0m'
         STOP
 ENDIF
@@ -141,15 +141,16 @@ CALL PGSCH(1.0)
 CALL PGLAB('kpc','kpc','Density')
 CALL PGSFS(2)
 CALL PGSCI(0)
-CALL PGPT(4,points(:,1),points(:,2),2)
+!CALL PGPT(4,points(:,1),points(:,2),2)
 if(drawcir)then
         CALL PGCIRC(0.,0.,1.26)
         CALL PGCIRC(0.,0.,2.36)
         CALL PGCIRC(0.,0.,4.72)
         CALL PGCIRC(0.,0.,10.636)
+        CALL PGCIRC(0.,0.,8.83)
 endif
 
-CALL PGLINE(2,(/2.,7./),(/-8.,-8/))
+!CALL PGLINE(2,(/2.,7./),(/-8.,-8/))
 
 CALL PGCLOS
 

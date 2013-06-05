@@ -242,7 +242,7 @@ IMPLICIT NONE
 !observed angle of line of node 28 degree
  aolin = -28.3d0/180.d0*pi_n
 !aolin = -32.d0/180.d0*pi_n
-!pitch angle is 55 degree ?
+!inclination angle is 55 degree ?
 apitc = 55.d0/180.d0*pi_n
 !tuned angle of line of node
 !aline = 30.d0/180.d0*pi_n

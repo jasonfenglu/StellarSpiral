@@ -6,7 +6,7 @@ CHARACTER(len=32)                       ::arg
 CHARACTER(len=40),PARAMETER             ::datfname='data/ReAmpKendall.csv'
 type(typspiral)                         ::spiral
 INTEGER,PARAMETER                       ::datlength=207
-DOUBLE PRECISION                        ::dat(datlength,6)
+DOUBLE PRECISION                        ::dat(datlength,7)
 DOUBLE PRECISION                        ::Amp
 DOUBLE PRECISION                        ::r,dr = 0.1d0
 DOUBLE PRECISION                        ::bias
@@ -45,8 +45,9 @@ print *,'# Amp:',amp
 DO i = 1, datlength
         r = dat(i,1) 
         dat(i,5) = amp*sigma1r(r,spiral)/(sigma0(r,spiral)+BulgeSurfaceDensity(r,spiral))
-        dat(i,6) = 19000.d0*sigma1r(r,spiral)/(sigma0(r,spiral))
 ENDDO
+
+dat(:,6) = bias*dat(:,2)
 
 
 CALL plot(dat)
@@ -108,18 +109,18 @@ SUBROUTINE output
 CALL PGSVP(0.0,0.95,0.0,0.95)
 CALL PGENV(3.,real(spiral.fortoone),0.,0.4,0,0)
 
-DO i = 2, 5
-        !CALL PGSCI(i)
-        SELECT CASE(i)
-        CASE(2)
-                CALL PGSLS(2)
-        CASE(3)
-                CALL PGSLS(4)
-        CASE(4)
-                CALL PGSLS(4)
-        CASE DEFAULT
-                CALL PGSLS(1)
-        ENDSELECT
+DO i = 2, 6
+        CALL PGSCI(i)
+        !SELECT CASE(i)
+        !CASE(2)
+        !        CALL PGSLS(2)
+        !CASE(3)
+        !        CALL PGSLS(4)
+        !CASE(4)
+        !        CALL PGSLS(4)
+        !CASE DEFAULT
+        !        CALL PGSLS(1)
+        !ENDSELECT
         CALL PGLINE(datlength,real(dat(:,1)),real(dat(:,i)))
         CALL PGSLS(1)
 ENDDO

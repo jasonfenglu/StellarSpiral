@@ -20,13 +20,65 @@ ENDINTERFACE
 
 CONTAINS
 
+FUNCTION h5size(filename,dsetname,ndim)
+IMPLICIT NONE
+CHARACTER(LEN=*)                :: filename      ! File name
+CHARACTER(LEN=*)                :: dsetname      ! Dataset name
+INTEGER(HID_T)                  :: file_id       ! File identifier
+INTEGER(HID_T)                  :: dset_id       ! Dataset identifier
+INTEGER(HID_T)                  :: dspace_id     ! Dataspace identifier
+INTEGER(HSIZE_T)                :: dims(ndim)       ! Dataset dimensions
+INTEGER(HSIZE_T)                :: maxdims(ndim)    ! Max dataset dimensions
+INTEGER                         :: hdferr        ! Error flag
+INTEGER                         :: ndim
+INTEGER                         :: h5size(ndim)
+
+CALL h5open_f(hdferr)
+CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, hdferr)
+CALL h5dopen_f(file_id, dsetname, dset_id, hdferr)
+CALL h5dget_space_f(dset_id, dspace_id, hdferr) 
+CALL h5sget_simple_extent_dims_f(dspace_id, dims, maxdims, hdferr) 
+CALL h5dclose_f(dset_id, hdferr)
+CALL h5sclose_f(dspace_id, hdferr)
+CALL h5fclose_f(file_id, hdferr)
+CALL h5close_f(hdferr)
+
+h5size = int(dims)
+
+ENDFUNCTION
+
+FUNCTION h5size2d(filename,dsetname)
+IMPLICIT NONE
+CHARACTER(LEN=*)                :: filename      ! File name
+CHARACTER(LEN=*)                :: dsetname      ! Dataset name
+INTEGER(HID_T)                  :: file_id       ! File identifier
+INTEGER(HID_T)                  :: dset_id       ! Dataset identifier
+INTEGER(HID_T)                  :: dspace_id     ! Dataspace identifier
+INTEGER(HSIZE_T)                :: dims(2)       ! Dataset dimensions
+INTEGER(HSIZE_T)                :: maxdims(2)    ! Max dataset dimensions
+INTEGER                         :: hdferr        ! Error flag
+INTEGER                         :: h5size2d(2)
+
+CALL h5open_f(hdferr)
+CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, hdferr)
+CALL h5dopen_f(file_id, dsetname, dset_id, hdferr)
+CALL h5dget_space_f(dset_id, dspace_id, hdferr) 
+CALL h5sget_simple_extent_dims_f(dspace_id, dims, maxdims, hdferr) 
+CALL h5dclose_f(dset_id, hdferr)
+CALL h5sclose_f(dspace_id, hdferr)
+CALL h5fclose_f(file_id, hdferr)
+CALL h5close_f(hdferr)
+
+h5size2d = int(dims)
+
+ENDFUNCTION
+
 SUBROUTINE r1d(dat,M,filename,dsetname)
 CHARACTER(LEN=*)                :: filename      ! File name
 CHARACTER(LEN=*)                :: dsetname      ! Dataset name
 DOUBLE PRECISION,INTENT(OUT)    :: dat(:)        ! input data
 INTEGER(HID_T)                  :: file_id       ! File identifier
 INTEGER(HID_T)                  :: dset_id       ! Dataset identifier
-INTEGER(HID_T)                  :: dspace_id     ! Dataspace identifier
 INTEGER(HSIZE_T)                :: dims(1)       ! Dataset dimensions
 INTEGER                         :: rank = 1      ! Dataset rank
 INTEGER                         :: error         ! Error flag
@@ -42,20 +94,6 @@ CALL h5dclose_f(dset_id, error)
 CALL h5fclose_f(file_id, error)
 CALL h5close_f(error)
 
-
-!!prepare dataspace
-!CALL h5screate_simple_f(rank, dims, dspace_id, error)
-!!create dataset
-!CALL h5dcreate_f(file_id, dsetname, H5T_NATIVE_DOUBLE, dspace_id, &
-!     dset_id, error)
-!!! write the dataset
-!CALL h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, dat, dims, error)
-!!closing
-!CALL h5dclose_f(dset_id, error)
-!CALL h5sclose_f(dspace_id, error)
-!CALL h5fclose_f(file_id, error)
-!CALL h5close_f(error)
-
 ENDSUBROUTINE
 
 SUBROUTINE r2d(dat,M,N,filename,dsetname)
@@ -64,7 +102,6 @@ CHARACTER(LEN=*)                :: dsetname      ! Dataset name
 DOUBLE PRECISION,INTENT(OUT)    :: dat(:,:)      ! input data
 INTEGER(HID_T)                  :: file_id       ! File identifier
 INTEGER(HID_T)                  :: dset_id       ! Dataset identifier
-INTEGER(HID_T)                  :: dspace_id     ! Dataspace identifier
 INTEGER(HSIZE_T)                :: dims(2)       ! Dataset dimensions
 INTEGER                         :: rank = 2      ! Dataset rank
 INTEGER                         :: error         ! Error flag
@@ -79,20 +116,6 @@ CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, dat, dims, error)
 CALL h5dclose_f(dset_id, error)
 CALL h5fclose_f(file_id, error)
 CALL h5close_f(error)
-
-
-!!prepare dataspace
-!CALL h5screate_simple_f(rank, dims, dspace_id, error)
-!!create dataset
-!CALL h5dcreate_f(file_id, dsetname, H5T_NATIVE_DOUBLE, dspace_id, &
-!     dset_id, error)
-!!! write the dataset
-!CALL h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, dat, dims, error)
-!!closing
-!CALL h5dclose_f(dset_id, error)
-!CALL h5sclose_f(dspace_id, error)
-!CALL h5fclose_f(file_id, error)
-!CALL h5close_f(error)
 
 ENDSUBROUTINE
 

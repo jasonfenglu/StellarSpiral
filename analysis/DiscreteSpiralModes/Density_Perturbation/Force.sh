@@ -5,9 +5,9 @@
 #PBS -o force/force.out
 #PBS -e force/force.err
 ###### Number of nodes and cores ######
-#PBS -l nodes=1:ppn=12:dl
+#PBS -l nodes=1:ppn=8
 ###### Queue name ######
-#PBS -q serial
+#PBS -q small
 ###### Specific the shell types ######
 #PBS -S /bin/bash
 

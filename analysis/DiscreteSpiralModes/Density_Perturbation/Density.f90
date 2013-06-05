@@ -152,9 +152,9 @@ points(4,:) = (/0.0,-4.727/)
 CALL dprojection(points)
 
 CALL plotdensity(density,n,domain)
-CALL h5io(xcoord,2*N,'density.h5','xcoord')
-CALL h5io(ycoord,2*N,'density.h5','ycoord')
-CALL h5io(density,2*N,2*N,'density.h5','density')
+CALL h5write(xcoord,2*N,'density.h5','xcoord')
+CALL h5write(ycoord,2*N,'density.h5','ycoord')
+CALL h5write(density,2*N,2*N,'density.h5','density')
 
 DEALLOCATE(xcoord)
 DEALLOCATE(ycoord)
@@ -239,7 +239,7 @@ IMPLICIT NONE
 !observed angle of line of node 28 degree
  aolin = -28.3d0/180.d0*pi_n
 !aolin = -32.d0/180.d0*pi_n
-!pitch angle is 55 degree ?
+!inclination angle is 55 degree ?
 apitc = 55.d0/180.d0*pi_n
 !tuned angle of line of node
 !aline = 30.d0/180.d0*pi_n
