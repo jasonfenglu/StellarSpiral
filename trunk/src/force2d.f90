@@ -58,9 +58,9 @@ if(myid.eq.0)then
 ENDIF
 fx = fx + stellarforce.sgx * dmin1(t/tend*dble(simcon.ncir),1.d0)
 fy = fy + stellarforce.sgy * dmin1(t/tend*dble(simcon.ncir),1.d0)
-if(myid.eq.0)then
-        write(6,*)achar(27)//'[95m stellar complete'//achar(27)//'[0m'
-ENDIF
+!if(myid.eq.0)then
+!        write(6,*)achar(27)//'[95m stellar complete'//achar(27)//'[0m'
+!ENDIF
 #endif
 
 #ifdef GRAVITY
