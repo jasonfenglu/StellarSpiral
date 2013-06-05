@@ -1,7 +1,7 @@
 subroutine force2d(q_loc,fx,fy)
 use common_params
 use simcontroll
-use GALAXY, only:RC,stellarforce,spiral
+use GALAXY, only:RC,stellarforce,spiral,GasDiskLength
 implicit none
 double precision::q_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR)
 double precision::fx(1:ncell_loc(1),1:ncell_loc(2)),fy(1:ncell_loc(1),1:ncell_loc(2))
@@ -16,10 +16,12 @@ double precision::r_loc,CV,Orsq
 !double precision::cs2s,sn2s,cs2t,sn2t,cs2st,sn2st
 !double precision::px,py
 !!rotating frame
-DOUBLE PRECISION::pspd
+DOUBLE PRECISION::pspd,alp,alpcsq2
 DOUBLE PRECISION::rho,vx,vy
 
 pspd = real(spiral.w)/2.d0
+alpcsq2 = 2.d0*alp*snd**2.d0
+alp = 1.d0/(2.d0*GasDiskLength**2)
 ! implement your external force here !!
 ! gas pressure
   do j=1, ncell_loc(2)
@@ -29,7 +31,7 @@ pspd = real(spiral.w)/2.d0
        vy = q_loc(i,j,3)/rho
        r_loc = dsqrt(x_loc(i)**2.d0+y_loc(j)**2.d0)
        CV = RC(r_loc)
-       Orsq= (CV/r_loc)**2.d0
+       Orsq= (CV/r_loc)**2.d0 + alpcsq2
        !fx(i,j)=-x_loc(i)*Orsq
        !fy(i,j)=-y_loc(j)*Orsq
        fx(i,j)=-x_loc(i)*Orsq + (pspd**2.d0)*x_loc(i) + 2.d0*pspd*vy

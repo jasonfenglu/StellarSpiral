@@ -9,6 +9,7 @@ type    typspiralforce
         double complex  ,dimension(:,:),allocatable::sgxker,sgyker !kernal 
 endtype
 type(typspiralforce),SAVE               ::stellarforce
+DOUBLE PRECISION,PARAMETER              ::GasDiskLength = 7.d0
 
 CONTAINS
 
@@ -25,8 +26,8 @@ IMPLICIT NONE
 DOUBLE PRECISION                ::gasdensity,r
 DOUBLE PRECISION                ::z
 
-!density = GaussianDensity(r,z)
-gasdensity = UniDensity(r,z)
+gasdensity = GaussianDensity(r,z)
+!gasdensity = UniDensity(r,z)
 !gasdensity = Sigma0(r,spiral)
 !gasdensity = Sigma1(r,th,spiral)
 
@@ -61,8 +62,7 @@ DOUBLE PRECISION                ::rho,a
 !---------------------------
 
 rho = 1.d0
-a   = 7.d0
-a   = 10.d0
+a   = GasDiskLength
 
 GaussianDensity = rho * dexp(-r**2/2.d0/a)
 
