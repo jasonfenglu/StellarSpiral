@@ -1,0 +1,296 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.6	//
+100	src/fluxRieIso2d.f90	/^100   vstar   = 0.5d0*(vxL+vxR)+0.5d0*c*dlog(rhoL\/rhoR)$/;"	l	subroutine:fluxRieIso2d	file:
+100	src/fluxRieIso3d.f90	/^100   vstar   = 0.5d0*(vxL+vxR)+0.5d0*c*dlog(rhoL\/rhoR)$/;"	l	subroutine:fluxRieIso3d	file:
+1000	src/fluxRieIso2d.f90	/^1000  Ftemp(1) = qm(1)*(   qm(2)          )$/;"	l	subroutine:fluxRieIso2d	file:
+1000	src/fluxRieIso3d.f90	/^1000  Ftemp(1) = qm(1)*(   qm(2)          )$/;"	l	subroutine:fluxRieIso3d	file:
+200	src/fluxRieIso2d.f90	/^200   rho0 = rhoR$/;"	l	subroutine:fluxRieIso2d	file:
+200	src/fluxRieIso3d.f90	/^200   rho0 = rhoR$/;"	l	subroutine:fluxRieIso3d	file:
+210	src/fluxRieIso2d.f90	/^210   vstar  = vxL - c*dlog(rhostar\/rhoL)$/;"	l	subroutine:fluxRieIso2d	file:
+210	src/fluxRieIso3d.f90	/^210   vstar  = vxL - c*dlog(rhostar\/rhoL)$/;"	l	subroutine:fluxRieIso3d	file:
+300	src/fluxRieIso2d.f90	/^300   rho0 = rhoL$/;"	l	subroutine:fluxRieIso2d	file:
+300	src/fluxRieIso3d.f90	/^300   rho0 = rhoL$/;"	l	subroutine:fluxRieIso3d	file:
+310	src/fluxRieIso2d.f90	/^310   vstar  = vxR + c*dlog(rhostar\/rhoR)$/;"	l	subroutine:fluxRieIso2d	file:
+310	src/fluxRieIso3d.f90	/^310   vstar  = vxR + c*dlog(rhostar\/rhoR)$/;"	l	subroutine:fluxRieIso3d	file:
+400	src/fluxRieIso2d.f90	/^400   aa       = 1.d0\/dsqrt(rhoL)+1.d0\/dsqrt(rhoR)$/;"	l	subroutine:fluxRieIso2d	file:
+400	src/fluxRieIso3d.f90	/^400   aa       = 1.d0\/dsqrt(rhoL)+1.d0\/dsqrt(rhoR)$/;"	l	subroutine:fluxRieIso3d	file:
+ABSERR	src/k3sqrt.f90	/^DOUBLE PRECISION          ::ABSERR$/;"	v
+AntaresHOME	Makefile	/^AntaresHOME=$(PWD)$/;"	m
+BOUND	src/k3sqrt.f90	/^DOUBLE PRECISION          ::BOUND,/;"	v
+C	src/rk4.f90	/^DOUBLE PRECI/;"	v
+CFL	src/common_params.f90	/^double precision::tend,CFL,/;"	v	module:common_params
+EPSABS	src/k3sqrt.f90	/^DOUBLE PRECISION          ::BOUND,EPSREL,EPSABS$/;"	v
+EPSREL	src/k3sqrt.f90	/^DOUBLE PRECISION          ::BOUND,EPSREL,/;"	v
+EQ4QM	src/riemann2dCTU.f90	/^DOUBLE PRECISION FUNCTION EQ4QM(/;"	f
+EQ4QMP	src/riemann2dCTU.f90	/^DOUBLE PRECISION FUNCTION EQ4QMP /;"	f
+EXEC	Makefile	/^EXEC=antares$/;"	m
+ExpPart	src/k3sqrt.f90	/^        Function ExpPart(/;"	f	subroutine:findh1
+F90	Makefile	/^F90=mpif77$/;"	m
+FFLAGS	Makefile	/^FFLAGS= -cpp -O2 -DNDIM=$(NDIM) -DVERBOSE -DISOTHERMAL -DFORCE -D$(Rie_type) -module bin -DRK2  -prec-div -prec-sqrt$/;"	m
+FFTWHOME	Makefile	/^FFTWHOME=$(FFTW_HOME)$/;"	m
+FUN	src/k3sqrt.f90	/^function FUN(/;"	f
+FindForce	src/k3sqrt.f90	/^SUBROUTINE FindForce(/;"	s
+GaussianDensity	src/galaxy.f90	/^        FUNCTION GaussianDensity(/;"	f	module:galaxy
+GravConst	src/common_params.f90	/^double precision:: gam,GravConst$/;"	v	module:common_params
+GravConst	src/k3sqrt.f90	/^DOUBLE PRECISION,PARAMETER::GravConst /;"	v	module:STELLARDISK
+GravitatioalConst	src/galaxy.f90	/^        DOUBLE PRECISION        ::GravitatioalConst /;"	v	module:galaxy
+Gravity	Makefile	/^Gravity=$/;"	m
+HDF5HOME	Makefile	/^HDF5HOME=$(HDF5_HOME)$/;"	m
+I	src/rk4.f90	/^IN/;"	v
+IERR	src/k3sqrt.f90	/^INTEGER                   ::NEVAL,IERR,/;"	v
+INCL	Makefile	/^INCL=-I$(MPIHOME)\/include -I$(FFTWHOME)\/include -I$(HDF5HOME)\/include$/;"	m
+INF	src/k3sqrt.f90	/^INTEGER                   ::NEVAL,IERR,LIMIT,LENW,LAST,INF$/;"	v
+IWORK	src/k3sqrt.f90	/^INTEGER,ALLOCATABLE       ::IWORK(/;"	v
+J	src/rk4.f90	/^INTEGER                 ::I,J,/;"	v
+K	src/rk4.f90	/^DOUBLE COMPLEX          ::K(/;"	v
+L	src/rk4.f90	/^INTEGER                 ::I,J,L$/;"	v
+LAST	src/k3sqrt.f90	/^INTEGER                   ::NEVAL,IERR,LIMIT,LENW,LAST,/;"	v
+LENW	src/k3sqrt.f90	/^INTEGER                   ::NEVAL,IERR,LIMIT,LENW,/;"	v
+LIB	Makefile	/^LIB = -L$(MPIHOME)\/lib -lmpi -lz -L$(FFTWHOME)\/lib -ldrfftw_mpi -ldfftw_mpi -ldrfftw -ldfftw -L$(HDF5HOME)\/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5 -fPIC -lm -limf -L.\/src -lslatec $/;"	m
+LIMIT	src/k3sqrt.f90	/^INTEGER                   ::NEVAL,IERR,LIMIT,/;"	v
+LIMIT2	src/riemann2dCTU.f90	/^subroutine LIMIT2(/;"	s
+Lh	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::Lh,/;"	k	type:comp_type
+MPIHOME	Makefile	/^MPIHOME=$(MPI_HOME)$/;"	m
+Mb	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::rb,Mb,/;"	k	type:comp_type
+N	src/rk4.f90	/^INT/;"	v
+NDIM	Makefile	/^NDIM=2$/;"	m
+NEVAL	src/k3sqrt.f90	/^INTEGER                   ::NEVAL,/;"	v
+NEWTON	src/riemann2dCTU.f90	/^subroutine NEWTON(/;"	s
+NVAR	src/common_params.f90	/^integer,parameter:: NVAR=/;"	v	module:common_params
+OBJECT	Makefile	/^OBJECT= rk4.o k3sqrt.o simcontroll.o  galaxy.o common_params.o main.o init2d.o output1d.o output2d.o bdry2d.o write_collective2d.o dt_loc2d.o dt_all.o sendbdry2d.o sloplimiter.o riemann2d.o bndflux2d.o fluxRieIso2d.o fluxHLLC2d.o force2d.o sgkernel2d.o selfgravity2d.o write_gravity2d.o read_collective2d.o read1d.o read2d.o$/;"	m
+Omega	src/k3sqrt.f90	/^FUNCTION Omega(/;"	f
+PHIL	src/riemann2dCTU.f90	/^DOUBLE PRECISION FUNCTION PHIL /;"	f
+PHILIM	src/riemann2dCTU.f90	/^DOUBLE PRECISION FUNCTION PHILIM /;"	f
+PHILP	src/riemann2dCTU.f90	/^DOUBLE PRECISION FUNCTION PHILP /;"	f
+PHIR	src/riemann2dCTU.f90	/^DOUBLE PRECISION FUNCTION PHIR /;"	f
+PHIRP	src/riemann2dCTU.f90	/^DOUBLE PRECISION FUNCTION PHIRP /;"	f
+Q_type	src/k3sqrt.f90	/^type::Q_type$/;"	t	subroutine:TEMP
+Qod	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::Qod$/;"	k	type:Q_type
+RC	src/galaxy.f90	/^        FUNCTION RC(/;"	f	module:galaxy
+RC	src/k3sqrt.f90	/^FUNCTION RC(/;"	f	function:Omega
+RPN2	src/riemann2dCTU.f90	/^subroutine RPN2(/;"	s
+RPT2	src/riemann2dCTU.f90	/^subroutine RPT2(/;"	s
+Rie_type	Makefile	/^Rie_type=ExactRie$/;"	m
+STELLARDISK	src/k3sqrt.f90	/^MODULE STELLARDISK$/;"	m
+Sigma	src/k3sqrt.f90	/^DOUBLE PRECISION                ::Sigma,/;"	v
+Sigma0	src/k3sqrt.f90	/^DOUBLE PRECISION          ::Sigma0,/;"	v
+SoundSpeed	src/galaxy.f90	/^        DOUBLE PRECISION        ::SoundSpeed /;"	v	module:galaxy
+TEMP	src/k3sqrt.f90	/^SUBROUTINE TEMP$/;"	s
+ToomreQ	src/k3sqrt.f90	/^function ToomreQ(/;"	f
+VBulge	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::rb,Mb,gBulge,VBulge$/;"	k	type:comp_type
+VDisk	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::dM,da,db,VDisk$/;"	k	type:comp_type
+VHalo	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::Lh,rhoh,gHalo,VHalo$/;"	k	type:comp_type
+VPATH	Makefile	/^VPATH = .\/src$/;"	m
+Vhalo	src/galaxy.f90	/^        FUNCTION Vhalo(/;"	f	module:galaxy
+WORK	src/k3sqrt.f90	/^DOUBLE PRECISION,ALLOCATABLE ::WORK(/;"	v
+a	src/k3sqrt.f90	/^DOUBLE PRECISION          ::m,a,/;"	v
+a	src/rk4.f90	/^DOUBLE PRECISION        ::a(/;"	v
+ans	src/k3sqrt.f90	/^DOUBLE PRECISION          ::ans$/;"	v
+antares	src/main.f90	/^program antares$/;"	p
+b	src/k3sqrt.f90	/^DOUBLE PRECISION          ::m,a,b$/;"	v
+b	src/rk4.f90	/^DOUBLE PRECISION        ::b(/;"	v
+bdry2d	src/bdry2d.f90	/^subroutine bdry2d(/;"	s
+bdry3d	src/bdry3d.f90	/^subroutine bdry3d(/;"	s
+bndflux2d	src/bndflux2d.f90	/^subroutine bndflux2d(/;"	s
+bndflux3d	src/bndflux3d.f90	/^subroutine bndflux3d(/;"	s
+bndflux_outgoing_isothermal	src/bndflux2d.f90	/^       subroutine bndflux_outgoing_isothermal(/;"	s
+common_params	src/common_params.f90	/^module common_params$/;"	m
+comp_type	src/k3sqrt.f90	/^type::comp_type$/;"	t	subroutine:TEMP
+dM	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::dM,/;"	k	type:comp_type
+dOmega	src/k3sqrt.f90	/^DOUBLE PRECISION  dOmega$/;"	v
+da	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::dM,da,/;"	k	type:comp_type
+db	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::dM,da,db,/;"	k	type:comp_type
+den	src/main.f90	/^double precision,dimension(:,:),allocatable::den /;"	v	program:antares
+den	src/main.f90	/^double precision,dimension(:,:,:),allocatable::den /;"	v	program:antares
+den_temp	src/main.f90	/^double precision,dimension(:,:),allocatable::den_temp$/;"	v	program:antares
+density	src/galaxy.f90	/^        FUNCTION density(/;"	f	module:galaxy
+dfunc	src/k3sqrt.f90	/^function dfunc(/;"	f	function:Omega
+direction	src/find_dt.f	/^                INTEGER         ::direction$/;"	k	type:dt_struct
+divBclean2d	src/divBclean2d.f90	/^subroutine divBclean2d(/;"	s
+dr	src/k3sqrt.f90	/^DOUBLE PRECISION  dr$/;"	v
+dsetname	src/main.f90	/^character(len=20)::dsetname$/;"	v	program:antares
+dsimplifiedPoisson	src/k3sqrt.f90	/^FUNCTION dsimplifiedPoisson(/;"	f
+dt	src/common_params.f90	/^double precision:: dx,dy,dz,dt,/;"	v	module:common_params
+dt	src/find_dt.f	/^                REAL*8          ::dt$/;"	k	type:dt_struct
+dt_all	src/dt_all.f90	/^subroutine dt_all(/;"	s
+dt_loc	src/main.f90	/^double precision::dt_loc,/;"	v	program:antares
+dt_loc2d	src/dt_loc2d.f90	/^subroutine dt_loc2d(/;"	s
+dt_loc3d	src/dt_loc3d.f90	/^subroutine dt_loc3d(/;"	s
+dt_struct	src/find_dt.f	/^        type :: dt_struct$/;"	t	module:find_dt
+dtout	src/common_params.f90	/^double precision::tend,CFL,dtout /;"	v	module:common_params
+dtout	src/simcontroll.f90	/^        DOUBLE PRECISION                ::dtout$/;"	k	type:simcon_type
+dts	src/find_dt.f	/^        type(dt_struct), SAVE   ::dts$/;"	v	module:find_dt
+dx	src/common_params.f90	/^double precision:: dx,/;"	v	module:common_params
+dy	src/common_params.f90	/^double precision:: dx,dy,/;"	v	module:common_params
+dz	src/common_params.f90	/^double precision:: dx,dy,dz,/;"	v	module:common_params
+f	src/rk4.f90	/^FUNCTION f(/;"	f
+f	src/rk4.f90	/^FUNCTION f(/;"	f	subroutine:rk45d1
+find_dt	src/find_dt.f	/^        MODULE find_dt$/;"	m
+find_dt_init	src/find_dt.f	/^        SUBROUTINE find_dt_init(/;"	s	module:find_dt
+findh1	src/k3sqrt.f90	/^SUBROUTINE findh1(/;"	s	subroutine:findu
+findu	src/k3sqrt.f90	/^SUBROUTINE findu(/;"	s	function:Omega
+flnm	src/main.f90	/^character(len=8)::flnm$/;"	v	program:antares
+flux2dCTU	src/riemann2dCTU.f90	/^subroutine flux2dCTU(/;"	s
+fluxHLLAdi2d	src/fluxHLLAdi2d.f90	/^subroutine fluxHLLAdi2d(/;"	s
+fluxHLLAdiMHD	src/fluxHLLAdiMHD.f90	/^subroutine fluxHLLAdiMHD(/;"	s
+fluxHLLC2d	src/fluxHLLC2d.f90	/^subroutine fluxHLLC2d(/;"	s
+fluxHLLDAdiMHD	src/fluxHLLDAdiMHD.f90	/^subroutine fluxHLLDAdiMHD(/;"	s
+fluxHLLIso2d	src/fluxHLLIso2d.f90	/^subroutine fluxHLLIso2d(/;"	s
+fluxHLLIso3d	src/fluxHLLIso3d.f90	/^subroutine fluxHLLIso3d(/;"	s
+fluxRieIso2d	src/fluxRieIso2d.f90	/^subroutine fluxRieIso2d(/;"	s
+fluxRieIso3d	src/fluxRieIso3d.f90	/^subroutine fluxRieIso3d(/;"	s
+fnum	src/main.f90	/^integer::fnum=/;"	v	program:antares
+force2d	src/force2d.f90	/^subroutine force2d(/;"	s
+force2dCTU	src/force2dCTU.f90	/^subroutine force2dCTU(/;"	s
+force3d	src/force3d.f90	/^subroutine force3d(/;"	s
+fslop	src/sloplimiter.f90	/^function fslop(/;"	f
+fstart	src/main.f90	/^integer::fnum=0,fstart!/;"	v	program:antares
+fx	src/main.f90	/^double precision,dimension(:,:),allocatable::fx,/;"	v	program:antares
+fx	src/main.f90	/^double precision,dimension(:,:,:),allocatable::fx,/;"	v	program:antares
+fy	src/main.f90	/^double precision,dimension(:,:),allocatable::fx,fy /;"	v	program:antares
+fy	src/main.f90	/^double precision,dimension(:,:,:),allocatable::fx,fy,/;"	v	program:antares
+fz	src/main.f90	/^double precision,dimension(:,:,:),allocatable::fx,fy,fz$/;"	v	program:antares
+g	src/k3sqrt.f90	/^DOUBLE PRECISION,PARAMETER::g /;"	v	module:STELLARDISK
+gBulge	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::rb,Mb,gBulge,/;"	k	type:comp_type
+gHalo	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::Lh,rhoh,gHalo,/;"	k	type:comp_type
+galaxy	src/galaxy.f90	/^        module galaxy$/;"	m
+gam	src/common_params.f90	/^double precision:: gam,/;"	v	module:common_params
+h	src/rk4.f90	/^DOUBLE PRECISION        ::ri,rf,h$/;"	v
+h1	src/k3sqrt.f90	/^        type(type_h1)/;"	k	type:type_stellarspiral
+h1	src/k3sqrt.f90	/^       DOUBLE COMPLEX,POINTER           ::h1(/;"	k	type:type_h1
+h1	src/k3sqrt.f90	/^       DOUBLE COMPLEX,POINTER           ::h1(/;"	k	type:type_phi1
+hh1	src/k3sqrt.f90	/^DOUBLE COMPLEX                  ::uu,hh1$/;"	v
+i	src/find_dt.f	/^                INTEGER         ::i$/;"	k	type:dt_struct
+i	src/k3sqrt.f90	/^INTEGER                         ::i,/;"	v
+i	src/main.f90	/^in/;"	v	program:antares
+ibuf	src/common_params.f90	/^integer::ibuf=/;"	v	module:common_params
+id	src/find_dt.f	/^                INTEGER         ::id$/;"	k	type:dt_struct
+ierr	src/main.f90	/^integer::ierr /;"	v	program:antares
+infile	src/main.f90	/^character(len=20)::infile=/;"	v	program:antares
+init2d	src/init2d.f90	/^subroutine init2d(/;"	s
+init3d	src/init3d.f90	/^subroutine init3d(/;"	s
+init_simcon	src/simcontroll.f90	/^SUBROUTINE      init_simcon(/;"	s	module:simcontroll
+j	src/find_dt.f	/^                INTEGER         ::j$/;"	k	type:dt_struct
+j	src/k3sqrt.f90	/^INTEGER                         ::i,j,/;"	v
+j	src/main.f90	/^integer::i,j,/;"	v	program:antares
+jbuf	src/common_params.f90	/^integer::ibuf=2,jbuf=/;"	v	module:common_params
+k	src/k3sqrt.f90	/^INTEGER                         ::i,j,k,/;"	v
+k	src/main.f90	/^integer::i,j,k,/;"	v	program:antares
+k3sqrt	src/k3sqrt.f90	/^function k3sqrt(/;"	f
+kappa	src/k3sqrt.f90	/^DOUBLE PRECISION  kappa,/;"	v
+kbuf	src/common_params.f90	/^integer::ibuf=2,jbuf=2,kbuf=/;"	v	module:common_params
+l	src/k3sqrt.f90	/^INTEGER                         ::i,j,k,l,/;"	v
+length	src/k3sqrt.f90	/^       INTEGER                          ::length$/;"	k	type:type_h1
+length	src/k3sqrt.f90	/^       INTEGER                          ::length$/;"	k	type:type_phi1
+length	src/k3sqrt.f90	/^       INTEGER                          ::length$/;"	k	type:type_u
+m	src/k3sqrt.f90	/^DOUBLE PRECISION          ::m,/;"	v
+minmod	src/sloplimiter.f90	/^function minmod(/;"	f
+myid	src/common_params.f90	/^integer::ncell(3),ncell_loc(3),nprocs,myid /;"	v	module:common_params
+n	src/k3sqrt.f90	/^INTEGER                         ::i,j,k,l,n$/;"	v
+ncell	src/common_params.f90	/^integer::ncell(/;"	v	module:common_params
+ncell_loc	src/common_params.f90	/^integer::ncell(3),ncell_loc(/;"	v	module:common_params
+ncir	src/simcontroll.f90	/^        INTEGER                         ::ncir$/;"	k	type:simcon_type
+nframe	src/simcontroll.f90	/^        INTEGER                         ::nframe$/;"	k	type:simcon_type
+nprocs	src/common_params.f90	/^integer::ncell(3),ncell_loc(3),nprocs,/;"	v	module:common_params
+nu	src/k3sqrt.f90	/^function nu(/;"	f
+output1d	src/output1d.f90	/^subroutine output1d(/;"	s
+output2d	src/output2d.f90	/^subroutine output2d(/;"	s
+output3d	src/output3d.f90	/^subroutine output3d(/;"	s
+p	src/k3sqrt.f90	/^FUNCTION p(/;"	f	subroutine:findu
+p	src/rk4.f90	/^DOUBLE COMPLEX,EXTERNAL ::p,/;"	v
+pDisk	src/k3sqrt.f90	/^FUNCTION pDisk(/;"	f	function:Omega
+para	src/k3sqrt.f90	/^DOUBLE PRECISION,POINTER,SAVE  ::para(/;"	v	module:STELLARDISK
+phi	src/k3sqrt.f90	/^        type(type_phi1/;"	k	type:type_stellarspiral
+phi1	src/k3sqrt.f90	/^FUNCTION phi1(/;"	f
+pi	src/galaxy.f90	/^        DOUBLE PRECISION        ::pi /;"	v	module:galaxy
+pi	src/k3sqrt.f90	/^DOUBLE PRECISION,PARAMETER::pi=/;"	v	module:STELLARDISK
+q	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::q$/;"	k	type:Q_type
+q	src/rk4.f90	/^DOUBLE COMPLEX,EXTERNAL ::p,q,/;"	v
+q_loc	src/main.f90	/^double precision,dimension(:,:,:),allocatable::q_loc,/;"	v	program:antares
+q_loc	src/main.f90	/^double precision,dimension(:,:,:,:),allocatable::q_loc,/;"	v	program:antares
+r	src/k3sqrt.f90	/^DOUBLE PRECISION                ::Sigma,r$/;"	v
+r	src/k3sqrt.f90	/^DOUBLE PRECISION          ::Sigma0,r$/;"	v
+r	src/k3sqrt.f90	/^DOUBLE PRECISION  kappa,r$/;"	v
+r	src/k3sqrt.f90	/^DOUBLE PRECISION,INTENT(IN)     ::r,/;"	v
+r	src/rk4.f90	/^DOUBLE PRECISION        ::r$/;"	v
+rad	src/k3sqrt.f90	/^DOUBLE PRECISION                ::rad$/;"	v
+rb	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::rb,/;"	k	type:comp_type
+rcoord	src/k3sqrt.f90	/^       DOUBLE PRECISION,POINTER         ::rcoord(/;"	k	type:type_h1
+rcoord	src/k3sqrt.f90	/^       DOUBLE PRECISION,POINTER         ::rcoord(/;"	k	type:type_phi1
+rcoord	src/k3sqrt.f90	/^       DOUBLE PRECISION,POINTER         ::rcoord(/;"	k	type:type_u
+read1d	src/read1d.f90	/^subroutine read1d(/;"	s
+read2d	src/read2d.f90	/^subroutine read2d(/;"	s
+read_collective2d	src/read_collective2d.f90	/^subroutine read_collective2d(/;"	s
+rf	src/rk4.f90	/^DOUBLE PRECISION        ::ri,rf,/;"	v
+rhoh	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::Lh,rhoh,/;"	k	type:comp_type
+ri	src/rk4.f90	/^DOUBLE PRECISION        ::ri,/;"	v
+riemann2d	src/riemann2d.f90	/^subroutine riemann2d(/;"	s
+riemann2dCTU	src/riemann2dCTU.f90	/^subroutine riemann2dCTU(/;"	s
+riemann3d	src/riemann3d.f90	/^subroutine riemann3d(/;"	s
+rk45d1	src/rk4.f90	/^SUBROUTINE rk45d1(/;"	s
+rmax	src/k3sqrt.f90	/^        DOUBLE PRECISION                ::rmin,rmax$/;"	k	type:type_stellarspiral
+rmin	src/k3sqrt.f90	/^        DOUBLE PRECISION                ::rmin,/;"	k	type:type_stellarspiral
+rq	src/k3sqrt.f90	/^        DOUBLE PRECISION,POINTER        ::rq$/;"	k	type:Q_type
+run_params	src/main.f90	/^namelist\/run_params\//;"	n	program:antares
+s	src/rk4.f90	/^DOUBLE COMPLEX,EXTERNAL ::p,q,s$/;"	v
+selfgravity2d	src/selfgravity2d.f90	/^subroutine selfgravity2d(/;"	s
+selfgravity3d	src/selfgravity3d.f90	/^subroutine selfgravity3d(/;"	s
+sendbdry2d	src/sendbdry2d.f90	/^subroutine sendbdry2d(/;"	s
+sendbdry3d	src/sendbdry3d.f90	/^subroutine sendbdry3d(/;"	s
+sgkernel2d	src/sgkernel2d.f90	/^subroutine sgkernel2d(/;"	s
+sgkernel3d	src/sgkernel3d.f90	/^subroutine sgkernel3d(/;"	s
+sgx	src/common_params.f90	/^double precision,dimension(:,:),allocatable::sgx,/;"	v	module:common_params
+sgx	src/common_params.f90	/^double precision,dimension(:,:,:),allocatable::sgx,/;"	v	module:common_params
+sgxker	src/common_params.f90	/^double complex  ,dimension(:,:),allocatable::sgxker,/;"	v	module:common_params
+sgxker	src/common_params.f90	/^double complex  ,dimension(:,:,:),allocatable::sgxker,/;"	v	module:common_params
+sgy	src/common_params.f90	/^double precision,dimension(:,:),allocatable::sgx,sgy /;"	v	module:common_params
+sgy	src/common_params.f90	/^double precision,dimension(:,:,:),allocatable::sgx,sgy,/;"	v	module:common_params
+sgyker	src/common_params.f90	/^double complex  ,dimension(:,:),allocatable::sgxker,sgyker /;"	v	module:common_params
+sgyker	src/common_params.f90	/^double complex  ,dimension(:,:,:),allocatable::sgxker,sgyker,/;"	v	module:common_params
+sgz	src/common_params.f90	/^double precision,dimension(:,:,:),allocatable::sgx,sgy,sgz /;"	v	module:common_params
+sgzker	src/common_params.f90	/^double complex  ,dimension(:,:,:),allocatable::sgxker,sgyker,sgzker$/;"	v	module:common_params
+sigma1	src/k3sqrt.f90	/^DOUBLE PRECISION                ::sigma1$/;"	v
+simcon	src/simcontroll.f90	/^type(simcon_/;"	v	module:simcontroll
+simcon_type	src/simcontroll.f90	/^type simcon_type$/;"	t	module:simcontroll
+simcontroll	src/simcontroll.f90	/^module simcontroll$/;"	m
+snd	src/common_params.f90	/^double precision::snd /;"	v	module:common_params
+snsd	src/k3sqrt.f90	/^function snsd(/;"	f
+step	src/main.f90	/^integer::i,j,k,step$/;"	v	program:antares
+t	src/common_params.f90	/^double precision:: dx,dy,dz,dt,/;"	v	module:common_params
+temp1_loc	src/main.f90	/^double precision,dimension(:,:,:),allocatable::q_loc,temp1_loc,/;"	v	program:antares
+temp1_loc	src/main.f90	/^double precision,dimension(:,:,:,:),allocatable::q_loc,temp1_loc,/;"	v	program:antares
+temp2_loc	src/main.f90	/^double precision,dimension(:,:,:),allocatable::q_loc,temp1_loc,temp2_loc$/;"	v	program:antares
+temp2_loc	src/main.f90	/^double precision,dimension(:,:,:,:),allocatable::q_loc,temp1_loc,temp2_loc$/;"	v	program:antares
+temp3_loc	src/main.f90	/^double precision,dimension(:,:,:),allocatable::temp3_loc$/;"	v	program:antares
+tend	src/common_params.f90	/^double precision::tend,/;"	v	module:common_params
+tend	src/simcontroll.f90	/^        DOUBLE PRECISION                ::tend$/;"	k	type:simcon_type
+th	src/k3sqrt.f90	/^DOUBLE PRECISION,INTENT(IN)     ::r,th$/;"	v
+toutput	src/main.f90	/^double precision::dt_loc,toutput /;"	v	program:antares
+type_h1	src/k3sqrt.f90	/^type    type_h1$/;"	t	subroutine:TEMP
+type_phi1	src/k3sqrt.f90	/^type    type_phi1$/;"	t	subroutine:TEMP
+type_stellarspiral	src/k3sqrt.f90	/^type    type_stellarspiral$/;"	t	subroutine:TEMP
+type_u	src/k3sqrt.f90	/^type    type_u$/;"	t	subroutine:TEMP
+u	src/k3sqrt.f90	/^        type(type_u)/;"	k	type:type_stellarspiral
+u	src/k3sqrt.f90	/^       DOUBLE COMPLEX,POINTER           ::u(/;"	k	type:type_u
+u	src/rk4.f90	/^DOUBLE COMPLEX          ::u(/;"	v
+ui	src/rk4.f90	/^DOUBLE COMPLEX          ::u(3,N),ui(/;"	v
+uu	src/k3sqrt.f90	/^DOUBLE COMPLEX                  ::uu,/;"	v
+uu	src/rk4.f90	/^DOUBLE COMPLEX          ::u(3,N),ui(3),uu(/;"	v
+vslop	src/sloplimiter.f90	/^function vslop(/;"	f
+write_collective2d	src/write_collective2d.f90	/^subroutine write_collective2d(/;"	s
+write_collective3d	src/write_collective3d.f90	/^subroutine write_collective3d(/;"	s
+write_gravity2d	src/write_gravity2d.f90	/^subroutine write_gravity2d(/;"	s
+write_gravity3d	src/write_gravity3d.f90	/^subroutine write_gravity3d(/;"	s
+x	src/common_params.f90	/^double precision,dimension(:),allocatable::x,/;"	v	module:common_params
+x_loc	src/common_params.f90	/^double precision,dimension(:),allocatable::x_loc,/;"	v	module:common_params
+xrange	src/common_params.f90	/^double precision:: xrange(/;"	v	module:common_params
+y	src/common_params.f90	/^double precision,dimension(:),allocatable::x,y,/;"	v	module:common_params
+y_loc	src/common_params.f90	/^double precision,dimension(:),allocatable::x_loc,y_loc,/;"	v	module:common_params
+yrange	src/common_params.f90	/^double precision:: xrange(2),yrange(/;"	v	module:common_params
+z	src/common_params.f90	/^double precision,dimension(:),allocatable::x,y,z$/;"	v	module:common_params
+z_loc	src/common_params.f90	/^double precision,dimension(:),allocatable::x_loc,y_loc,z_loc$/;"	v	module:common_params
+zrange	src/common_params.f90	/^double precision:: xrange(2),yrange(2),zrange(/;"	v	module:common_params
