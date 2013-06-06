@@ -1,7 +1,7 @@
 function last(index)
 
 i =length(dir('../*.h5'))-2;
-i = 0;
+
 filename=sprintf('../M%04d.h5',i);
 momx = hdf5read(filename,'momx');
 momy = hdf5read(filename,'momy');

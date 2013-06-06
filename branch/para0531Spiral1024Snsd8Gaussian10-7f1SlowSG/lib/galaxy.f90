@@ -9,6 +9,7 @@ type    typspiralforce
         double complex  ,dimension(:,:),allocatable::sgxker,sgyker !kernal 
 endtype
 type(typspiralforce),SAVE               ::stellarforce
+DOUBLE PRECISION,ALLOCATABLE            ::InitGasDensity(:,:)
 
 CONTAINS
 
@@ -60,7 +61,7 @@ DOUBLE PRECISION                ::rho,a
 !
 !---------------------------
 
-rho = 1.d0
+rho = 10.d0
 a   = 7.d0
 a   = 10.d0
 

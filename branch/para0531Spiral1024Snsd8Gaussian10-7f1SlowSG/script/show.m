@@ -45,7 +45,7 @@ axis xy
 axis equal
 axis tight
 colorbar
-caxis([0 3])
+caxis([0 30])
 
 pause(0.01);
 end

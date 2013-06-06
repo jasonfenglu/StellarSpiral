@@ -5,7 +5,7 @@
 #PBS -o antares2d.out
 #PBS -e antares2d.err
 ###### Number of nodes and cores ######
-#PBS -l nodes=4:ppn=16
+#PBS -l nodes=1:ppn=16
 ###### Queue name ######
 #PBS -q medium
 ###### Specific the shell types ######
