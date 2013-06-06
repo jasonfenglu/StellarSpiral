@@ -57,14 +57,14 @@ DOUBLE PRECISION                ::rho,a
 !Gaussian density distribution
 !
 !
-!  density = rho * exp(-r^2/(2a))
+!  density = rho * exp(-r^2/(2a**2))
 !
 !---------------------------
 
 rho = 1.d0
 a   = GasDiskLength
 
-GaussianDensity = rho * dexp(-r**2/2.d0/a)
+GaussianDensity = rho * dexp(-r**2/2.d0/a**2)
 
 ENDFUNCTION
 
