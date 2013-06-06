@@ -7,7 +7,7 @@
 ###### Number of nodes and cores ######
 #PBS -l nodes=1:ppn=16
 ###### Queue name ######
-#PBS -q medium
+#PBS -q small
 ###### Specific the shell types ######
 #PBS -S /bin/bash
 
