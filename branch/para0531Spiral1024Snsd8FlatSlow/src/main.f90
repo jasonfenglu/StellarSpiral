@@ -98,6 +98,8 @@ allocate(q_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR))
 allocate(temp1_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR))
 allocate(temp2_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR))
 allocate(den_temp(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf))
+allocate(InitGasDensity(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf))
+
 
 #ifdef FORCE
 allocate(fx(1:ncell_loc(1),1:ncell_loc(2)))

@@ -1,7 +1,7 @@
 subroutine force2d(q_loc,fx,fy)
 use common_params
 use simcontroll
-use GALAXY, only:RC,stellarforce,spiral
+use GALAXY, only:RC,stellarforce,spiral,GasDiskLength,InitGasDensity
 implicit none
 double precision::q_loc(1-ibuf:ncell_loc(1)+ibuf,1-jbuf:ncell_loc(2)+jbuf,NVAR)
 double precision::fx(1:ncell_loc(1),1:ncell_loc(2)),fy(1:ncell_loc(1),1:ncell_loc(2))
@@ -65,7 +65,7 @@ fy = fy + stellarforce.sgy * dmin1(t/tend*dble(simcon.ncir),1.d0)
 
 #ifdef GRAVITY
  allocate(den(1:ncell_loc(1),1:ncell_loc(2)))
- den= q_loc(1:ncell_loc(1),1:ncell_loc(2),1)-1.53d2
+ den= q_loc(1:ncell_loc(1),1:ncell_loc(2),1)-InitGasDensity(1:ncell_loc(1),1:ncell_loc(2))
  !den= q_loc(1:ncell_loc(1),1:ncell_loc(2),1)
  call selfgravity2d(den)
  fx = fx+sgx

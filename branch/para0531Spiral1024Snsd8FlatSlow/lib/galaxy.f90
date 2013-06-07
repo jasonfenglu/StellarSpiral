@@ -9,6 +9,8 @@ type    typspiralforce
         double complex  ,dimension(:,:),allocatable::sgxker,sgyker !kernal 
 endtype
 type(typspiralforce),SAVE               ::stellarforce
+DOUBLE PRECISION,ALLOCATABLE            ::InitGasDensity(:,:)
+DOUBLE PRECISION,PARAMETER              ::GasDiskLength = 7.d0
 
 CONTAINS
 
@@ -56,15 +58,14 @@ DOUBLE PRECISION                ::rho,a
 !Gaussian density distribution
 !
 !
-!  density = rho * exp(-r^2/(2a))
+!  density = rho * exp(-r^2/(2a**2))
 !
 !---------------------------
 
-rho = 1.d0
-a   = 7.d0
-a   = 10.d0
+rho = 10.d0
+a   = GasDiskLength
 
-GaussianDensity = rho * dexp(-r**2/2.d0/a)
+GaussianDensity = rho * dexp(-r**2/2.d0/a**2)
 
 ENDFUNCTION
 
