@@ -57,33 +57,20 @@ DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
 INTEGER,PARAMETER               ::n=512
 type(typspiral)                 ::spiral
-!namelist /densitypara/ toproject
-!
-!!read in density plot related options
-!open(10,file='para.list')
-!read(10,nml=densitypara)
-!close(10)
-!
-!!rotate with input parameters
-!if(iargc().eq.1)then
-!        CALL getarg(1,arg)
-!        READ(arg,*)argaline
-!        print *,'read in argaline = ',argaline
-!        else 
-!        argaline = 3.d0
-!endif
 
 if(iargc().ne.0)then
         DO i = 1, iargc()
                 CALL getarg(i,arg)
                 SELECT CASE(arg)
                 CASE('--help','-h')
-                        write(6,'(a)')'usage:   Density.exe [option] [filenmaes]'
+                        write(6,'(a)')'Draw stellar density distribution.       '
+                        write(6,'(a)')'usage:   Density.exe [option]            '
                         write(6,'(a)')'options:                         '
                         write(6,'(a)')'         -p, --project           To project the density.'
                         write(6,'(a)')'         -c, --circle            To draw circles.       '
                         write(6,'(a)')'         -r, --zauto             Automatic find scale of z'
                         write(6,'(a)')'         -z, --zmax [scale of z] Specified the scale of z'
+                        write(6,'(a)')'         -h, --help              Show this help page     '
                         STOP
                 CASE('--project','-p')
                         toproject = .true.
@@ -178,6 +165,7 @@ DOUBLE PRECISION,INTENT(IN)             ::F(:,:)        !plotting data
 DOUBLE PRECISION,INTENT(IN)             ::domain        !plot range
 INTEGER,INTENT(IN)                      ::n             !dimentsion
 INTEGER                                 ::PGBEG
+INTEGER                                 ::i
 
 IF(rauto)THEN
         zmax = maxval(F)*1.1d0
@@ -187,6 +175,8 @@ ELSE
 ENDIF
 
 IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
+
+DO i = 1, 2
 CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
 CALL meshplot(F,n,domain,zmax)
 IF(.not.toproject.and.drawcir)THEN
@@ -199,11 +189,11 @@ IF(.not.toproject.and.drawcir)THEN
         CALL PGCIRC(0.,0.,10.636)
         CALL PGCIRC(0.,0.,8.83)
 ENDIF
-
 CALL PGCLOS
+IF (PGBEG(0,'density.png/png',1,1) .NE. 1) STOP
+ENDDO
 
 ENDSUBROUTINE
-
 
 END PROGRAM
 
