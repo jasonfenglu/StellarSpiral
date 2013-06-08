@@ -2,6 +2,80 @@ module plotting
 REAL,SAVE                               ::points(4,2)
 CONTAINS
 
+SUBROUTINE StellarGasPlot(F,n,domain,contourn)
+IMPLICIT NONE
+DOUBLE PRECISION,INTENT(IN)             ::F(:,:,:)        !plotting data
+DOUBLE PRECISION,INTENT(IN)             ::domain        !plot range
+INTEGER,INTENT(IN)                      ::contourn      !countour number
+INTEGER,INTENT(IN)                      ::n             !gridsize
+INTEGER                                 ::PGBEG
+!open plotting device
+IF (PGBEG(0,'/xs',1,1) .NE. 1)THEN
+        write(6,*)achar(27)//'[33m pgplot open failed',achar(27)//'[0m'
+        STOP
+ENDIF
+!call plotting routine
+CALL output
+IF (PGBEG(0,'ProjectedGasDensity.png/png',1,1) .NE. 1)THEN
+        write(6,*)achar(27)//'[33m pgplot open failed',achar(27)//'[0m'
+        STOP
+ENDIF
+!call plotting routine
+CALL output
+
+CONTAINS
+
+SUBROUTINE output
+IMPLICIT NONE
+REAL                            ::dx,dy
+REAL                            ::TR(6)
+REAL                            ::BRIGHT,CONTRA
+REAL                            ::vmax,vmin
+REAL                            ::ALEV
+INTEGER                         ::I
+CALL PGSVP(0.0,0.95,0.0,0.95)
+dx = real(domain)/real(n/2)
+dy = real(domain)/real(n/2)
+TR(3) = 0.
+TR(5) = 0.
+TR(2) = dx
+TR(1) = -domain-dx/2.d0
+TR(4) = -domain-dy/2.d0
+TR(6) = dy
+
+BRIGHT = 0.5
+CONTRA = 0.9
+
+vmax = real(MAXVAL(F(:,:,2)))
+vmin = real(MINVAL(F(:,:,2)))
+vmax = vmax * 1.1d0
+vmin = vmin * 1.1d0
+write(6,*)achar(27)//'[33m Ploting z scale :',vmax,vmin,achar(27)//'[0m'
+
+!setting color style
+CALL PALETT(2,CONTRA,Bright)
+CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+
+!CALL PGSCI(3)
+!DO I = 1, contourn
+!        ALEV = vmin + (I-1)*(vmax - vmin)/real(contourn)
+!        print *,I,ALEV
+!        CALL PGCONS(real(F),N,N,1,N,1,N,ALEV,-1,TR)
+!ENDDO
+vmax = real(MAXVAL(F(:,:,2)))
+vmin = real(MINVAL(F(:,:,2)))
+vmax = 30.0
+CALL PGIMAG(REAL(F(:,:,2)),n,n,1,n,1,n,vmin,vmax,TR)
+CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
+CALL PGPT(1,(/0./),(/0./),2)
+CALL PGSCI(1)
+CALL PGBBUF
+CALL PGCLOS
+
+
+ENDSUBROUTINE
+ENDSUBROUTINE
+
 SUBROUTINE countour(F,n,domain,contourn)
 IMPLICIT NONE
 DOUBLE PRECISION,INTENT(IN)             ::F(:,:)        !plotting data
@@ -107,8 +181,8 @@ close(20)
 
 CALL PGSVP(0.0,0.95,0.0,0.95)
 m = n
-dx = real(domain)/real(n)
-dy = real(domain)/real(m)
+dx = real(domain)/real(n)*2.
+dy = real(domain)/real(m)*2.
 
 TR(3) = 0.
 TR(5) = 0.
@@ -128,14 +202,15 @@ vmax = vmax * 1.1d0
 vmin = vmin * 1.1d0
 write(6,*)achar(27)//'[33m Ploting z scale :',vmax,vmin,achar(27)//'[0m'
 if(.not.rauto)then
-                vmax = den
-                vmin = -vmax
+        vmax = den
+        vmin = -vmax
+        write(6,*)achar(27)//'[33m Changed to z scale :',vmax,vmin,achar(27)//'[0m'
 endif
 
 CALL PALETT(2,CONTRA,Bright)
 CALL PGBBUF
 CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
-CALL PGIMAG(REAL(F(:,:)),2*m,2*n,1,2*n,1,2*m,vmin,vmax,TR)
+CALL PGIMAG(REAL(F(:,:)),m,n,1,n,1,m,vmin,vmax,TR)
 CALL PGWEDG('RI', 1.0, 4.0, vmin, vmax, '')
 CALL PGSCH(1.0)
 CALL PGLAB('kpc','kpc','Density')
@@ -730,65 +805,108 @@ ENDSUBROUTINE
 
         ENDSUBROUTINE
 
-      SUBROUTINE PALETT(TYPE, CONTRA, BRIGHT)
+SUBROUTINE meshplot(dat,m,domain,zmax,n_in,zmin_in)
+IMPLICIT NONE
+!!input arguments
+DOUBLE PRECISION,INTENT(IN)             ::dat(:,:)
+DOUBLE PRECISION,INTENT(IN)             ::domain
+DOUBLE PRECISION,INTENT(IN)             ::zmax
+DOUBLE PRECISION,INTENT(IN),OPTIONAL    ::zmin_in
+DOUBLE PRECISION                        ::zmin
+INTEGER,INTENT(IN)                      ::m
+INTEGER,INTENT(IN),OPTIONAL             ::n_in
+INTEGER                                 ::n
+!!used variables
+REAL                                    ::TR(6)         !plot geometry
+REAL                                    ::dx,dy
+REAL                                    ::BRIGHT,CONTRA
+
+!check if zmin is passed 
+if(present(zmin_in))then
+        zmin = zmin_in
+ELSE
+        zmin = - zmax
+ENDIF
+!check if n is passed 
+if(present(n_in))THEN
+        n = n_in
+ELSE
+        n = m
+ENDIF
+dx = real(domain)/real(n/2)
+dy = real(domain)/real(m/2)
+TR(3) = 0.
+TR(5) = 0.
+TR(2) = dx
+TR(1) = -real(domain)-dx/2.d0
+TR(4) = -real(domain)-dy/2.d0
+TR(6) = dy
+BRIGHT = 0.5
+CONTRA = 0.9
+CALL PALETT(2,CONTRA,Bright)
+CALL PGIMAG(REAL(dat(:,:)),m,n,1,n,1,m,real(zmin),real(zmax),TR)
+CALL PGWEDG('RI', 1.0, 4.0, real(zmin), real(zmax), '')
+ENDSUBROUTINE
+
+SUBROUTINE PALETT(TYPE, CONTRA, BRIGHT)
 !-----------------------------------------------------------------------
 ! Set a "palette" of colors in the range of color indices used by
 ! PGIMAG.
 !-----------------------------------------------------------------------
-      INTEGER TYPE
-      REAL CONTRA, BRIGHT
+INTEGER TYPE
+REAL CONTRA, BRIGHT
 !
-      REAL GL(2), GR(2), GG(2), GB(2)
-      REAL RL(9), RR(9), RG(9), RB(9)
-      REAL HL(5), HR(5), HG(5), HB(5)
-      REAL WL(10), WR(10), WG(10), WB(10)
-      REAL AL(20), AR(20), AG(20), AB(20)
+REAL GL(2), GR(2), GG(2), GB(2)
+REAL RL(9), RR(9), RG(9), RB(9)
+REAL HL(5), HR(5), HG(5), HB(5)
+REAL WL(10), WR(10), WG(10), WB(10)
+REAL AL(20), AR(20), AG(20), AB(20)
 !
-      DATA GL /0.0, 1.0/
-      DATA GR /0.0, 1.0/
-      DATA GG /0.0, 1.0/
-      DATA GB /0.0, 1.0/
+DATA GL /0.0, 1.0/
+DATA GR /0.0, 1.0/
+DATA GG /0.0, 1.0/
+DATA GB /0.0, 1.0/
 !
-      DATA RL /-0.5, 0.0, 0.17, 0.33, 0.50, 0.67, 0.83, 1.0, 1.7/
-      DATA RR / 0.0, 0.0,  0.0,  0.0,  0.6,  1.0,  1.0, 1.0, 1.0/
-      DATA RG / 0.0, 0.0,  0.0,  1.0,  1.0,  1.0,  0.6, 0.0, 1.0/
-      DATA RB / 0.0, 0.3,  0.8,  1.0,  0.3,  0.0,  0.0, 0.0, 1.0/
+DATA RL /-0.5, 0.0, 0.17, 0.33, 0.50, 0.67, 0.83, 1.0, 1.7/
+DATA RR / 0.0, 0.0,  0.0,  0.0,  0.6,  1.0,  1.0, 1.0, 1.0/
+DATA RG / 0.0, 0.0,  0.0,  1.0,  1.0,  1.0,  0.6, 0.0, 1.0/
+DATA RB / 0.0, 0.3,  0.8,  1.0,  0.3,  0.0,  0.0, 0.0, 1.0/
 !
-      DATA HL /0.0, 0.2, 0.4, 0.6, 1.0/
-      DATA HR /0.0, 0.5, 1.0, 1.0, 1.0/
-      DATA HG /0.0, 0.0, 0.5, 1.0, 1.0/
-      DATA HB /0.0, 0.0, 0.0, 0.3, 1.0/
+DATA HL /0.0, 0.2, 0.4, 0.6, 1.0/
+DATA HR /0.0, 0.5, 1.0, 1.0, 1.0/
+DATA HG /0.0, 0.0, 0.5, 1.0, 1.0/
+DATA HB /0.0, 0.0, 0.0, 0.3, 1.0/
 !
-      DATA WL /0.0, 0.5, 0.5, 0.7, 0.7, 0.85, 0.85, 0.95, 0.95, 1.0/
-      DATA WR /0.0, 1.0, 0.0, 0.0, 0.3,  0.8,  0.3,  1.0,  1.0, 1.0/
-      DATA WG /0.0, 0.5, 0.4, 1.0, 0.0,  0.0,  0.2,  0.7,  1.0, 1.0/
-      DATA WB /0.0, 0.0, 0.0, 0.0, 0.4,  1.0,  0.0,  0.0, 0.95, 1.0/
+DATA WL /0.0, 0.5, 0.5, 0.7, 0.7, 0.85, 0.85, 0.95, 0.95, 1.0/
+DATA WR /0.0, 1.0, 0.0, 0.0, 0.3,  0.8,  0.3,  1.0,  1.0, 1.0/
+DATA WG /0.0, 0.5, 0.4, 1.0, 0.0,  0.0,  0.2,  0.7,  1.0, 1.0/
+DATA WB /0.0, 0.0, 0.0, 0.0, 0.4,  1.0,  0.0,  0.0, 0.95, 1.0/
 !
-      DATA AL /0.0, 0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5, &
-               0.5, 0.6, 0.6, 0.7, 0.7, 0.8, 0.8, 0.9, 0.9, 1.0/
-      DATA AR /0.0, 0.0, 0.3, 0.3, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, &
-               0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0/
-      DATA AG /0.0, 0.0, 0.3, 0.3, 0.0, 0.0, 0.0, 0.0, 0.8, 0.8, &
-               0.6, 0.6, 1.0, 1.0, 1.0, 1.0, 0.8, 0.8, 0.0, 0.0/
-      DATA AB /0.0, 0.0, 0.3, 0.3, 0.7, 0.7, 0.7, 0.7, 0.9, 0.9, &
-               0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/
+DATA AL /0.0, 0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5, &
+       0.5, 0.6, 0.6, 0.7, 0.7, 0.8, 0.8, 0.9, 0.9, 1.0/
+DATA AR /0.0, 0.0, 0.3, 0.3, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, &
+       0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0/
+DATA AG /0.0, 0.0, 0.3, 0.3, 0.0, 0.0, 0.0, 0.0, 0.8, 0.8, &
+       0.6, 0.6, 1.0, 1.0, 1.0, 1.0, 0.8, 0.8, 0.0, 0.0/
+DATA AB /0.0, 0.0, 0.3, 0.3, 0.7, 0.7, 0.7, 0.7, 0.9, 0.9, &
+       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0/
 !
-      IF (TYPE.EQ.1) THEN
+IF (TYPE.EQ.1) THEN
 !        -- gray scale
-         CALL PGCTAB(GL, GR, GG, GB, 2, CONTRA, BRIGHT)
-      ELSE IF (TYPE.EQ.2) THEN
+ CALL PGCTAB(GL, GR, GG, GB, 2, CONTRA, BRIGHT)
+ELSE IF (TYPE.EQ.2) THEN
 !        -- rainbow
-         CALL PGCTAB(RL, RR, RG, RB, 9, CONTRA, BRIGHT)
-      ELSE IF (TYPE.EQ.3) THEN
+ CALL PGCTAB(RL, RR, RG, RB, 9, CONTRA, BRIGHT)
+ELSE IF (TYPE.EQ.3) THEN
 !        -- heat
-         CALL PGCTAB(HL, HR, HG, HB, 5, CONTRA, BRIGHT)
-      ELSE IF (TYPE.EQ.4) THEN
+ CALL PGCTAB(HL, HR, HG, HB, 5, CONTRA, BRIGHT)
+ELSE IF (TYPE.EQ.4) THEN
 !        -- weird IRAF
-         CALL PGCTAB(WL, WR, WG, WB, 10, CONTRA, BRIGHT)
-      ELSE IF (TYPE.EQ.5) THEN
+ CALL PGCTAB(WL, WR, WG, WB, 10, CONTRA, BRIGHT)
+ELSE IF (TYPE.EQ.5) THEN
 !        -- AIPS
-         CALL PGCTAB(AL, AR, AG, AB, 20, CONTRA, BRIGHT)
+ CALL PGCTAB(AL, AR, AG, AB, 20, CONTRA, BRIGHT)
       END IF
-      ENDSUBROUTINE
+ENDSUBROUTINE
 
-        endmodule
+endmodule

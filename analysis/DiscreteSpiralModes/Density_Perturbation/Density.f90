@@ -33,64 +33,96 @@ INVC(2,2) = 1.d0
 ENDFUNCTION
 endmodule
 
+MODULE argument
+IMPLICIT  NONE
+        DOUBLE PRECISION        ::zmax      = 0.
+        LOGICAL                 ::toproject = .false.
+        LOGICAL                 ::rauto     = .true.
+        LOGICAL                 ::drawcir   = .false.
+ENDMODULE
+
 PROGRAM density1
 USE PLOTTING
 USE STELLARDISK_MODEL
 USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,phi1,FindPhi1,SpiralForce
 USE projections,only:argaline
 USE io
+USE argument
 IMPLICIT NONE
 INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
 DOUBLE PRECISION                ::domain= 10.d0,dx,dy,r,th,pf(2),pi(2)
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
-DOUBLE PRECISION,ALLOCATABLE    ::potential(:,:),potential2(:,:)
-DOUBLE PRECISION,ALLOCATABLE    ::force(:,:,:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
 INTEGER,PARAMETER               ::n=512
 type(typspiral)                 ::spiral
-LOGICAL                         ::toproject
-namelist /densitypara/ toproject
+!namelist /densitypara/ toproject
+!
+!!read in density plot related options
+!open(10,file='para.list')
+!read(10,nml=densitypara)
+!close(10)
+!
+!!rotate with input parameters
+!if(iargc().eq.1)then
+!        CALL getarg(1,arg)
+!        READ(arg,*)argaline
+!        print *,'read in argaline = ',argaline
+!        else 
+!        argaline = 3.d0
+!endif
 
-!read in density plot related options
-open(10,file='para.list')
-read(10,nml=densitypara)
-close(10)
-
-!rotate with input parameters
-if(iargc().eq.1)then
-        CALL getarg(1,arg)
-        READ(arg,*)argaline
-        print *,'read in argaline = ',argaline
-        else 
-        argaline = 3.d0
-endif
-
+if(iargc().ne.0)then
+        DO i = 1, iargc()
+                CALL getarg(i,arg)
+                SELECT CASE(arg)
+                CASE('--help','-h')
+                        write(6,'(a)')'usage:   Density.exe [option] [filenmaes]'
+                        write(6,'(a)')'options:                         '
+                        write(6,'(a)')'         -p, --project           To project the density.'
+                        write(6,'(a)')'         -c, --circle            To draw circles.       '
+                        write(6,'(a)')'         -r, --zauto             Automatic find scale of z'
+                        write(6,'(a)')'         -z, --zmax [scale of z] Specified the scale of z'
+                        STOP
+                CASE('--project','-p')
+                        toproject = .true.
+                CASE('--circle','-c')
+                        drawcir = .true.
+                CASE('--zmax','-z')
+                        CALL getarg(i+1,arg)
+                        READ(arg,*)zmax
+                        rauto = .false.
+                ENDSELECT
+        ENDDO
+ENDIF
 
 CALL stdpara.readstd
 CALL spiral.init(500,12.d0,stdpara,2)
 CALL spiral.readw(2)
 CALL FindSpiral(spiral)
-dx = domain/dble(n)
-dy = domain/dble(n)
+dx = domain/dble(n)*2.d0
+dy = domain/dble(n)*2.d0
 
-ALLOCATE(density(2*n,2*n))
-ALLOCATE(xcoord(2*n))
-ALLOCATE(ycoord(2*n))
+ALLOCATE(density(n,n))
+ALLOCATE(xcoord(n))
+ALLOCATE(ycoord(n))
 
-DO i = 1, n*2
-        xcoord(i) =  dx*0.5d0 - domain + dble(i)*dx
-        ycoord(i) =  dy*0.5d0 - domain + dble(i)*dx
+DO i = 1, n
+        xcoord(i) =  dx*0.5d0 - domain + dble(i-1)*dx
+        ycoord(i) =  dy*0.5d0 - domain + dble(i-1)*dy
 ENDDO
 
 !$OMP PARALLEL SHARED(density,spiral) PRIVATE(j,r,th,pi,pf,d)
 !$OMP DO 
-DO i = 1, n*2
-DO j = 1, n*2
+DO i = 1, n
+DO j = 1, n
+        !read coordinate
         pf = (/xcoord(i),ycoord(j)/)
         pi = pf
+        !project to original coordinate if nessesary
         if(toproject)CALL projection(pi,pf)
+        !Fill in Stellar Density
         r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
         IF(r.lt.spiral.fortoone)then
@@ -117,51 +149,60 @@ if(abs(spiral.error).gt.1d-5)then
         write(0,*)'pspd:',spiral.w
 endif
 
-if(.false.)then
-!!!Find 2d Potential, not using.
-ALLOCATE(potential(2*n,2*n))
-ALLOCATE(force(n*2,n*2,2))
-!$OMP PARALLEL SHARED(force,potential,spiral) PRIVATE(j,r,th,pi,pf,d)
-!$OMP DO 
-DO i = 1, n*2
-DO j = 1, n*2
-        pf = (/xcoord(i),ycoord(j)/)
-        pi = pf
-        if(toproject)CALL projection(pi,pf)
-        r  = sqrt(pi(1)**2+pi(2)**2)
-        th = atan2(pi(2),pi(1))
-        d  = phi1(r,th,spiral,0.d0)
-!       force(i,j,:) = SpiralForce(r,th,spiral)
-        !===================
-        !ignore d too high
-        if(r.gt.12.d0)d = 0.d0
-        !ignore d that is not exist during coordinate transformation
-        if(isnan(d))d = 0.d0
-!       potential(i,j) = d
-ENDDO
-ENDDO
-!$OMP END DO
-!$OMP END PARALLEL 
-endif
-call spiral.printu
-call spiral.printh1
 points(1,:) = (/0.0,10.636/)
 points(2,:) = (/0.0,-10.636/)
 points(3,:) = (/0.0,4.727/)
 points(4,:) = (/0.0,-4.727/)
 CALL dprojection(points)
 
-CALL plotdensity(density,n,domain)
-CALL h5write(xcoord,2*N,'density.h5','xcoord')
-CALL h5write(ycoord,2*N,'density.h5','ycoord')
-CALL h5write(density,2*N,2*N,'density.h5','density')
+CALL plot(density,n,domain)
+!!output density to h5 file
+CALL h5write(xcoord,N,'density.h5','xcoord')
+CALL h5write(ycoord,N,'density.h5','ycoord')
+CALL h5write(density,N,N,'density.h5','density')
 
 DEALLOCATE(xcoord)
 DEALLOCATE(ycoord)
 DEALLOCATE(density)
+!!calculate Integrated Phase
 !CALL PhaseIntegrate
 !CALL ENDSTELLARDISK
 STOP
+
+CONTAINS
+SUBROUTINE plot(F,n,domain)
+USE argument
+USE plotting
+IMPLICIT NONE
+DOUBLE PRECISION,INTENT(IN)             ::F(:,:)        !plotting data
+DOUBLE PRECISION,INTENT(IN)             ::domain        !plot range
+INTEGER,INTENT(IN)                      ::n             !dimentsion
+INTEGER                                 ::PGBEG
+
+IF(rauto)THEN
+        zmax = maxval(F)*1.1d0
+        write(6,*)achar(27)//'[33m Plotting z scale :',zmax,achar(27)//'[0m'
+ELSE
+        write(6,*)achar(27)//'[33m Plotting z scale :',zmax,achar(27)//'[0m'
+ENDIF
+
+IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
+CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+CALL meshplot(F,n,domain,zmax)
+IF(.not.toproject.and.drawcir)THEN
+        write(6,*)achar(27)//'[33m Drawing circles',achar(27)//'[0m'
+        CALL PGSFS(2)
+        CALL PGSCI(0)
+        CALL PGCIRC(0.,0.,1.26)
+        CALL PGCIRC(0.,0.,2.36)
+        CALL PGCIRC(0.,0.,4.72)
+        CALL PGCIRC(0.,0.,10.636)
+        CALL PGCIRC(0.,0.,8.83)
+ENDIF
+
+CALL PGCLOS
+
+ENDSUBROUTINE
 
 
 END PROGRAM
@@ -324,3 +365,4 @@ DEALLOCATE(BDD)
 DEALLOCATE(W)
 
 ENDSUBROUTINE
+
