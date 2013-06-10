@@ -56,6 +56,7 @@ DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
 INTEGER,PARAMETER               ::n=512
+INTEGER                         ::ioerr
 type(typspiral)                 ::spiral
 
 if(iargc().ne.0)then
@@ -66,7 +67,7 @@ if(iargc().ne.0)then
                         write(6,'(a)')'Draw stellar density distribution.       '
                         write(6,'(a)')'usage:   Density.exe [option]            '
                         write(6,'(a)')'options:                         '
-                        write(6,'(a)')'         -p, --project           To project the density.'
+                        write(6,'(a)')'         -p, --project [degree]  To project the density.'
                         write(6,'(a)')'         -c, --circle            To draw circles.       '
                         write(6,'(a)')'         -r, --zauto             Automatic find scale of z'
                         write(6,'(a)')'         -z, --zmax [scale of z] Specified the scale of z'
@@ -74,6 +75,9 @@ if(iargc().ne.0)then
                         STOP
                 CASE('--project','-p')
                         toproject = .true.
+                        CALL getarg(i+1,arg)
+                        READ(arg,*,iostat=ioerr)argaline
+                        if(ioerr.ne.0)argaline = -3.d0
                 CASE('--circle','-c')
                         drawcir = .true.
                 CASE('--zmax','-z')
