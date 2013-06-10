@@ -179,6 +179,7 @@ CALL dprojection(points)
 !!looping to draw movie
 !read in gas density
 IF(movie)THEN
+        CALL plotinit(density,n,domain,gas.filename)
         DO i = frames(1),frames(2)
                 write(gas.filename,'("M",I0.4,".h5")')i
                 print *,gas.filename
@@ -187,8 +188,37 @@ IF(movie)THEN
         FORALL(i = 1:n,j = 1:n,density(i,j,1)<0)
                 density(i,j,1) = 0.d0
         ENDFORALL
-        CALL plot(density,n,domain,gas.filename)
+        CALL PGBBUF
+        IF(rauto)THEN
+                CALL meshplot(density(:,:,2),n,domain,maxval(density(:,:,2)),zmin_in=0.d0)
+        ELSE
+                CALL meshplot(density(:,:,2),n,domain,zmax,zmin_in=0.d0)
+        ENDIF
+
+        CALL PGETXT
+        CALL PGPTXT(5.,8.,0.,0.,gas.filename)
+        !!plot circle
+        IF(.not.toproject.and.drawcir)THEN
+                write(6,*)achar(27)//'[33m Drawing circles',achar(27)//'[0m'
+                CALL PGSFS(2)
+                CALL PGSCI(0)
+                CALL PGCIRC(0.,0.,1.26)
+                CALL PGCIRC(0.,0.,2.36)
+                CALL PGCIRC(0.,0.,4.72)
+                CALL PGCIRC(0.,0.,10.636)
+                CALL PGCIRC(0.,0.,8.83)
+        ENDIF
+
+!!plot stellar contour
+        IF(drawstellar)then
+                write(6,*)achar(27)//'[33m Drawing stellar contour',achar(27)//'[0m'
+                CALL PGSCI(0)
+                CALL contourplot(density(:,:,1),n,domain,4)
+                CALL PGSCI(1)
+        ENDIF
+        CALL PGEBUF
         ENDDO
+        CALL PGCLOS
 ELSE
         CALL ReadGasDensity
         CALL FillGasDensity
@@ -292,6 +322,46 @@ CALL PGLAB('kpc','kpc',title)
 CALL PGCLOS
 IF (PGBEG(0,'density.png/png',1,1) .NE. 1) STOP
 ENDDO
+
+ENDSUBROUTINE
+
+SUBROUTINE plotinit(F,n,domain,title)
+USE argument
+USE plotting
+IMPLICIT NONE
+CHARACTER(len=32)                       ::title
+DOUBLE PRECISION,INTENT(IN)             ::F(:,:,:)      !plotting data
+DOUBLE PRECISION,INTENT(IN)             ::domain        !plot range
+INTEGER,INTENT(IN)                      ::n             !dimentsion
+INTEGER                                 ::PGBEG
+INTEGER                                 ::i
+
+IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
+
+!!plot on screen and save as png file
+!!set coordinate
+CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+!!plot circle
+IF(.not.toproject.and.drawcir)THEN
+        write(6,*)achar(27)//'[33m Drawing circles',achar(27)//'[0m'
+        CALL PGSFS(2)
+        CALL PGSCI(0)
+        CALL PGCIRC(0.,0.,1.26)
+        CALL PGCIRC(0.,0.,2.36)
+        CALL PGCIRC(0.,0.,4.72)
+        CALL PGCIRC(0.,0.,10.636)
+        CALL PGCIRC(0.,0.,8.83)
+ENDIF
+
+!!plot stellar contour
+IF(drawstellar)then
+        write(6,*)achar(27)//'[33m Drawing stellar contour',achar(27)//'[0m'
+        CALL PGSCI(0)
+        CALL contourplot(F(:,:,1),n,domain,4)
+        CALL PGSCI(1)
+ENDIF
+        
+
 
 ENDSUBROUTINE
 
