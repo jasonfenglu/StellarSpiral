@@ -43,6 +43,7 @@ IMPLICIT  NONE
         LOGICAL                 ::drawstellar=.false.
         LOGICAL                 ::movie     = .false.
         LOGICAL                 ::givefnm   = .false.
+        LOGICAL                 ::drawq     = .false.
 ENDMODULE
 
 PROGRAM density1
@@ -90,6 +91,7 @@ if(iargc().ne.0)then
                         write(6,'(a)')'         -z, --zmax [scale of z] Specified the scale of z'
                         write(6,'(a)')'         -h, --help              Show this help page     '
                         write(6,'(a)')'         -s, --stellar           Draw stellar contour.   '
+                        write(6,'(a)')'         -q,                     Draw instability.'
                         STOP
                 CASE('--circle','-c')
                         drawcir = .true.
@@ -114,6 +116,8 @@ if(iargc().ne.0)then
                         CALL getarg(i+1,arg)
                         READ(arg,*)zmax
                         rauto = .false.
+                CASE('-q')
+                        drawq = .true.
                 ENDSELECT
         ENDDO
 ENDIF
@@ -366,6 +370,8 @@ ENDIF
 ENDSUBROUTINE
 
 SUBROUTINE FillGasDensity
+USE STELLARDISK, only:kappa,GravConst,pi_n=>pi
+USE galaxy, only:gasdensity
 IMPLICIT NONE
 !!Filling stellar density
 !$OMP PARALLEL SHARED(density,spiral,gas) PRIVATE(j,r,th,pi,pf,d,k,l,intb)
@@ -385,6 +391,7 @@ DO j = 1, n
         IF(pi(1)<minval(gas.x).or.pi(1)>maxval(gas.x).or.pi(2)<minval(gas.y).or.pi(2)>maxval(gas.y))then
                 density(i,j,2) = 0.d0
         ELSE
+                r = sqrt(pi(1)**2+pi(2)**2)
                 DO k = 1, size(gas.x)
                         if(gas.x(k)>pi(1))EXIT
                 ENDDO
@@ -404,6 +411,10 @@ DO j = 1, n
                 intb(4) = -sum(intb(:)) + gas.density(k+1,l+1)
                 density(i,j,2) = intb(1) + intb(2)*pi(1) + intb(3)*pi(2) &
                                + intb(4)*pi(1)*pi(2)
+               IF(drawq)then
+                        density(i,j,2) = &
+                        kappa(r,spiral)*8.d0/pi_n/GravConst/(density(i,j,2)+gasdensity(r,0.d0))/1d6
+                ENDIF
                 
         ENDIF
 ENDDO
