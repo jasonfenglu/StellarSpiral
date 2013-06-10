@@ -23,7 +23,8 @@ type,extends(typgalaxy_para)::typspiral
        DOUBLE PRECISION,ALLOCATABLE     ::r(:)
        DOUBLE PRECISION                 ::rmax
        DOUBLE PRECISION                 ::rmin
-       DOUBLE PRECISION                 ::fortoone
+       DOUBLE PRECISION                 ::co              ! position of corotation
+       DOUBLE PRECISION                 ::fortoone        ! position of outer four to one
        DOUBLE COMPLEX                   ::error
        DOUBLE PRECISION                 ::phase     = 0.d0! starting angle for 2D plot
        DOUBLE PRECISION                 ::dr              ! deparation btwn two points
@@ -1073,6 +1074,7 @@ spiral.error = error(spiral)
 DO i = 1, spiral.n
         spiral.k3(i) = k3sqrt(spiral.r(i),spiral)
 ENDDO
+spiral.co = CO()
 contains
 
 RECURSIVE FUNCTION p(r)
@@ -1089,6 +1091,28 @@ DOUBLE PRECISION,INTENT(IN)     ::r
 q = k3sqrt(r,spiral)
 !q =  (1)
 !q = dcmplx(1.d0,r**2)
+ENDFUNCTION
+
+FUNCTION CO()
+IMPLICIT NONE
+DOUBLE PRECISION                        ::CO
+DOUBLE PRECISION                        ::B,C,R,RE,AE
+INTEGER                                 ::IFLAG
+
+B = 5.d0
+C = 10.d0
+R = 7.d0
+RE = 1d-7
+AE = 1d-7
+
+CALL DFZERO(fco,B,C,R,RE,AE,IFLAG)
+CO = c
+ENDFUNCTION
+
+FUNCTION fco(r)
+IMPLICIT NONE
+DOUBLE PRECISION                ::fco,r
+        fco = Omega(r,spiral)-real(spiral.w)/2.d0
 ENDFUNCTION
 
 ENDSUBROUTINE
