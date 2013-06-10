@@ -62,7 +62,7 @@ DOUBLE PRECISION                ::rho,a
 !
 !---------------------------
 
-rho = 10.d0
+rho = 19.33d0
 a   = GasDiskLength
 
 GaussianDensity = rho * dexp(-r**2/2.d0/a**2)
