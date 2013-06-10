@@ -1140,8 +1140,12 @@ ENDFUNCTION
 
 SUBROUTINE refineh1
 IMPLICIT NONE
-DOUBLE PRECISION,PARAMETER      ::cutoff = 10.76d0
+DOUBLE PRECISION                ::cutoff 
 INTEGER                         ::i,f
+
+cutoff = spiral.fortoone
+cutoff = 7.33d0
+
 DO i =1, spiral.n
         if(spiral.r(i).gt.cutoff)then
                 f = i
@@ -1150,7 +1154,7 @@ DO i =1, spiral.n
 enddo
 
 DO i = f+1, spiral.n
-        spiral.h1(i) = spiral.h1(i)*exp((-spiral.r(i)+cutoff)/1.0d-1)
+        spiral.h1(i) = spiral.h1(i)*exp(-(spiral.r(i)-cutoff)**2/2.d0/1.0d0**2)
 enddo
 
 ENDSUBROUTINE refineh1
