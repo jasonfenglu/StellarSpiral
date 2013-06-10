@@ -9,16 +9,26 @@ INTEGER,PARAMETER                       ::datlength=207
 DOUBLE PRECISION                        ::dat(datlength,7)
 DOUBLE PRECISION                        ::Amp
 DOUBLE PRECISION                        ::r,dr = 0.1d0
-DOUBLE PRECISION                        ::bias
+DOUBLE PRECISION                        ::bias = 1.d0
 INTEGER                                 ::i
 
-if(iargc().eq.1)then
-        CALL getarg(1,arg)
-        READ(arg,*)bias
-        print *,'using bias:',bias
-        else 
-        bias = 1.d0
-endif
+if(iargc().ne.0)then
+        DO i = 1, iargc()
+                CALL getarg(i,arg)
+                SELECT CASE(arg)
+                CASE('--help','-h')
+                        write(6,'(a)')'Calculate prefactor of density contrast. '
+                        write(6,'(a)')'usage:   Kendall.exe [option]            '
+                        write(6,'(a)')'options:                         '
+                        write(6,'(a)')'         -f, --force             Increase force multiple.'
+                        STOP
+                CASE('--force','-f')
+                        CALL getarg(i+1,arg)
+                        READ(arg,*)bias
+                        print *,'using bias:',bias
+                ENDSELECT
+        ENDDO
+ENDIF
 
 !Read Kendall's data into dat first 4 rows
 open(10,file=datfname,ACTION='READ')
