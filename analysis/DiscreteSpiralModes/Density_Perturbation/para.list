@@ -33,10 +33,6 @@ den	 =  700,
 drawcir  = .false.,
 /
 
-&DENSITYPARA
-toproject= .ture.		   
-/
-
 &FORCENML
 amp   = 69547.1473012585
 /

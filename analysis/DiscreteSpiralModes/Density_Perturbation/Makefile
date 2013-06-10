@@ -7,8 +7,8 @@ FFLAGS=  -O3 -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -limf  -open
 LIB   = -L. -lslatecomp -limf -lpthread -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -liomp5  -L$(HDF5HOME)/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5
 INCL  = -I$(HDF5_HOME)/include/
 
-UTILS  = plot.o rk4.o k3sqrt.o io.o
-EXE    = test.exe Density.exe Force.exe Kendall.exe Corotation.exe Rot.exe cDensity.exe RelativeForce.exe StellarGas.exe
+UTILS  = plot.o rk4.o k3sqrt.o io.o galaxy.o
+EXE    = test.exe Density.exe Force.exe Kendall.exe Corotation.exe Rot.exe cDensity.exe RelativeForce.exe StellarGas.exe GasDensity.exe
 MPIEXE = SearchAll.exe
 TMPEXE = FindOne.exe  2Density.exe 
 

@@ -848,6 +848,53 @@ CALL PGIMAG(REAL(dat(:,:)),m,n,1,n,1,m,real(zmin),real(zmax),TR)
 CALL PGWEDG('RI', 1.0, 4.0, real(zmin), real(zmax), '')
 ENDSUBROUTINE
 
+SUBROUTINE contourplot(dat,m,domain,contourn,n_in)
+IMPLICIT NONE
+!!input arguments
+DOUBLE PRECISION,INTENT(IN)             ::dat(:,:)
+DOUBLE PRECISION,INTENT(IN)             ::domain
+DOUBLE PRECISION                        ::zmax
+DOUBLE PRECISION                        ::zmin_in
+DOUBLE PRECISION                        ::zmin
+REAL                                    ::ALEV(1)       !drawing elevation
+INTEGER,INTENT(IN)                      ::m
+INTEGER,INTENT(IN),OPTIONAL             ::n_in
+INTEGER,INTENT(IN)                      ::contourn      !countour number
+INTEGER                                 ::n
+INTEGER                                 ::I
+!!used variables
+REAL                                    ::TR(6)         !plot geometry
+REAL                                    ::dx,dy
+REAL                                    ::BRIGHT,CONTRA
+
+!check if n is passed 
+if(present(n_in))THEN
+        n = n_in
+ELSE
+        n = m
+ENDIF
+dx = real(domain)/real(n/2)
+dy = real(domain)/real(m/2)
+TR(3) = 0.
+TR(5) = 0.
+TR(2) = dx
+TR(1) = -real(domain)-dx/2.d0
+TR(4) = -real(domain)-dy/2.d0
+TR(6) = dy
+BRIGHT = 0.5
+CONTRA = 0.9
+
+zmax = maxval(dat)
+zmin = minval(dat)
+
+CALL PALETT(2,CONTRA,Bright)
+DO I = 1, contourn
+        ALEV = zmin + (I-1)*(zmax - zmin)/real(contourn)
+        print *,I,ALEV
+        CALL PGCONS(real(dat),N,N,1,N,1,N,ALEV,-1,TR)
+ENDDO
+ENDSUBROUTINE
+
 SUBROUTINE PALETT(TYPE, CONTRA, BRIGHT)
 !-----------------------------------------------------------------------
 ! Set a "palette" of colors in the range of color indices used by

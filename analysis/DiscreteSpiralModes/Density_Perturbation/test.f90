@@ -3,6 +3,7 @@ USE STELLARDISK_MODEL
 USE STELLARDISK
 USE RK
 USE io
+USE galaxy,only:gasdensity
 DOUBLE PRECISION        ::ri,rf,dr,r
 DOUBLE COMPLEX          ::h1
 INTEGER                 ::n,i
@@ -36,14 +37,15 @@ dr = (rf-ri)/dble(n)
 
 !CALL stdpara.printpara
 
-!CALL stdpara.readstd
-!CALL spiral.init(500,12.d0,stdpara,2)
-!CALL spiral.readw(2)
-!CALL FindSpiral(spiral)
-!DO i = 0, N
-!        r = dr*dble(i)
-!       write(6,*)r,BulgeSurfaceDensity(r,spiral),Sigma0(r,spiral)
-!ENDDO
+CALL stdpara.readstd
+CALL spiral.init(500,12.d0,stdpara,2)
+CALL spiral.readw(2)
+CALL FindSpiral(spiral)
+DO i = 0, 1000
+        r = dr*dble(i)
+       !write(6,*)r,kappa(r,Spiral)*8.d0/pi/g/gasdensity(r,0.d0)
+       write(6,*)spiral.r(i),abs(spiral.h1(i))
+ENDDO
 
 
 !CALL stdpara.readstd
