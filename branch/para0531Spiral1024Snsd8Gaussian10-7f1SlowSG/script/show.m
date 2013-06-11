@@ -33,10 +33,10 @@ py  = py';
 vx  = px./den;
 vy  = py./den;
 
-[xx yy] = meshgrid(x,y);
-rr = sqrt(xx.^2+yy.^2);
-indr = find(rr > 7.3);
-den(indr) = NaN;
+% [xx yy] = meshgrid(x,y);
+% rr = sqrt(xx.^2+yy.^2);
+% indr = find(rr > 7.3);
+% den(indr) = NaN;
 imagesc(x,y,(den));
 
 % hold on;
