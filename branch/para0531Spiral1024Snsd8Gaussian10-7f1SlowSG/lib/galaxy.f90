@@ -11,6 +11,7 @@ endtype
 type(typspiralforce),SAVE               ::stellarforce
 DOUBLE PRECISION,ALLOCATABLE            ::InitGasDensity(:,:)
 DOUBLE PRECISION,PARAMETER              ::GasDiskLength = 7.d0
+DOUBLE PRECISION,PARAMETER              ::GasDiskSigma0 = 19.33d0
 
 CONTAINS
 
@@ -62,7 +63,7 @@ DOUBLE PRECISION                ::rho,a
 !
 !---------------------------
 
-rho = 19.33d0
+rho = GasDiskSigma0
 a   = GasDiskLength
 
 GaussianDensity = rho * dexp(-r**2/2.d0/a**2)
