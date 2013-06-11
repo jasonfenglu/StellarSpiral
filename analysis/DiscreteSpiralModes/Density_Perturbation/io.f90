@@ -13,14 +13,21 @@ INTERFACE h5write
         MODULE PROCEDURE w1d
 ENDINTERFACE
 
+INTERFACE h5size
+        MODULE PROCEDURE h5size1d
+        MODULE PROCEDURE h5size2d
+ENDINTERFACE
+
 INTERFACE h5read
-        MODULE PROCEDURE r2d
         MODULE PROCEDURE r1d
+        MODULE PROCEDURE r2d
+        MODULE PROCEDURE r1da
+        MODULE PROCEDURE r2da
 ENDINTERFACE
 
 CONTAINS
 
-FUNCTION h5size(filename,dsetname,ndim)
+FUNCTION h5size1d(filename,dsetname,ndim)
 IMPLICIT NONE
 CHARACTER(LEN=*)                :: filename      ! File name
 CHARACTER(LEN=*)                :: dsetname      ! Dataset name
@@ -31,7 +38,7 @@ INTEGER(HSIZE_T)                :: dims(ndim)       ! Dataset dimensions
 INTEGER(HSIZE_T)                :: maxdims(ndim)    ! Max dataset dimensions
 INTEGER                         :: hdferr        ! Error flag
 INTEGER                         :: ndim
-INTEGER                         :: h5size(ndim)
+INTEGER                         :: h5size1d(ndim)
 
 CALL h5open_f(hdferr)
 CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, hdferr)
@@ -43,7 +50,7 @@ CALL h5sclose_f(dspace_id, hdferr)
 CALL h5fclose_f(file_id, hdferr)
 CALL h5close_f(hdferr)
 
-h5size = int(dims)
+h5size1d = int(dims)
 
 ENDFUNCTION
 
@@ -96,6 +103,29 @@ CALL h5close_f(error)
 
 ENDSUBROUTINE
 
+SUBROUTINE r1da(dat,filename,dsetname)
+CHARACTER(LEN=*)                :: filename      ! File name
+CHARACTER(LEN=*)                :: dsetname      ! Dataset name
+DOUBLE PRECISION,INTENT(OUT),ALLOCATABLE:: dat(:)! input data
+INTEGER(HID_T)                  :: file_id       ! File identifier
+INTEGER(HID_T)                  :: dset_id       ! Dataset identifier
+INTEGER(HSIZE_T)                :: dims(1)       ! Dataset dimensions
+INTEGER                         :: rank = 1      ! Dataset rank
+INTEGER                         :: error         ! Error flag
+
+dims = h5size(filename,dsetname,1)
+ALLOCATE(dat(dims(1)))
+
+CALL h5open_f(error)
+CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
+CALL h5dopen_f(file_id, dsetname, dset_id, error)
+CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, dat, dims, error)
+CALL h5dclose_f(dset_id, error)
+CALL h5fclose_f(file_id, error)
+CALL h5close_f(error)
+
+ENDSUBROUTINE
+
 SUBROUTINE r2d(dat,M,N,filename,dsetname)
 CHARACTER(LEN=*)                :: filename      ! File name
 CHARACTER(LEN=*)                :: dsetname      ! Dataset name
@@ -108,6 +138,30 @@ INTEGER                         :: error         ! Error flag
 INTEGER                         :: M,N           ! Dimension of data
 
 dims = (/M,N/)
+
+CALL h5open_f(error)
+CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
+CALL h5dopen_f(file_id, dsetname, dset_id, error)
+CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, dat, dims, error)
+CALL h5dclose_f(dset_id, error)
+CALL h5fclose_f(file_id, error)
+CALL h5close_f(error)
+
+ENDSUBROUTINE
+
+SUBROUTINE r2da(dat,filename,dsetname)
+CHARACTER(LEN=*)                :: filename      ! File name
+CHARACTER(LEN=*)                :: dsetname      ! Dataset name
+DOUBLE PRECISION,INTENT(OUT),ALLOCATABLE:: dat(:,:)! input data
+INTEGER(HID_T)                  :: file_id       ! File identifier
+INTEGER(HID_T)                  :: dset_id       ! Dataset identifier
+INTEGER(HSIZE_T)                :: dims(2)       ! Dataset dimensions
+INTEGER                         :: rank = 2      ! Dataset rank
+INTEGER                         :: error         ! Error flag
+
+dims = h5size(filename,dsetname)
+
+if(.not.ALLOCATED(dat))ALLOCATE(dat(dims(1),dims(2)))
 
 CALL h5open_f(error)
 CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)

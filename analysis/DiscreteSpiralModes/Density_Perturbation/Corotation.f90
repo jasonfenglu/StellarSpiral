@@ -13,6 +13,7 @@ dr = (rf-ri)/dble(N)
 CALL stdpara.readstd
 CALL spiral.readw(2)
 CALL spiral.init(500,12.d0,stdpara,2)
+CALL FindSpiral(spiral)
 ALLOCATE(dat(N,7))
 DO i = 1, N
         r = dr*dble(i)
@@ -26,7 +27,6 @@ DO i = 1, N
         dat(i,6) =  o + k/4.d0
         dat(i,7) =  real(spiral.w)/2.d0
 ENDDO
-
 
 CALL plot(dat)
 CONTAINS
