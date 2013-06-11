@@ -8,14 +8,17 @@ PROGRAM ECG
 USE io
 USE ECGMO
 USE math
+USE STELLARDISK_MODEL
+USE STELLARDISK,only:FindSpiral,sigma1
 IMPLICIT NONE
 CHARACTER(len=32)               ::arg
 type(typintplt2)                ::intplt2
+type(typspiral)                 ::spiral
 DOUBLE PRECISION                ::r,th
 INTEGER,PARAMETER               ::M = 1000
 INTEGER,PARAMETER               ::N = 5         
 DOUBLE PRECISION,PARAMETER      ::pi= 4.d0*atan(1.d0)
-DOUBLE PRECISION                ::dat(M,N),dr,dth,ri,rf
+DOUBLE PRECISION                ::dat(M,N),dr,dth,ri,rf,sdat(M,N-1)
 DOUBLE PRECISION                ::rs(N)
 INTEGER                         ::i,j,k,l
 !Read arguments
@@ -42,6 +45,12 @@ CALL h5read(y,fname,'y')
 !!set interplating object
 CALL intplt2.init(density,x,y)
 
+!!init stellar spiral
+CALL stdpara.readstd
+CALL spiral.init(500,12.d0,stdpara,2)
+CALL spiral.readw(2)
+CALL FindSpiral(spiral)
+
 !!set coordinate
 ri = 1.d0
 rf = 7.3d0
@@ -58,8 +67,10 @@ DO i = 2, 5
         DO j = 1, M
                 th = dth * dble(j-1)
                 dat(j,i) =  intplt2.find(r*cos(th),r*sin(th)) + 50.d0*(i-2)
+!               sdat(j,i)=  sigma1(r,th,spiral)/10.d0
         ENDDO
 ENDDO
+
 CALL plot(density,size(x),maxval(x))
 CALL PGCLOS
 
@@ -68,6 +79,7 @@ CONTAINS
 SUBROUTINE plot(F,n,domain)
 USE plotting
 IMPLICIT NONE
+CHARACTER(len=32)                       ::text
 DOUBLE PRECISION,INTENT(IN)             ::F(:,:)        !plotting data
 DOUBLE PRECISION,INTENT(IN)             ::domain        !plot range
 INTEGER,INTENT(IN)                      ::n             !dimentsion
@@ -84,7 +96,7 @@ CALL PGSUBP(2,1)
 CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
 CALL meshplot(F,n,domain,zmax,zmin_in=0.d0)
 CALL PGSFS(2)
-CALL PGSCI(0)
+CALL PGSCI(6)
 DO i = 1, 5
         CALL PGCIRC(0.,0.,real(rs(i)))
 ENDDO
@@ -94,6 +106,11 @@ CALL PGENV(0.,real(maxval(dat(:,1))),0.,real(maxval(dat))*1.1,0,0)
 DO i = 2, 5
         CALL PGSCI(i)
         CALL PGLINE(M,real(dat(:,1)),real(dat(:,i)))
+!       CALL PGSLS(2)
+!       CALL PGLINE(M,real(dat(:,1)),real(sdat(:,i)))
+!       CALL PGSLS(1)
+        write(text,'(G11.4)')rs(i)
+        CALL PGTEXT(2.,real(minval(dat(:,i)))-5.,text)
 ENDDO
 
 ENDSUBROUTINE

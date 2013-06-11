@@ -413,7 +413,8 @@ DO j = 1, n
                                + intb(4)*pi(1)*pi(2)
                IF(drawq)then
                         density(i,j,2) = &
-                        kappa(r,spiral)*8.d0/pi_n/GravConst/(density(i,j,2)+gasdensity(r,0.d0))/1d6
+                        kappa(r,spiral)*8.d0/pi_n/GravConst/(density(i,j,2))/1d6
+                        density(i,j,2) = -log(density(i,j,2))
                 ENDIF
                 
         ENDIF
