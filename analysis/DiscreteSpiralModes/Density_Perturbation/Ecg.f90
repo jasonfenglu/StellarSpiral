@@ -15,7 +15,7 @@ CHARACTER(len=32)               ::arg
 type(typintplt2)                ::intplt2
 type(typspiral)                 ::spiral
 DOUBLE PRECISION                ::r,th
-INTEGER,PARAMETER               ::M = 1000
+INTEGER,PARAMETER               ::M = 500
 INTEGER,PARAMETER               ::N = 5         
 DOUBLE PRECISION,PARAMETER      ::pi= 4.d0*atan(1.d0)
 DOUBLE PRECISION                ::dat(M,N),dr,dth,ri,rf,sdat(M,N-1)
@@ -66,8 +66,8 @@ DO i = 2, 5
         rs(i) = r
         DO j = 1, M
                 th = dth * dble(j-1)
-                dat(j,i) =  intplt2.find(r*cos(th),r*sin(th)) + 50.d0*(i-2)
-!               sdat(j,i)=  sigma1(r,th,spiral)/10.d0
+                dat(j,i) =  intplt2.find(r*cos(th),r*sin(th))
+                sdat(j,i)=  sigma1(r,th,spiral)/10.d0
         ENDDO
 ENDDO
 
@@ -102,15 +102,22 @@ DO i = 1, 5
 ENDDO
 CALL PGSCI(1)
 
-CALL PGENV(0.,real(maxval(dat(:,1))),0.,real(maxval(dat))*1.1,0,0)
+!!move to right panel
+CALL PGPAGE
+CALL PGSWIN(0.0,real(3.d0*pi),0.0,80.)
 DO i = 2, 5
+        CALL PGSAVE
+        CALL PGSVP(0.1,0.9,0.1+real(i-2)*0.2,0.25+real(i-2)*0.2)
+        print *,0.25+real(i-2)*0.2
+        CALL PGBOX('ABCTSN',0.0,0,'ABCTSN',0.0,0)
         CALL PGSCI(i)
         CALL PGLINE(M,real(dat(:,1)),real(dat(:,i)))
 !       CALL PGSLS(2)
 !       CALL PGLINE(M,real(dat(:,1)),real(sdat(:,i)))
 !       CALL PGSLS(1)
         write(text,'(G11.4)')rs(i)
-        CALL PGTEXT(2.,real(minval(dat(:,i)))-5.,text)
+        CALL PGTEXT(1.,60.,text)
+        CALL PGUNSA
 ENDDO
 
 ENDSUBROUTINE
