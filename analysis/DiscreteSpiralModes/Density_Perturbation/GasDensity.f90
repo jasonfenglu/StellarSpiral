@@ -36,14 +36,75 @@ endmodule
 MODULE argument
 IMPLICIT  NONE
         DOUBLE PRECISION        ::zmax      = 30.d0
+        CHARACTER(len=225)      ::filename
         INTEGER                 ::frames(2)
+        INTEGER                 ::drawmode  = 1         !1 for draw static
+                                                        !density, 2 for movie,
         LOGICAL                 ::toproject = .false.
         LOGICAL                 ::rauto     = .true.
         LOGICAL                 ::drawcir   = .false.
         LOGICAL                 ::drawstellar=.false.
-        LOGICAL                 ::movie     = .false.
         LOGICAL                 ::givefnm   = .false.
         LOGICAL                 ::drawq     = .false.
+CONTAINS
+SUBROUTINE readarg
+USE projections,only:argaline
+IMPLICIT NONE
+CHARACTER(len=32)               ::arg
+INTEGER                         ::i
+INTEGER                         ::ioerr
+!read in rotating parameters and gas filename by stdin
+if(iargc().ne.0)then
+        DO i = 1, iargc()
+                CALL getarg(i,arg)
+                SELECT CASE(arg)
+                CASE('--help','-h')
+                        write(6,'(a)')'Draw gas density distribution.       '
+                        write(6,'(a)')'usage:   GasDensity.exe [option]            '
+                        write(6,'(a)')'options:                         '
+                        write(6,'(a)')'         -c, --circle            To draw circles.       '
+                        write(6,'(a)')'         -i [file name.h5]       Read file.'
+                        write(6,'(a)')'         -m [start] [end]        Read files.'
+                        write(6,'(a)')'         -p, --project [degree]  To project the density.'
+                        write(6,'(a)')'         -r, --zauto             Automatic find scale of z'
+                        write(6,'(a)')'         -z, --zmax [scale of z] Specified the scale of z'
+                        write(6,'(a)')'         -h, --help              Show this help page     '
+                        write(6,'(a)')'         -s, --stellar           Draw stellar contour.   '
+                        write(6,'(a)')'         -q,                     Draw instability.'
+                        write(6,'(a)')'         -v,                     Version information.'
+                        STOP
+                CASE('--circle','-c')
+                        drawcir = .true.
+                CASE('-i')
+                        CALL getarg(i+1,arg)
+                        READ(arg,*)filename
+                        givefnm = .true.
+                CASE('-m')
+                        CALL getarg(i+1,arg)
+                        READ(arg,*)frames(1)
+                        CALL getarg(i+2,arg)
+                        READ(arg,*)frames(2)
+                        drawmode = 2
+                CASE('--project','-p')
+                        toproject = .true.
+                        CALL getarg(i+1,arg)
+                        READ(arg,*,iostat=ioerr)argaline
+                        if(ioerr.ne.0)argaline = -3.d0
+                CASE('--stellar','-s')
+                        drawstellar = .true.
+                CASE('--zmax','-z')
+                        CALL getarg(i+1,arg)
+                        READ(arg,*)zmax
+                        rauto = .false.
+                CASE('-q')
+                        drawq = .true.
+                CASE('-v')
+                        write(6,'(a)')'Compiled at: '//__DATE__//' '//__TIME__
+                        STOP
+                ENDSELECT
+        ENDDO
+ENDIF
+ENDSUBROUTINE
 ENDMODULE
 
 PROGRAM density1
@@ -71,59 +132,16 @@ DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
 DOUBLE PRECISION                ::intb(4)
 INTEGER,PARAMETER               ::n=600
-INTEGER                         ::ioerr
+INTEGER                         ::PGBEG
 type(typspiral)                 ::spiral
 
-!read in rotating parameters and gas filename by stdin
-if(iargc().ne.0)then
-        DO i = 1, iargc()
-                CALL getarg(i,arg)
-                SELECT CASE(arg)
-                CASE('--help','-h')
-                        write(6,'(a)')'Draw gas density distribution.       '
-                        write(6,'(a)')'usage:   GasDensity.exe [option]            '
-                        write(6,'(a)')'options:                         '
-                        write(6,'(a)')'         -c, --circle            To draw circles.       '
-                        write(6,'(a)')'         -i [file name.h5]       Read file.'
-                        write(6,'(a)')'         -m [start] [end]        Read files.'
-                        write(6,'(a)')'         -p, --project [degree]  To project the density.'
-                        write(6,'(a)')'         -r, --zauto             Automatic find scale of z'
-                        write(6,'(a)')'         -z, --zmax [scale of z] Specified the scale of z'
-                        write(6,'(a)')'         -h, --help              Show this help page     '
-                        write(6,'(a)')'         -s, --stellar           Draw stellar contour.   '
-                        write(6,'(a)')'         -q,                     Draw instability.'
-                        STOP
-                CASE('--circle','-c')
-                        drawcir = .true.
-                CASE('-i')
-                        CALL getarg(i+1,arg)
-                        READ(arg,*)gas.filename
-                        givefnm = .true.
-                CASE('-m')
-                        CALL getarg(i+1,arg)
-                        READ(arg,*)frames(1)
-                        CALL getarg(i+2,arg)
-                        READ(arg,*)frames(2)
-                        movie = .true.
-                CASE('--project','-p')
-                        toproject = .true.
-                        CALL getarg(i+1,arg)
-                        READ(arg,*,iostat=ioerr)argaline
-                        if(ioerr.ne.0)argaline = -3.d0
-                CASE('--stellar','-s')
-                        drawstellar = .true.
-                CASE('--zmax','-z')
-                        CALL getarg(i+1,arg)
-                        READ(arg,*)zmax
-                        rauto = .false.
-                CASE('-q')
-                        drawq = .true.
-                ENDSELECT
-        ENDDO
-ENDIF
+
+!!Reading from arguments
+CALL readarg
+gas.filename = filename
 
 !!check if gas reading files are set:
-if(.not.(givefnm.or.movie))then
+if(.not.(givefnm.or.drawmode.eq.2))then
         write(0,'(a)')'No input file or files set'
         STOP
 ENDIF
@@ -134,9 +152,8 @@ CALL spiral.init(500,12.d0,stdpara,2)
 CALL spiral.readw(2)
 CALL FindSpiral(spiral)
 
-
 !set up grid
-ALLOCATE(density(n,n,2))
+ALLOCATE(density(n,n,3))!1 for stellar, 2 for gas, 3 for q of gas
 ALLOCATE(xcoord(n))
 ALLOCATE(ycoord(n))
 
@@ -172,6 +189,9 @@ ENDDO
 ENDDO
 !$OMP END DO
 !$OMP END PARALLEL 
+FORALL(i = 1:n,j = 1:n,density(i,j,1)<0)
+        density(i,j,1) = 0.d0
+ENDFORALL
 
 
 points(1,:) = (/0.0,10.636/)
@@ -182,64 +202,60 @@ CALL dprojection(points)
 
 !!looping to draw movie
 !read in gas density
-IF(movie)THEN
-        CALL plotinit(density,n,domain,gas.filename)
-        DO i = frames(1),frames(2)
-                write(gas.filename,'("M",I0.4,".h5")')i
-                print *,gas.filename
+SELECT CASE(drawmode)
+CASE(1) ! plot static density map
         CALL ReadGasDensity
         CALL FillGasDensity
-        FORALL(i = 1:n,j = 1:n,density(i,j,1)<0)
-                density(i,j,1) = 0.d0
-        ENDFORALL
-        CALL PGBBUF
+        IF(.not.drawq)THEN              !plot density only
+                IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
+                !!set page
+                CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+                CALL PlotGasDensity(gas.filename)
+        ELSE                            !plot density and q
+                IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
+                !!set coordinate
+                CALL PGSUBP(2,1)
+                CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+                CALL PlotGasDensity(gas.filename)
+                CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+                CALL Plotq(gas.filename)
+        ENDIF
+CASE(2) ! plot movie
+        IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
+        !!set plot layout
+        IF(.not.drawq)THEN
+                CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+        ELSE
+                CALL PGSUBP(2,1)
+                CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+        ENDIF
+        DO i = frames(1),frames(2)
+        write(gas.filename,'("M",I0.4,".h5")')i
+        print *,gas.filename
+        CALL ReadGasDensity
+        CALL FillGasDensity
         IF(rauto)THEN
                 CALL meshplot(density(:,:,2),n,domain,maxval(density(:,:,2)),zmin_in=0.d0)
         ELSE
                 CALL meshplot(density(:,:,2),n,domain,zmax,zmin_in=0.d0)
         ENDIF
-
         CALL PGETXT
         CALL PGPTXT(5.,8.,0.,0.,gas.filename)
-        !!plot circle
-        IF(.not.toproject.and.drawcir)THEN
-                write(6,*)achar(27)//'[33m Drawing circles',achar(27)//'[0m'
-                CALL PGSFS(2)
-                CALL PGSCI(0)
-                CALL PGCIRC(0.,0.,1.26)
-                CALL PGCIRC(0.,0.,2.36)
-                CALL PGCIRC(0.,0.,4.72)
-                CALL PGCIRC(0.,0.,10.636)
-                CALL PGCIRC(0.,0.,8.83)
-        ENDIF
-
-!!plot stellar contour
-        IF(drawstellar)then
-                write(6,*)achar(27)//'[33m Drawing stellar contour',achar(27)//'[0m'
-                CALL PGSCI(0)
-                CALL contourplot(density(:,:,1),n,domain,4)
-                CALL PGSCI(1)
-        ENDIF
+        CALL PlotCircle
+        CALL PGBBUF
+        CALL PlotStellarDensity
         CALL PGEBUF
+        IF(drawq)THEN
+                CALL PGPANL(2,1)
+                CALL Plotq(gas.filename)
+                CALL PGPANL(1,1)
+        ELSE
+
+        ENDIF
         ENDDO
-        CALL PGCLOS
-ELSE
-        CALL ReadGasDensity
-        CALL FillGasDensity
-        FORALL(i = 1:n,j = 1:n,density(i,j,1)<0)
-                density(i,j,1) = 0.d0
-        ENDFORALL
+ENDSELECT
 
-        !!Check if pspd is true
-        print *,'error',abs(spiral.error)
-        if(abs(spiral.error).gt.1d-5)then
-                write(0,*)'!!!!!! wrong pspd:'
-                write(0,*)'error:',abs(spiral.error)
-                write(0,*)'pspd:',spiral.w
-        endif
-        CALL plot(density,n,domain,gas.filename)
-ENDIF
-
+CALL PGCLOS
 !CALL StellarGasPlot(density,n,domain,4)
 !!close h5 files writing
 !CALL h5write(xcoord,N,'density.h5','xcoord')
@@ -275,97 +291,57 @@ gas.dy = gas.y(2)-gas.y(1)
 
 ENDSUBROUTINE
 
-SUBROUTINE plot(F,n,domain,title)
+SUBROUTINE PlotGasDensity(title)
 USE argument
 USE plotting
 IMPLICIT NONE
 CHARACTER(len=32)                       ::title
-DOUBLE PRECISION,INTENT(IN)             ::F(:,:,:)      !plotting data
-DOUBLE PRECISION,INTENT(IN)             ::domain        !plot range
-INTEGER,INTENT(IN)                      ::n             !dimentsion
-INTEGER                                 ::PGBEG
 INTEGER                                 ::i
 
 IF(rauto)THEN
-        zmax = maxval(F(:,:,2))*1.1d0
+        zmax = maxval(density(:,:,2))*1.1d0
         write(6,*)achar(27)//'[33m Plotting z scale :',zmax,achar(27)//'[0m'
 ELSE
         write(6,*)achar(27)//'[33m Plotting z scale :',zmax,achar(27)//'[0m'
 ENDIF
 
-IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
-
-!!plot on screen and save as png file
-DO i = 1, 2
-!!set coordinate
-CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
 !!plot gas 
-CALL meshplot(F(:,:,2),n,domain,zmax,zmin_in=0.d0)
+CALL meshplot(density(:,:,2),n,domain,zmax,zmin_in=0.d0)
 !!plot circle
-IF(.not.toproject.and.drawcir)THEN
-        write(6,*)achar(27)//'[33m Drawing circles',achar(27)//'[0m'
-        CALL PGSFS(2)
-        CALL PGSCI(0)
-        CALL PGCIRC(0.,0.,1.26)
-        CALL PGCIRC(0.,0.,2.36)
-        CALL PGCIRC(0.,0.,4.72)
-        CALL PGCIRC(0.,0.,10.636)
-        CALL PGCIRC(0.,0.,8.83)
-ENDIF
+CALL PlotCircle
 
 !!plot stellar contour
-IF(drawstellar)then
-        write(6,*)achar(27)//'[33m Drawing stellar contour',achar(27)//'[0m'
-        CALL PGSCI(0)
-        CALL contourplot(F(:,:,1),n,domain,4)
-        CALL PGSCI(1)
-ENDIF
+CALL PlotStellarDensity
         
 CALL PGLAB('kpc','kpc',title)
 
-CALL PGCLOS
-IF (PGBEG(0,'density.png/png',1,1) .NE. 1) STOP
-ENDDO
-
 ENDSUBROUTINE
 
-SUBROUTINE plotinit(F,n,domain,title)
+SUBROUTINE plotq(title)
 USE argument
 USE plotting
 IMPLICIT NONE
 CHARACTER(len=32)                       ::title
-DOUBLE PRECISION,INTENT(IN)             ::F(:,:,:)      !plotting data
-DOUBLE PRECISION,INTENT(IN)             ::domain        !plot range
-INTEGER,INTENT(IN)                      ::n             !dimentsion
-INTEGER                                 ::PGBEG
 INTEGER                                 ::i
 
-IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
+zmax = maxval(density(:,:,3))*1.1d0
+!IF(rauto)THEN
+!        zmax = maxval(density(:,:,3))*1.1d0
+!        write(6,*)achar(27)//'[33m Plotting z scale :',zmax,achar(27)//'[0m'
+!ELSE
+!        write(6,*)achar(27)//'[33m Plotting z scale :',zmax,achar(27)//'[0m'
+!ENDIF
 
-!!plot on screen and save as png file
-!!set coordinate
-CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+!!plot q of gas 
+CALL meshplot(density(:,:,3),n,domain,zmax,zmin_in=0.d0)
+
 !!plot circle
-IF(.not.toproject.and.drawcir)THEN
-        write(6,*)achar(27)//'[33m Drawing circles',achar(27)//'[0m'
-        CALL PGSFS(2)
-        CALL PGSCI(0)
-        CALL PGCIRC(0.,0.,1.26)
-        CALL PGCIRC(0.,0.,2.36)
-        CALL PGCIRC(0.,0.,4.72)
-        CALL PGCIRC(0.,0.,10.636)
-        CALL PGCIRC(0.,0.,8.83)
-ENDIF
+CALL PlotCircle
 
 !!plot stellar contour
-IF(drawstellar)then
-        write(6,*)achar(27)//'[33m Drawing stellar contour',achar(27)//'[0m'
-        CALL PGSCI(0)
-        CALL contourplot(F(:,:,1),n,domain,4)
-        CALL PGSCI(1)
-ENDIF
+CALL PlotStellarDensity
         
-
+CALL PGLAB('kpc','kpc','Q')
 
 ENDSUBROUTINE
 
@@ -411,17 +387,28 @@ DO j = 1, n
                 intb(4) = -sum(intb(:)) + gas.density(k+1,l+1)
                 density(i,j,2) = intb(1) + intb(2)*pi(1) + intb(3)*pi(2) &
                                + intb(4)*pi(1)*pi(2)
-               IF(drawq)then
-                        density(i,j,2) = &
-                        kappa(r,spiral)*8.d0/pi_n/GravConst/(density(i,j,2))/1d6
-                        density(i,j,2) = -log(density(i,j,2))
-                ENDIF
+                density(i,j,3) = &
+                kappa(r,spiral)*8.d0/pi_n/GravConst/(density(i,j,2))/1d6
+                density(i,j,3) = -log(density(i,j,3))
                 
         ENDIF
 ENDDO
 ENDDO
 !$OMP END DO
 !$OMP END PARALLEL 
+
+ENDSUBROUTINE
+
+SUBROUTINE PlotStellarDensity
+USE argument,only:drawstellar
+USE plotting
+IMPLICIT NONE
+IF(drawstellar)then
+        write(6,*)achar(27)//'[33m Drawing stellar contour',achar(27)//'[0m'
+        CALL PGSCI(0)
+        CALL contourplot(density(:,:,1),n,domain,4)
+        CALL PGSCI(1)
+ENDIF
 
 ENDSUBROUTINE
 
@@ -584,5 +571,22 @@ DEALLOCATE(BDC)
 DEALLOCATE(BDD)
 DEALLOCATE(W)
 
+ENDSUBROUTINE
+
+SUBROUTINE PlotCircle
+USE argument
+IMPLICIT NONE
+IF(.not.toproject.and.drawcir)THEN
+        write(6,*)achar(27)//'[33m Drawing circles',achar(27)//'[0m'
+        CALL PGSAVE
+        CALL PGSFS(2)
+        CALL PGSCI(0)
+        CALL PGCIRC(0.,0.,1.26)
+        CALL PGCIRC(0.,0.,2.36)
+        CALL PGCIRC(0.,0.,4.72)
+        CALL PGCIRC(0.,0.,10.636)
+        CALL PGCIRC(0.,0.,8.83)
+        CALL PGUNSA
+ENDIF
 ENDSUBROUTINE
 
