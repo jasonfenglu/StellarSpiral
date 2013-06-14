@@ -324,7 +324,6 @@ IMPLICIT NONE
 CHARACTER(len=32)                       ::title
 INTEGER                                 ::i
 
-zmax = maxval(density(:,:,3))*1.1d0
 !IF(rauto)THEN
 !        zmax = maxval(density(:,:,3))*1.1d0
 !        write(6,*)achar(27)//'[33m Plotting z scale :',zmax,achar(27)//'[0m'
@@ -333,7 +332,7 @@ zmax = maxval(density(:,:,3))*1.1d0
 !ENDIF
 
 !!plot q of gas 
-CALL meshplot(density(:,:,3),n,domain,zmax,zmin_in=0.d0)
+CALL meshplot(density(:,:,3),n,domain, 3.d0,zmin_in=0.d0)
 
 !!plot circle
 CALL PlotCircle

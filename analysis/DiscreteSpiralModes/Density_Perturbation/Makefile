@@ -2,14 +2,13 @@ F90=ifort
 MPIF77=mpif77
 FCC=icc
 
-FFLAGS=  -O2 -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -limf  -openmp -module obj -heap-arrays 0
+FFLAGS=  -O2 -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -limf  -openmp -module obj -heap-arrays 0 -fpp
 
 LIB   = -L. -lslatecomp -limf -lpthread -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -liomp5  -L$(HDF5HOME)/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5
 INCL  = -I$(HDF5_HOME)/include/
 
 UTILS  = plot.o rk4.o k3sqrt.o io.o galaxy.o math.o
-#EXE    = test.exe Density.exe Force.exe Kendall.exe Corotation.exe Rot.exe cDensity.exe RelativeForce.exe StellarGas.exe GasDensity.exe Ecg.exe
-EXE    =  Ecg.exe GasDensity.exe
+EXE    = test.exe Density.exe Force.exe Kendall.exe Corotation.exe Rot.exe cDensity.exe RelativeForce.exe StellarGas.exe GasDensity.exe Ecg.exe
 MPIEXE = SearchAll.exe
 TMPEXE = FindOne.exe  2Density.exe 
 
