@@ -38,8 +38,10 @@ toproject= .false.
 /
 
 &FORCENML
-amp   = 69547.1473012585
+amp   = 83456.5786126768
 /
+69547.1473012585
+83456.5786126768
 
 
 !!DM,DA,DB are useless now
