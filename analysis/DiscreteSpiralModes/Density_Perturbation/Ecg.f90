@@ -15,7 +15,7 @@ CHARACTER(len=32)               ::arg
 type(typintplt2)                ::intplt2
 type(typspiral)                 ::spiral
 DOUBLE PRECISION                ::r,th
-INTEGER,PARAMETER               ::M = 500
+INTEGER,PARAMETER               ::M = 1000
 INTEGER,PARAMETER               ::N = 5         
 DOUBLE PRECISION,PARAMETER      ::pi= 4.d0*atan(1.d0)
 DOUBLE PRECISION                ::dat(M,N),dr,dth,ri,rf,sdat(M,N-1)
@@ -31,6 +31,9 @@ IF(iargc().ne.0)THEN
                 CASE('--input','-i')
                         CALL getarg(i+1,arg)
                         READ(arg,*)fname
+                CASE('-v')
+                        write(6,'(a)')'Compiled at: '//__DATE__//' '//__TIME__
+                        STOP
                 ENDSELECT
         ENDDO
 ELSE
@@ -52,9 +55,9 @@ CALL spiral.readw(2)
 CALL FindSpiral(spiral)
 
 !!set coordinate
-ri = 1.d0
-rf = 7.3d0
-dr = (rf-ri)/dble(N)
+ri = 0.d0
+rf = spiral.co
+dr = (rf-ri)/dble(N-1)
 dth = 3.d0*pi/dble(M)
 DO j = 1, M
         th = dth * dble(j-1)
@@ -126,5 +129,6 @@ ENDPROGRAM ECG
 SUBROUTINE help
 write(6,'(a)')'Print ECG like plot                              '
 write(6,'(a)')'usage:   Ecg.exe -i filename.h5                  '
+write(6,'(a)')'         Ecg.exe -v                              '
 STOP
 ENDSUBROUTINE help

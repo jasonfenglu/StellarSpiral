@@ -24,13 +24,14 @@ class(typintplt2)                       ::this
 DOUBLE PRECISION,INTENT(IN)             ::x,y
 DOUBLE PRECISION                        ::xx,yy
 DOUBLE PRECISION                        ::typintplt2_find
-DOUBLE PRECISION                        ::intb(4) = 0.d0
+DOUBLE PRECISION                        ::intb(4)
 INTEGER                                 ::k=0,l=0
 
+intb = 0.d0
 IF(x<this.minx.or.x>this.maxx.or.y<this.miny.or.y>this.maxy)THEN
         typintplt2_find = 0.d0
-        write(6,*)'!!!'
-        write(6,*)x,y,this.minx,this.maxx,this.miny,this.maxy
+        write(6,*)'[math]: Intepolation of 2D out of data range.'
+        write(6,*)x,y
 ELSE
         !! find left and bottom grid
         DO k = 1, size(this.x)

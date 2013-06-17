@@ -340,7 +340,7 @@ CALL PlotCircle
 !!plot stellar contour
 CALL PlotStellarDensity
         
-CALL PGLAB('kpc','kpc','Q')
+CALL PGLAB('kpc','kpc','-log(Q)')
 
 ENDSUBROUTINE
 
