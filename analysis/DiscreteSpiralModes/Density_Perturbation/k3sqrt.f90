@@ -39,7 +39,7 @@ type,extends(typgalaxy_para)::typspiral
        PROCEDURE,PASS::printu                =>spiral_printu
        PROCEDURE,PASS::printh1               =>spiral_printh1
        PROCEDURE,PASS::printr                =>spiral_printr
-       PROCEDURE,PASS::final                 =>spiral_final
+       PROCEDURE,PASS::free                  =>spiral_final
        PROCEDURE,PASS::readw                 =>spiral_readw
        PROCEDURE,PASS::printk3               =>spiral_printk3
        PROCEDURE,PASS::setw                  =>spiral_setw
@@ -159,7 +159,6 @@ INTEGER                                 ::n,mode
 DOUBLE PRECISION                        ::domain
 if(.not.allocated(this.u))ALLOCATE(this.u(3,4*n))
 if(.not.allocated(this.h1))ALLOCATE(this.h1(4*n))
-if(.not.allocated(this.phi1r))ALLOCATE(this.phi1r(4*n))
 if(.not.allocated(this.r))ALLOCATE(this.r(4*n))
 if(.not.allocated(this.k3))ALLOCATE(this.k3(4*n))
 !ALLOCATE(this.u(3,4*n))
@@ -177,11 +176,11 @@ ENDSUBROUTINE
 SUBROUTINE spiral_final(this)
 IMPLICIT NONE
 class(typspiral)                         ::this
-DEALLOCATE(this.u)
-DEALLOCATE(this.h1)
-DEALLOCATE(this.phi1r)
-DEALLOCATE(this.r)
-DEALLOCATE(this.k3)
+if(allocated(this.u))DEALLOCATE(this.u)
+if(allocated(this.h1))DEALLOCATE(this.h1)
+if(allocated(this.r))DEALLOCATE(this.r)
+!DEALLOCATE(this.phi1r)
+if(allocated(this.k3))DEALLOCATE(this.k3)
 ENDSUBROUTINE
 
 SUBROUTINE spiral_printsigma1(this)

@@ -8,15 +8,15 @@ LIB   = -L. -lslatecomp -limf -lpthread -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -l
 INCL  = -I$(HDF5_HOME)/include/
 
 UTILS  = plot.o rk4.o k3sqrt.o io.o galaxy.o math.o
-EXE    = test.exe Density.exe Force.exe Kendall.exe Corotation.exe Rot.exe cDensity.exe RelativeForce.exe StellarGas.exe GasDensity.exe Ecg.exe Follow.exe
+EXE    = test.exe FindOne.exe  2Density.exe Density.exe Force.exe Kendall.exe Corotation.exe Rot.exe cDensity.exe RelativeForce.exe StellarGas.exe GasDensity.exe Ecg.exe Follow.exe Shift.exe
 MPIEXE = SearchAll.exe
-TMPEXE = FindOne.exe  2Density.exe 
+WORKINGEXE = Density.exe Kendall.exe Corotation.exe GasDensity.exe Ecg.exe Follow.exe Shift.exe
 
 OUTILS := $(addprefix obj/,$(UTILS))
 
 vpath obj/ .
 
-all:    $(OUTILS) $(EXE)
+all:    $(OUTILS) $(WORKINGEXE)
 
 mpi:
 	$(MPIF77) $(FFLAGS) SearchAll.f90 -c -o obj/SearchAll.o $(LIB) $(INCL)

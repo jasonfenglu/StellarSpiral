@@ -9,7 +9,7 @@ TYPE    typintplt2
         CONTAINS
         PROCEDURE                       ::init=>typintplt2_init
         PROCEDURE                       ::find=>typintplt2_find
-        PROCEDURE                       ::dismiss=>typintplt2_deallocate
+        PROCEDURE                       ::free=>typintplt2_deallocate
 ENDTYPE
 !!interpolation 1-d
 INTERFACE intplt1
