@@ -71,6 +71,7 @@ IMPLICIT  NONE
         LOGICAL                 ::givefnm   = .false.
         LOGICAL                 ::plot_circ = .false.
         LOGICAL                 ::plot_star = .false.
+        LOGICAL                 ::output    = .false.
 
 CONTAINS
 
@@ -90,6 +91,8 @@ if(iargc().ne.0)then
                         givefnm = .true.
                 CASE('--help','-h')
                         CALL help
+                CASE('--output')
+                        output = .true.
                 CASE('-c')
                         plot_circ = .true.
                 CASE('-s')
@@ -120,7 +123,8 @@ IMPLICIT NONE
         write(6,'(a)')'         -v,                     Version information.'
         write(6,'(a)')'         -x,                     Number of XWindows. '
         write(6,'(a)')'         -c,                     Plot circles 3,4,5. '
-        write(6,'(a)')'         -c,                     Plot stellar density.'
+        write(6,'(a)')'         -s,                     Plot stellar density.'
+        write(6,'(a)')'         --output                Save found points.   '
         STOP
 ENDSUBROUTINE
 
@@ -175,6 +179,8 @@ CALL PGPT(N,real(spiral(:,j).x),real(spiral(:,j).y),2)
 CALL PGUNSA
 ENDDO
 CALL PlotSpiral(N,M,spiral)
+
+CALL OutputData(N,M,spiral)
 
 !!ending program
 CALL gas.free
@@ -264,7 +270,9 @@ DOUBLE PRECISION                ::PGCURS
 REAL                            ::rx,ry
 INTEGER                         ::ierr
 
+write(6,'(a)')'Click on the staring point of spiral:'
 ierr = PGCURS(rx,ry,CH)
+write(6,'("Starting from x = ",F5.2,"  y = ",F5.2)'),rx,ry
 CALL Follower.init(dble(rx),dble(ry))
 
 ENDSUBROUTINE
@@ -332,8 +340,51 @@ CALL spiral.free
 ENDSUBROUTINE
 
 SUBROUTINE FreeStellar
-USE FollowMO
+USE argument
 IMPLICIT NONE
-DEALLOCATE(StellarDensity)
+IF(plot_star)DEALLOCATE(StellarDensity)
 ENDSUBROUTINE
 
+SUBROUTINE OutputData(N,M,spiral)
+USE FollowMO
+USE argument
+USE plotting
+IMPLICIT NONE
+INTEGER                                 ::PGOPEN
+INTEGER                                 ::N,M
+TYPE(tyFollower)                        ::spiral(N,M)
+CHARACTER(len=225)                      ::CH
+INTEGER                                 ::i,j
+DOUBLE PRECISION                        ::domain
+!!get working path as filename of part of the file name of output.
+CALL GETCWD(CH)
+CH = TRIM(CH(INDEX(CH,'/',.true.)+1:LEN(CH)))
+
+!!start output
+DO J = 1, M
+OPEN(10,file=TRIM(CH)//'_follow_'//CHAR(48+j)//'.dat')
+write(10,100)'#x','y','r','th','amp'
+DO i = 1, N
+        write(10,100)spiral(i,j)
+ENDDO
+ENDDO
+
+CLOSE(10)
+100 FORMAT(5(G10.3,8X))
+
+IF (PGOPEN('Follow_spiral.png/png') .EQ. 0)THEN
+        write(0,*)'png device not open'
+        STOP
+ENDIF
+
+domain = maxval(gas.x)
+CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+CALL meshplot(gas.density,gas.n,domain,zmax,zmin_in=0.d0)
+DO j = 1, M
+        CALL PGSAVE
+        CALL PGSCI(j+1)
+        CALL PGPT(N,real(spiral(:,j).x),real(spiral(:,j).y),2)
+ENDDO
+CALL PGUNSA
+
+ENDSUBROUTINE

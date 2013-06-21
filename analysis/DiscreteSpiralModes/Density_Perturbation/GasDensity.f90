@@ -46,6 +46,8 @@ IMPLICIT  NONE
         LOGICAL                 ::drawstellar=.false.
         LOGICAL                 ::givefnm   = .false.
         LOGICAL                 ::drawq     = .false.
+        LOGICAL                 ::save      = .false.
+        LOGICAL                 ::cut       = .false.
 CONTAINS
 SUBROUTINE readarg
 USE projections,only:argaline
@@ -72,6 +74,8 @@ if(iargc().ne.0)then
                         write(6,'(a)')'         -s, --stellar           Draw stellar contour.   '
                         write(6,'(a)')'         -q,                     Draw instability.'
                         write(6,'(a)')'         -v,                     Version information.'
+                        write(6,'(a)')'         --save                  Save as png file.   '
+                        write(6,'(a)')'         --cut                   Make a cut at CO.   '
                         STOP
                 CASE('--circle','-c')
                         drawcir = .true.
@@ -92,12 +96,16 @@ if(iargc().ne.0)then
                         if(ioerr.ne.0)argaline = -3.d0
                 CASE('--stellar','-s')
                         drawstellar = .true.
+                CASE('--save')
+                        save = .true.
                 CASE('--zmax','-z')
                         CALL getarg(i+1,arg)
                         READ(arg,*)zmax
                         rauto = .false.
                 CASE('-q')
                         drawq = .true.
+                CASE('--cut')
+                        cut = .true.
                 CASE('-v')
                         write(6,'(a)')'Compiled at: '//__DATE__//' '//__TIME__
                         STOP
@@ -243,7 +251,7 @@ CASE(2) ! plot movie
         CALL PGPTXT(5.,8.,0.,0.,gas.filename)
         CALL PlotCircle
         CALL PGBBUF
-        CALL PlotStellarDensity
+        CALL PlotStellarDensity(0)
         CALL PGEBUF
         IF(drawq)THEN
                 CALL PGPANL(2,1)
@@ -256,6 +264,8 @@ CASE(2) ! plot movie
 ENDSELECT
 
 CALL PGCLOS
+
+CALL PrintGasDensity
 !CALL StellarGasPlot(density,n,domain,4)
 !!close h5 files writing
 !CALL h5write(xcoord,N,'density.h5','xcoord')
@@ -311,9 +321,43 @@ CALL meshplot(density(:,:,2),n,domain,zmax,zmin_in=0.d0)
 CALL PlotCircle
 
 !!plot stellar contour
-CALL PlotStellarDensity
+CALL PlotStellarDensity(0)
         
 CALL PGLAB('kpc','kpc',title)
+
+ENDSUBROUTINE
+
+SUBROUTINE PrintGasDensity
+USE argument
+USE plotting
+IMPLICIT NONE
+INTEGER                                 ::i
+INTEGER                                 ::PGOPEN
+CHARACTER(len=225)                      ::CH
+
+
+CALL GETCWD(CH)
+CH = TRIM(CH(INDEX(CH,'/',.true.)+1:LEN(CH)))
+
+IF (PGOPEN(TRIM(CH)//'_GasDensity.png/png') .NE. 1) STOP
+!!plot gas 
+CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+CALL meshplot(density(:,:,2),n,domain,zmax,zmin_in=0.d0)
+!!plot circle
+CALL PlotCircle
+
+!!plot stellar contour
+CALL PlotStellarDensity(0)
+
+CALL PGLAB('kpc','kpc','Gas Density')
+CALL PGCLOS
+
+IF(drawq)THEN
+        IF (PGOPEN(TRIM(CH)//'_GasDensity_Q.png/png') .NE. 1) STOP
+        CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
+        CALL plotq(CH)
+        CALL PGCLOS
+ENDIF
 
 ENDSUBROUTINE
 
@@ -321,7 +365,7 @@ SUBROUTINE plotq(title)
 USE argument
 USE plotting
 IMPLICIT NONE
-CHARACTER(len=32)                       ::title
+CHARACTER(*)                            ::title
 INTEGER                                 ::i
 
 !IF(rauto)THEN
@@ -338,7 +382,7 @@ CALL meshplot(density(:,:,3),n,domain, 3.d0,zmin_in=0.d0)
 CALL PlotCircle
 
 !!plot stellar contour
-CALL PlotStellarDensity
+CALL PlotStellarDensity(1)
         
 CALL PGLAB('kpc','kpc','-log(Q)')
 
@@ -391,6 +435,12 @@ DO j = 1, n
                 density(i,j,3) = -log(density(i,j,3))
                 
         ENDIF
+        IF(cut)THEN
+                IF(r>spiral.co)THEN
+                        density(i,j,2) = 0.d0
+                        density(i,j,3) = 0.d0
+                ENDIF
+        ENDIF
 ENDDO
 ENDDO
 !$OMP END DO
@@ -398,15 +448,18 @@ ENDDO
 
 ENDSUBROUTINE
 
-SUBROUTINE PlotStellarDensity
+SUBROUTINE PlotStellarDensity(color)
 USE argument,only:drawstellar
 USE plotting
 IMPLICIT NONE
+INTEGER                                 ::color
 IF(drawstellar)then
         write(6,*)achar(27)//'[33m Drawing stellar contour',achar(27)//'[0m'
-        CALL PGSCI(0)
+        !CALL PGSCI(0)
+        CALL PGSAVE
+        CALL PGSCI(color)
         CALL contourplot(density(:,:,1),n,domain,4)
-        CALL PGSCI(1)
+        CALL PGUNSA
 ENDIF
 
 ENDSUBROUTINE

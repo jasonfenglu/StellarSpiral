@@ -74,6 +74,7 @@ IMPLICIT  NONE
         LOGICAL                 ::zmax_set  = .false.
         LOGICAL                 ::givefnm   = .false.
         LOGICAL                 ::plot_circ = .false.
+        LOGICAL                 ::output    = .false.
 
 CONTAINS
 
@@ -95,6 +96,8 @@ if(iargc().ne.0)then
                         CALL help
                 CASE('-c')
                         plot_circ = .true.
+                CASE('--output')
+                        output = .true.
                 CASE('--zmax','-z')
                         CALL getarg(i+1,arg)
                         READ(arg,*)zmax
@@ -121,6 +124,7 @@ IMPLICIT NONE
         write(6,'(a)')'         -v,                     Version information.'
         write(6,'(a)')'         -x,                     Number of XWindows. '
         write(6,'(a)')'         -c,                     Plot circles 3,4,5. '
+        write(6,'(a)')'         --output                Output Phase Shift. '
         STOP
 ENDSUBROUTINE
 
@@ -163,7 +167,10 @@ CALL TraceSpiral('star',N,spiral(:,2))
 
 !!Plot Results
 CALL PlotSpiral(N,M,spiral)
+CALL PGPANL(3,1)
 CALL PlotPhase(N,M,spiral)
+IF(output)CALL OutputPhase(N,M,spiral)
+
 !!ending program
 CALL gas.free
 CALL FreeStellar
@@ -360,14 +367,16 @@ ENDSUBROUTINE
 
 SUBROUTINE PlotPhase(N,M,Followers)
 USE FollowMO
+USE argument,only:output
 USE math,only:intplt1
 IMPLICIT NONE
-TYPE(tyFollower)                ::Followers(N,M)
-INTEGER                         ::N,M
-DOUBLE PRECISION                ::dr,ri,rf,r,dmax,dmin
-INTEGER,PARAMETER               ::P=500
-DOUBLE PRECISION                ::dat(P,2)
-INTEGER                         ::i
+CHARACTER(len=225)                    ::CH
+TYPE(tyFollower)                     ::Followers(N,M)
+INTEGER                              ::N,M
+DOUBLE PRECISION                     ::dr,ri,rf,r,dmax,dmin
+INTEGER,PARAMETER                    ::P=500
+DOUBLE PRECISION                     ::dat(P,2)
+INTEGER                              ::i
 ri = max(minval(Followers(:,1).r),minval(Followers(:,2).r))
 rf = min(maxval(Followers(:,1).r),maxval(Followers(:,2).r))
 dr = (rf - ri)/dble(P)
@@ -381,12 +390,27 @@ ENDDO
 
 dmax = maxval(dat(:,2))*0.8
 dmin = minval(dat(:,2))*1.1
-CALL PGPANL(3,1)
 
 !CALL PGENV(real(ri)*0.9,real(rf)*1.1, real(dmin),real(dmax),0,0)
 CALL PGENV(3.5,7.2, -real(pi)/2.,0.,0,0)
 CALL PGLINE(P,real(dat(:,1)),real(dat(:,2)))
 CALL PGLINE(2,real((/ri,rf/)),real((/-pi/2.d0,-pi/2.d0/)))
+CALL PGLAB('Radius (kpc)','Offset (radians)','')
+
+
+IF(output)THEN
+        !!get working path as filename of part of the file name of output.
+        CALL GETCWD(CH)
+        CH = TRIM(CH(INDEX(CH,'/',.true.)+1:LEN(CH)))
+        !!start output
+        OPEN(10,file=TRIM(CH)//'_phase.dat')
+        write(10,100)'#r','th'
+        DO i = 1, P
+                write(10,100)dat(i,1),dat(i,2)
+        ENDDO
+        CLOSE(10)
+        100 FORMAT(5(G13.6,8X))
+ENDIF
 
 ENDSUBROUTINE
 
@@ -429,4 +453,15 @@ DO i = 1, N
 ENDDO
 th = dat(maxloc(dat(:,2),1),1)
 CALL NxFollower.init(Follower.x+r*cos(th),Follower.y+r*sin(th),intplt)
+ENDSUBROUTINE
+
+SUBROUTINE OutputPhase(N,M,Followers)
+USE FollowMO
+IMPLICIT NONE
+TYPE(tyFollower)                       ::Followers(N,M)
+INTEGER                                ::N,M
+INTEGER                                ::PGOPEN
+
+IF(PGOPEN('PhaseShift.ps/ps').EQ.0)STOP
+CALL PlotPhase(N,M,Followers)
 ENDSUBROUTINE

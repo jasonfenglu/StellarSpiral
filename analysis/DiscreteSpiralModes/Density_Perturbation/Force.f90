@@ -2,7 +2,7 @@ PROGRAM density1
 USE PLOTTING
 USE STELLARDISK_MODEL
 USE &
-STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,phi1,FindPhi1,SpiralForce,GravConst,Omega,intplt,Sigma0,StellarOmega
+STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,SpiralForce,GravConst,Omega,intplt,Sigma0,StellarOmega
 USE projections,only:argaline
 USE io
 IMPLICIT NONE
@@ -19,14 +19,11 @@ DOUBLE PRECISION                ::d,co,fmax,amp
 DOUBLE PRECISION                ::x,y
 INTEGER,PARAMETER               ::n=512
 type(typspiral)                 ::spiral
-LOGICAL                         ::toproject
 INTEGER                         ::ierr
-namelist /densitypara/ toproject
 namelist /forcenml/               amp 
 
 !read in density plot related options
 open(10,file='para.list')
-read(10,nml=densitypara)
 read(10,nml=forcenml)
 close(10)
 
@@ -34,7 +31,6 @@ CALL stdpara.readstd
 CALL spiral.init(500,12.d0,stdpara,2)
 CALL spiral.readw(2)
 CALL FindSpiral(spiral)
-CALL FindPhi1(spiral)
 dx = domain/dble(n)*2.d0
 dy = domain/dble(n)*2.d0
 

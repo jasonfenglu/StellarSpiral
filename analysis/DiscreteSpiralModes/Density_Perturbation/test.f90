@@ -15,6 +15,15 @@ endtype
 type(tst) tt
 DOUBLE COMPLEX          ::Y(2,100),Y1(2)
 DOUBLE PRECISION        ::tmp(2,2)
+CHARACTER(len=225)      ::CH
+
+CALL GETCWD(CH)
+CH = TRIM(CH)
+print *,INDEX(CH,'/',.true.)
+CH = TRIM(CH(INDEX(CH,'/',.true.)+1:LEN(CH)))
+print *,CH,LEN(CH)
+print *,TRIM(CH)
+STOP
 
 ri = 0.d0
 rf = 15.d0
