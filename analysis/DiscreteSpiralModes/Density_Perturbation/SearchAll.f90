@@ -87,10 +87,10 @@ CALL stdpara.readstd
 print *,myid,m,n,chunk
 ALLOCATE(errormpisend(chunk))
 !$OMP PARALLEL SHARED(searchgrid,complete_count,stdpara) FIRSTPRIVATE(spiral)
+CALL spiral.init(100,10.d0,stdpara,1)
 !$OMP DO 
 !DO j = 1,m*n
 DO j = chunk*myid+1,chunk*(myid+1)
-        CALL spiral.init(100,10.d0,stdpara,1)
         wr = searchgrid%lcoord(j,1)
         wi = searchgrid%lcoord(j,2)
         spiral.w = dcmplx(wr,wi)
@@ -100,7 +100,6 @@ DO j = chunk*myid+1,chunk*(myid+1)
         CALL FindSpiral(spiral)
 !       searchgrid%lerror(j) = abs(spiral.error)
         errormpisend(j-chunk*myid) = abs(spiral.error)
-        CALL spiral.final
         if(myid.eq.0)then
         !$OMP CRITICAL
                 complete_count = complete_count + 1
@@ -109,6 +108,7 @@ DO j = chunk*myid+1,chunk*(myid+1)
         endif
 ENDDO
 !$OMP END DO
+CALL spiral.free
 !$OMP END PARALLEL
 print *,'collecting data',myid
 

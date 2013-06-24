@@ -93,7 +93,7 @@ DO j = 1,n**2
         spiral.winit = .true.
         CALL FindSpiral(spiral)
         searchgrid.lerror(j) = abs(spiral.error)
-        CALL spiral.final
+        CALL spiral.free
 ENDDO
 !$OMP END DO 
 !$OMP END PARALLEL 
