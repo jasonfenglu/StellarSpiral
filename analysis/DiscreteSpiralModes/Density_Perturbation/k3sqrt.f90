@@ -315,11 +315,25 @@ FUNCTION ToomreQ(r,spiral)
 DOUBLE PRECISION                        ::Q,r,Qod,ToomreQ,rq
 type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION,POINTER                ::para(:)
+DOUBLE PRECISION                        ::f
 para=>spiral.para
 Qod = para(8)
 q   = para(9)
 rq  = para(10)
-ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2) + 1.2d0*dexp(-r**2/0.8**2))
+!IF(r<8.d0)THEN
+!        f = 1.d0
+!ELSE
+!        f = 1.d0 + (r-8.d0)**2/5.d0
+!ENDIF
+!ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2) + 1.2d0*dexp(-r**2/0.8**2)) &
+!        * f
+
+IF(r<rq)THEN
+        ToomreQ = Cos(r*pi/rq)*q+Qod
+        ToomreQ = ToomreQ + 0.6d0*exp(-r**2/0.5d0**2)
+ELSE
+        ToomreQ = Qod - q
+ENDIF
 endfunction
 
 function nu(r,spiral)
@@ -1131,7 +1145,7 @@ do i = 1, spiral.n
 enddo
 spiral.h1(1) = (0.d0,0.d0)
 
-CALL refineh1
+!CALL refineh1
 spiral.h1caled = .true.
 
 CONTAINS
@@ -1348,7 +1362,7 @@ DOUBLE PRECISION                        ::sigma1r
 
 h1 = cintplt(spiral.h1,spiral.r,r)
 sigma1r = abs(h1)/snsd(r,spiral)**2*sigma0(r,spiral)
-if(r>spiral.fortoone)sigma1r = sigma1r *exp(-(r-spiral.fortoone)**2/1.d0**2)
+!if(r>spiral.fortoone)sigma1r = sigma1r *exp(-(r-spiral.fortoone)**2/1.d0**2)
 
 ENDFUNCTION
 
