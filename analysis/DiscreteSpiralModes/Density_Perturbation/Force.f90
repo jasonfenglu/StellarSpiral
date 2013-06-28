@@ -2,7 +2,7 @@ PROGRAM density1
 USE PLOTTING
 USE STELLARDISK_MODEL
 USE &
-STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,SpiralForce,GravConst,Omega,Sigma0,StellarOmega
+STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,GravConst,Omega,Sigma0,StellarOmega
 USE projections,only:argaline
 USE io
 USE math

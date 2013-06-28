@@ -118,7 +118,7 @@ ENDMODULE
 PROGRAM density1
 USE PLOTTING
 USE STELLARDISK_MODEL
-USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,FindPhi1,SpiralForce
+USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1
 USE projections,only:argaline
 USE io
 USE argument

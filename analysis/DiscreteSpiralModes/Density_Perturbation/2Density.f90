@@ -36,7 +36,7 @@ endmodule
 PROGRAM caldensity2
 USE PLOTTING
 USE STELLARDISK_MODEL
-USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,k3sqrtlog
+USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1
 USE projections,only:argaline
 IMPLICIT NONE
 INTEGER                         ::i,j,k
@@ -94,7 +94,6 @@ DO i = 1, 2
         CALL spiral(i).init(500,12.d0,stdpara,i)
         CALL spiral(i).readw(i)
         CALL FindSpiral(spiral(i))
-        CALL k3sqrtlog(spiral(i))
 ENDDO
 
 modeth(1) = 0.d0
