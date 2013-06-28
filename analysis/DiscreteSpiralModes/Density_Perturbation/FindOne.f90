@@ -86,15 +86,15 @@ searchgrid.lcoord = reshape(searchgrid.coord,(/n*n,2/))
 CALL stdpara.readstd
 !CALL omp_set_num_threads(1)
 !$OMP PARALLEL SHARED(searchgrid,stdpara) FIRSTPRIVATE(spiral)
+CALL spiral.init(500,12.d0,stdpara,1)
 !$OMP DO 
 DO j = 1,n**2
-        CALL spiral.init(500,12.d0,stdpara,1)
         CALL spiral.setw(dcmplx(searchgrid.lcoord(j,1),searchgrid.lcoord(j,2)),2)
         CALL FindSpiral(spiral)
         searchgrid.lerror(j) = abs(spiral.error)
-        CALL spiral.free
 ENDDO
 !$OMP END DO 
+CALL spiral.free
 !$OMP END PARALLEL 
 searchgrid.error = reshape(searchgrid.lerror,(/n,n/))
 p = MINLOC(searchgrid%error(:,:))

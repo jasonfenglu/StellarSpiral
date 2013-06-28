@@ -4,7 +4,7 @@ USE STELLARDISK
 IMPLICIT NONE
 type(typspiral)                         ::spiral
 DOUBLE PRECISION,ALLOCATABLE            ::dat(:,:)
-DOUBLE PRECISION,PARAMETER              ::rf = 10.d0,ri = 0.d0
+DOUBLE PRECISION,PARAMETER              ::rf = 12.d0,ri = 0.d0
 DOUBLE PRECISION                        ::dr,k,O,r
 INTEGER,PARAMETER                       ::N = 1000
 INTEGER                                 ::i
@@ -38,7 +38,7 @@ INTEGER                                 ::PGBEG
 INTEGER                                 ::i,j
 IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
 CALL PGSVP(0.0,0.95,0.0,0.95)
-CALL PGENV(0.,10.,0.,120.,0,0)
+CALL PGENV(0.,12.,0.,120.,0,0)
 DO i = 2, 7
         CALL PGSCI(i)
         CALL PGLINE(N,real(dat(:,1)),real(dat(:,i)))
@@ -64,7 +64,7 @@ DOUBLE PRECISION                        ::B,C,R,RE,AE
 INTEGER                                 ::IFLAG
 
 B = 5.d0
-C = 10.d0
+C = 14.d0
 R = 7.d0
 RE = 1d-7
 AE = 1d-7
@@ -79,7 +79,7 @@ DOUBLE PRECISION                        ::B,C,R,RE,AE
 INTEGER                                 ::IFLAG
 
 B = 5.d0
-C = 10.d0
+C = 14.d0
 R = 7.d0
 RE = 1d-7
 AE = 1d-7

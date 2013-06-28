@@ -52,12 +52,6 @@ DOUBLE PRECISION                ::modeth(2)
 INTEGER,PARAMETER               ::n=800
 INTEGER                         ::nmode
 type(typspiral)                 ::spiral(2)
-LOGICAL                         ::toproject
-namelist /densitypara/ toproject
-
-open(10,file='para.list')
-read(10,nml=densitypara)
-close(10)
 
 SELECT CASE(iargc())
 CASE(1)
@@ -107,7 +101,7 @@ DO i = 1, n*2
 DO j = 1, n*2
         pf = (/xcoord(i),ycoord(j)/)
         pi = pf
-        if(toproject)CALL projection(pi,pf)
+        !if(toproject)CALL projection(pi,pf)
         r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1)) + modeth(nmode)
         d  = sigma1(r,th,spiral(nmode))
