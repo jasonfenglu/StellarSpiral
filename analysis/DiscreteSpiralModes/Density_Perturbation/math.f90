@@ -132,11 +132,6 @@ DOUBLE COMPLEX,INTENT(IN)       ::dat(:)
 DOUBLE PRECISION,INTENT(IN)     ::rs(:)
 DOUBLE PRECISION,INTENT(IN)     ::r
 DOUBLE COMPLEX                  ::cintplt
-DOUBLE PRECISION                ::X(4),Y(4),C(4)
-INTEGER,PARAMETER               ::N = 4
-INTEGER                         ::NDER = 0,IERR
-DOUBLE PRECISION                ::XX,YFIT,YP,WORK
-INTEGER                         ::i
 
 cintplt = dcmplx( &
         intplt(real(dat),rs,r), &

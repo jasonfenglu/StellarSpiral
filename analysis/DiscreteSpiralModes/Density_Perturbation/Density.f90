@@ -39,26 +39,14 @@ IMPLICIT  NONE
         LOGICAL                 ::toproject = .false.
         LOGICAL                 ::rauto     = .true.
         LOGICAL                 ::drawcir   = .false.
-ENDMODULE
-
-PROGRAM density1
-USE PLOTTING
-USE STELLARDISK_MODEL
-USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1,phi1,FindPhi1,SpiralForce
-USE projections,only:argaline
-USE io
-USE argument
+        LOGICAL                 ::contour   = .false.
+CONTAINS
+SUBROUTINE readarg
+USE projections
 IMPLICIT NONE
-INTEGER                         ::i,j,k
 CHARACTER(len=32)               ::arg
-DOUBLE PRECISION                ::domain= 10.d0,dx,dy,r,th,pf(2),pi(2)
-DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
-DOUBLE PRECISION                ::limit = 100.d0
-DOUBLE PRECISION                ::d
-INTEGER,PARAMETER               ::n=512
+INTEGER                         ::i
 INTEGER                         ::ioerr
-type(typspiral)                 ::spiral
-
 if(iargc().ne.0)then
         DO i = 1, iargc()
                 CALL getarg(i,arg)
@@ -78,8 +66,10 @@ if(iargc().ne.0)then
                         CALL getarg(i+1,arg)
                         READ(arg,*,iostat=ioerr)argaline
                         if(ioerr.ne.0)argaline = -3.d0
-                CASE('--circle','-c')
+                CASE('--circle')
                         drawcir = .true.
+                CASE('-c')
+                        contour = .true.
                 CASE('--zmax','-z')
                         CALL getarg(i+1,arg)
                         READ(arg,*)zmax
@@ -87,7 +77,26 @@ if(iargc().ne.0)then
                 ENDSELECT
         ENDDO
 ENDIF
+ENDSUBROUTINE
+ENDMODULE
 
+PROGRAM density1
+USE PLOTTING
+USE STELLARDISK_MODEL
+USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1
+USE projections,only:argaline
+USE io
+USE argument
+IMPLICIT NONE
+INTEGER                         ::i,j,k
+DOUBLE PRECISION                ::domain= 10.d0,dx,dy,r,th,pf(2),pi(2)
+DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
+DOUBLE PRECISION                ::limit = 100.d0
+DOUBLE PRECISION                ::d
+INTEGER,PARAMETER               ::n=512
+type(typspiral)                 ::spiral
+
+CALL readarg
 CALL stdpara.readstd
 CALL spiral.init(500,12.d0,stdpara,2)
 CALL spiral.readw(2)
@@ -166,10 +175,20 @@ USE argument
 USE plotting
 IMPLICIT NONE
 DOUBLE PRECISION,INTENT(IN)             ::F(:,:)        !plotting data
+DOUBLE PRECISION,ALLOCATABLE            ::F2(:,:)       !plotting data for contour
 DOUBLE PRECISION,INTENT(IN)             ::domain        !plot range
 INTEGER,INTENT(IN)                      ::n             !dimentsion
 INTEGER                                 ::PGBEG
 INTEGER                                 ::i
+
+!!preparing data
+IF(contour)THEN
+        ALLOCATE(F2(n,n))
+        F2 = 0.d0
+        FORALL(i = 1:n,j = 1:n,F(i,j)>0)
+                F2(i,j) = F(i,j)
+        ENDFORALL
+ENDIF
 
 IF(rauto)THEN
         zmax = maxval(F)*1.1d0
@@ -182,7 +201,11 @@ IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
 
 DO i = 1, 2
 CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
-CALL meshplot(F,n,domain,zmax)
+IF(.not.contour)THEN
+        CALL meshplot(F,n,domain,zmax)
+ELSE
+        CALL contourplot(F2,n,domain,4)
+ENDIF
 IF(.not.toproject.and.drawcir)THEN
         write(6,*)achar(27)//'[33m Drawing circles',achar(27)//'[0m'
         CALL PGSFS(2)
@@ -197,6 +220,7 @@ CALL PGCLOS
 IF (PGBEG(0,'density.png/png',1,1) .NE. 1) STOP
 ENDDO
 
+IF(ALLOCATED(F2))DEALLOCATE(F2)
 ENDSUBROUTINE
 
 END PROGRAM
