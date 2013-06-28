@@ -145,14 +145,10 @@ CALL spiral.readw(2)
 CALL FindSpiral(spiral)
 if(myid.eq.0)then
         write(6,*)achar(27)//'[95m [main] spiral error:',abs(spiral.error),achar(27)//'[0m'
-        call spiral.printu
-        call spiral.printh1
 ENDIF
 #ifdef STELLARSPIRAL
 if(myid.eq.0)then
         write(6,*)achar(27)//'[95m [main] Initializing spiral force',achar(27)//'[0m'
-        call spiral.printu
-        call spiral.printh1
 ENDIF
 ALLOCATE(stellarforce.den(1:ncell_loc(1),1:ncell_loc(2)))
 ALLOCATE(stellarforce.sgx(1:ncell_loc(1),1:ncell_loc(2)))
