@@ -4,9 +4,9 @@ eos=2 => isothermal
 eos=3 => polytropic
 
 &run_params
-ncell=1024,1024,0
-xrange=-10.,10.
-yrange=-10.,10.
+ncell=1236,1236,0
+xrange=-12.,12.
+yrange=-12.,12.
 zrange=-0.,0.
 tend=0.2644
 CFL=0.4

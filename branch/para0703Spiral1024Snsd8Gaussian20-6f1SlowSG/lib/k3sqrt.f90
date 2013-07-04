@@ -216,7 +216,7 @@ rq  = para(10)
 
 IF(r<rq)THEN
         ToomreQ = Cos(r*pi/rq)*q+Qod
-        ToomreQ = ToomreQ + 0.6d0*exp(-r**2/0.5d0**2)
+        ToomreQ = ToomreQ + 1.2d0*exp(-r**2/0.4d0**2)
 ELSE
         ToomreQ = Qod - q
 ENDIF
@@ -1105,7 +1105,7 @@ hh1 = cintplt(spiral.h1,spiral.r,r)
 !find density
 th = th + spiral.phase
 sigma1 = real(hh1*sigma0(r,spiral)/snsd(r,spiral)**2*exp(-2.d0*th*(0.d0,1.d0)))
-if(r>spiral.fortoone)sigma1 = sigma1 *exp(-(r-spiral.fortoone)**2/1.d0**2)
+if(r>spiral.co)sigma1 = sigma1 *exp(-(r-spiral.co)**2/1.0d0**2)
 
 ENDFUNCTION
 
