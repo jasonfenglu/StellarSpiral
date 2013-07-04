@@ -216,7 +216,7 @@ rq  = para(10)
 
 IF(r<rq)THEN
         ToomreQ = Cos(r*pi/rq)*q+Qod
-        ToomreQ = ToomreQ + 1.0d0*exp(-r**2/0.5d0)
+        ToomreQ = ToomreQ + 1.0d0*exp(-r**2/0.8d0)
 ELSE
         ToomreQ = Qod - q
 ENDIF
