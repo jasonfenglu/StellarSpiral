@@ -117,7 +117,7 @@ ENDSUBROUTINE
 SUBROUTINE help
 IMPLICIT NONE
         write(6,'(a)')'Follow spiral.                       '
-        write(6,'(a)')'usage:   Follow.exe [options]               '
+        write(6,'(a)')'usage:   Follow.exe [options] -i Filename.h5'
         write(6,'(a)')'options:                         '
         write(6,'(a)')'         -z, --zmax [scale of z] Specified the scale of z'
         write(6,'(a)')'         -h, --help              Show this help page     '
@@ -391,8 +391,8 @@ ENDDO
 dmax = maxval(dat(:,2))*0.8
 dmin = minval(dat(:,2))*1.1
 
-!CALL PGENV(real(ri)*0.9,real(rf)*1.1, real(dmin),real(dmax),0,0)
-CALL PGENV(3.5,7.2, -real(pi)/2.,0.,0,0)
+CALL PGENV(real(ri)*0.9,real(rf)*1.1, -real(pi)/2.,0.,0,0)
+!CALL PGENV(3.5,7.2, -real(pi)/2.,0.,0,0)
 CALL PGLINE(P,real(dat(:,1)),real(dat(:,2)))
 CALL PGLINE(2,real((/ri,rf/)),real((/-pi/2.d0,-pi/2.d0/)))
 CALL PGLAB('Radius (kpc)','Offset (radians)','')
