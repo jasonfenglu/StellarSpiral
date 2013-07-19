@@ -227,23 +227,86 @@ IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
 DOUBLE COMPLEX                          ::nu   
 DOUBLE PRECISION                        ::r
-DOUBLE PRECISION                        ::m 
-m = 2.d0
+DOUBLE PRECISION,PARAMETER              ::m =2.d0
 nu = (spiral.w-m*Omega(r,spiral))/kappa(r,spiral)
 endfunction
  
 function k3sqrt(r,spiral)
 USE STELLARDISK_MODEL
+USE NUM
 IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
-DOUBLE COMPLEX            k3sqrt
+DOUBLE COMPLEX            ::k3sqrt,k(5)
+DOUBLE COMPLEX            ::w
 DOUBLE PRECISION,INTENT(in)::r
 DOUBLE PRECISION          ::rr
+DOUBLE PRECISION,PARAMETER::m = 2.d0
+DOUBLE PRECISION          ::Omega_, ToomreQ_, snsd_, sigma_, kappa_
+DOUBLE PRECISION          ::sigma0_,sigma02_,sigma00_,sigma04_
+DOUBLE PRECISION          ::kappa2_,kappa0_,Omega0_,Omega2_,Omega4_
+DOUBLE COMPLEX            ::nu_
 
+Omega_   = Omega(r,spiral)
+ToomreQ_ = ToomreQ(r,spiral)
+snsd_    = snsd(r,spiral)
+Sigma0_  = Sigma0(r,spiral)
+Sigma_   = Sigma(r,spiral)
+kappa_   = kappa(r,spiral)
+nu_      = nu(r,spiral)
+w = spiral.w
+Omega0_  = OmegaCoefficent(spiral,0)
+Omega2_  = OmegaCoefficent(spiral,2)
+Omega4_  = OmegaCoefficent(spiral,4)
+kappa0_  = kappa0(spiral)
+kappa2_  = kappa2(spiral)
+sigma00_ = Sigma0(0.d0,spiral)
+sigma02_ = LauDiskSigma02(spiral)
+sigma04_ = LauDiskSigma04(spiral)
 
-k3sqrt = (dcmplx(kappa(r,spiral)/snsd(r,spiral)))**2*(dcmplx(ToomreQ(r,spiral))**-2 &
-       - 1.d0 + nu(r,spiral)**2 + 0.25d0*curF(r,spiral)**2*ToomreQ(r,spiral)**2)
+k(:)     = 0.d0
+k3sqrt   = 0.d0
 
+k(1)     = (dcmplx(kappa_/snsd_))**2*(dcmplx(ToomreQ_)**-2 &
+           - 1.d0 + nu_**2 + 0.25d0*curF(r,spiral)**2*ToomreQ_**2)
+
+IF(r.le.2.0d-1)THEN
+        !!r too small
+        k(2) = (-2.d0*sigma02_/sigma00_+4d0*Omega2_/Omega0_) &
+             + (2d0*sigma02_**2/sigma00_**2 - 4d0*sigma04_/sigma00_+4d0*(-2d0*Omega2_**2+3d0*Omega0_*Omega4_)/Omega0_**2)*r**2
+        k(2) = -2.d0*m*Omega_/(spiral.w-m*Omega_)*k(2)
+        k(3) = - dcmplx(0.d0,1.d0)*Sigma_*5d-1/f2(r,spiral)*dcfunc(f2,r,spiral)
+
+        !!k(4)
+        !k(4) = sigma02_**2*w**2*(w-4d0*Omega0_)**2 + 8d0*sigma00_*sigma02_*w*(w-4d0*Omega0_)*(w+Omega0_)*Omega2_ &
+        !     + 4d0*sigma00_*(sigma04_*w**2*(w-4d0*Omega0_)**2+4d0*sigma00_*((4d0*w**2+2d0*w*Omega0_+3d0*Omega0_**2)*Omega2_**2 &
+        !     + w*(w-4d0*Omega0_)*(w + 2d0*Omega0_)*Omega4_))
+        !k(4) = -k(4)/sigma00_**2/w**2/(w-4d0*Omega0_)**2*r**2
+
+        !!
+        !k(4) = -sigma02_**2*w**2*(w-4d0*Omega0_)**2+8d0*sigma00_*sigma02_*w*(w-4d0*Omega0_)*(w+Omega0_)*Omega2_ &
+        !     + 4d0*sigma00_*(sigma04_*w**2*(w-4d0*Omega0_)**2+4d0*sigma00_*((4d0*w**2+2d0*w*Omega0_+3d0*Omega0_**2)*Omega2_**2+ &
+        !     w*(w-4d0*Omega0_)*(w+2d0*Omega0_)*Omega4_))
+        !k(4) = -k(4)/sigma00_**2/w**2/(w-4d0*Omega0_)**2*r**2
+        k(4) = sigma02_**2*w**2*(w-4d0*Omega0_)**2 - 8d0*sigma00_*sigma02_*w*(w-4d0*Omega0_)*(w+Omega0_)*Omega2_ &
+             + 4d0*sigma00_*(-sigma04_*w**2*(w-4d0*Omega0_)**2-4d0*sigma00_*(4d0*w**2+2d0*w*Omega0_+3d0*Omega0_**2)*Omega2_**2- &
+             4d0*sigma00_*w*(w-4d0*Omega0_)*(w+2d0*Omega0_)*Omega4_)
+        k(4) = k(4)/sigma00_**2/w**2/(w-4d0*Omega0_)**2*r**2
+
+        !!k(5)
+        k(5) = (3d0*Omega2_ + m*nu_*Omega2_)*5d-1/Omega0_ &
+             + (-13d0*Omega2_**2-4d0*m*nu_*Omega2_**2+16d0*Omega0_*Omega4_+4d0*m*nu_*Omega0_*Omega4_)*0.25d0/Omega0_**2*r**2
+        k(5) = -k(5)*(4d0*m*nu_/(1.d0-nu_**2))
+ELSE
+        k(2) = - 2.d0*Omega_*m/(spiral.w-m*Omega_)/r*dcmplx(dfunc(f1,r,spiral)/f1(r,spiral))
+        k(3) = - dcmplx(0.d0,1.d0)*Sigma_*5d-1/f2(r,spiral)*dcfunc(f2,r,spiral)
+        k(4) = + 3.d0/4.d0/r**2  - cd2func(f3,r,spiral)/f3(r,spiral)  
+        k(5) = - 4.d0*m*Omega_/kappa_**2*nu_*(m*nu_*dfunc(Omega,r,spiral)+dfunc(kappa,r,spiral))/r/(1.d0-nu_**2)
+ENDIF
+
+k3sqrt = sum(k(1:5))
+!k3sqrt = k(1)+k(5)
+!write(*,'(4(D15.5))')r,imag(k(4)),real(k(4)),abs(k(4))
+write(*,'(7(D15.5))')r,sum(abs(k)),abs(k)
 CALL CheckResult
 CONTAINS
 
@@ -255,6 +318,43 @@ errormsg = trim(errormsg)
 errormsg = 'k3sqrt nan.@r = '//errormsg
 if(isnan(real(k3sqrt)))CALL XERMSG('k3sqrt','k3sqrt',errormsg,-98,2)
 ENDSUBROUTINE
+
+FUNCTION f1(r,spiral)
+type(typspiral)                         ::spiral
+DOUBLE PRECISION        ::f1
+DOUBLE PRECISION        ::r
+
+f1 = kappa(r,spiral)**2/sigma0(r,spiral)/Omega(r,spiral)
+
+ENDFUNCTION
+
+FUNCTION f2(r,spiral)
+type(typspiral)                         ::spiral
+DOUBLE PRECISION        ::f2
+DOUBLE PRECISION        ::r
+
+f2 = ToomreQ(r,spiral)**2*(1.d0-nu(r,spiral)**2)
+
+ENDFUNCTION
+
+FUNCTION f3(r,spiral)
+type(typspiral)                         ::spiral
+DOUBLE COMPLEX          ::f3
+DOUBLE PRECISION        ::r,xr,xi
+
+f3 = sqrt(sigma0(r,spiral)/r/kappa(r,spiral)**2/(dcmplx(1.d0)-nu(r,spiral)**2))
+
+ENDFUNCTION
+
+FUNCTION f4(r,spiral)
+type(typspiral)                         ::spiral
+DOUBLE PRECISION        ::f4
+DOUBLE PRECISION        ::r
+
+f4 = Omega(r,spiral)
+
+ENDFUNCTION
+
 
 endfunction
 
@@ -276,8 +376,6 @@ elseif(r.lt.3.d-2)then
         *sqrt(-(2.d0*r*Omega2(spiral))/(r*Omega(r,spiral)))
 else
         s = -r/Omega(r,spiral)*dfunc(Omega,r,spiral)
-!       curf = &
-!       2.d0*dble(m)*(pi*GravConst*sigma0(r,spiral))/kappa(r,spiral)**2*sqrt(-2.d0*dfunc(Omega,r,spiral)/(2.d0*r*Omega(r,spiral)+dfunc(Omega,r,spiral)))
         curf = &
         2.d0*dble(m)*(pi*GravConst*sigma0(r,spiral))/kappa(r,spiral)**2/r/sqrt(1.d0/s-0.5d0)
 endif
@@ -432,6 +530,41 @@ H = 6.5625 /x**3  + H
 ENDFUNCTION
 ENDFUNCTION
 
+FUNCTION LauDiskSigma02(spiral)
+!!coeficient of r**2 in disk density
+IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION                        ::LauDiskSigma02
+!Lau Disk
+DOUBLE PRECISION                        ::a1,a2,M1,M2
+DOUBLE PRECISION,POINTER                ::para(:)
+para=>spiral.para
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+
+LauDiskSigma02 = (-M1/a1**4/2.d0+M2/a2**4/2.d0)*4.5d0/pi*11.d0
+
+ENDFUNCTION
+
+FUNCTION LauDiskSigma04(spiral)
+!!coeficient of r**2 in disk density
+IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION                        ::LauDiskSigma04
+!Lau Disk
+DOUBLE PRECISION                        ::a1,a2,M1,M2
+DOUBLE PRECISION,POINTER                ::para(:)
+para=>spiral.para
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+
+LauDiskSigma04 = (M1/a1**6-M2/a2**6)*143d0/8d0*4.5d0/pi
+ENDFUNCTION
+
 function kappa(r,spiral)
 USE NUM
 IMPLICIT NONE
@@ -451,6 +584,22 @@ if(isnan(kappa))then
         print *,r,Omega(r,spiral),dfunc(Omega,r,spiral)
         CALL XERMSG('k3sqrt','kappa','kappa is nan.',-97,2)
 endif       
+ENDFUNCTION
+
+function kappa0(spiral)
+USE NUM
+IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION                        ::kappa0
+kappa0 = 2*Omega(0d0,spiral)
+ENDFUNCTION
+
+function kappa2(spiral)
+USE NUM
+IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION                        ::kappa2
+kappa2 = 3d0*Omega2(spiral)
 ENDFUNCTION
 
 FUNCTION Omega(r,spiral)
@@ -580,11 +729,138 @@ ENDFUNCTION
 
 ENDFUNCTION
 
-FUNCTION Omega2(r,spiral)
-!use summantion instead of put in the same subroutine
+FUNCTION OmegaCoefficent(spiral,n)
+IMPLICIT NONE
+DOUBLE PRECISION                        ::OmegaCoefficent
+type(typspiral),TARGET,INTENT(IN)       ::spiral
+INTEGER,INTENT(IN)                      ::N
+
+SELECT CASE(n)
+        CASE(0)
+                OmegaCoefficent = Omega0(spiral)
+        CASE(2)
+                OmegaCoefficent = Omega2(spiral)
+        CASE(4)
+                OmegaCoefficent = Omega4(spiral)
+ENDSELECT
+ENDFUNCTION
+
+FUNCTION Omega0(spiral)
+USE NUM
+IMPLICIT NONE
+DOUBLE PRECISION          ::Omega0
+type(typspiral),TARGET                  ::spiral
+Omega0 = Omega(0d0,spiral)
+ENDFUNCTION
+
+FUNCTION Omega2(spiral)
 USE NUM
 IMPLICIT NONE
 DOUBLE PRECISION          ::Omega2
+!Halo
+DOUBLE PRECISION          ::Lh,rhoh,gHalo,VHalo
+!bulge
+DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
+!disk
+DOUBLE COMPLEX            ::VDisk
+DOUBLE PRECISION          ::a1,a2,M1,M2
+!spiral
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)=>null()
+DOUBLE PRECISION                        ::tmp(3)
+
+para=>spiral.para
+
+!Halo
+Lh   = para(1)
+rhoh = para(2)
+!Bulge
+Mb   = para(3)
+rb   = para(4)
+!Disk
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+
+tmp = 0.d0
+tmp(1) = 4.d0*pi*GravConst*rhoh/5.d0/Lh**2
+tmp(2) = 6.d0*pi*GravConst*Mb/5.d0/rb**2
+tmp(3) = 8.d0*GravConst/105d0*(M1/A1**5-M2/A2**5)*1080d0
+
+Omega2 = sum(tmp)/Omega(0.d0,Spiral)/-2.d0
+CONTAINS
+
+SUBROUTINE CheckResult
+IMPLICIT NONE
+CHARACTER(len=72)                       ::errormsg
+write(errormsg,"(E10.3)")0.d0
+errormsg = trim(errormsg)
+errormsg = 'Omega nan.@r = '//errormsg
+if(isnan(Omega2))CALL XERMSG('k3sqrt','Omega2',errormsg,-99,2)
+ENDSUBROUTINE
+
+
+ENDFUNCTION
+
+FUNCTION Omega4(spiral)
+USE NUM
+IMPLICIT NONE
+DOUBLE PRECISION          ::Omega4,Omega0_
+!Halo
+DOUBLE PRECISION          ::Lh,rhoh,gHalo,VHalo
+!bulge
+DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
+!disk
+DOUBLE COMPLEX            ::VDisk
+DOUBLE PRECISION          ::a1,a2,M1,M2
+!spiral
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,POINTER                ::para(:)=>null()
+DOUBLE PRECISION                        ::tmp(4)
+
+para=>spiral.para
+
+Omega0_ = Omega0(spiral)
+
+!Halo
+Lh   = para(1)
+rhoh = para(2)
+!Bulge
+Mb   = para(3)
+rb   = para(4)
+!Disk
+a1 = para(11)
+a2 = para(12)
+M1 = para(13)
+M2 = para(14)
+
+tmp = 0.d0
+tmp(1) = -Omega2(spiral)**2
+tmp(2) = (4.d0*pi*GravConst*rhoh/7.d0/Lh**4)
+tmp(3) = (15.d0*pi*GravConst*Mb/14.d0/rb**4)
+tmp(4) = (2.d0*GravConst/105d0*(M1/A1**7-M2/A2**7)*(8280d0))
+
+Omega4 = sum(tmp)*5d-1/Omega0_
+CONTAINS
+
+SUBROUTINE CheckResult
+IMPLICIT NONE
+CHARACTER(len=72)                       ::errormsg
+write(errormsg,"(E10.3)")0.d0
+errormsg = trim(errormsg)
+errormsg = 'Omega nan.@r = '//errormsg
+if(isnan(Omega4))CALL XERMSG('k3sqrt','Omega4',errormsg,-99,2)
+ENDSUBROUTINE
+
+
+ENDFUNCTION
+
+FUNCTION Oomega(r,spiral)
+!use summantion instead of put in the same subroutine
+USE NUM
+IMPLICIT NONE
+DOUBLE PRECISION          ::Oomega
 DOUBLE PRECISION,INTENT(IN)::r
 !spiral
 type(typspiral),TARGET                  ::spiral
@@ -592,11 +868,11 @@ DOUBLE PRECISION,POINTER                ::para(:)=>null()
 
 para=>spiral.para
 
-Omega2 = bOmega(r,spiral)**2 &
+Oomega = bOmega(r,spiral)**2 &
        + dOmega(r,spiral)**2 &
        + hOmega(r,spiral)**2
 
-Omega2 = sqrt(Omega2)
+Oomega = sqrt(Oomega)
 
 ENDFUNCTION
 
@@ -944,6 +1220,111 @@ dfunc = ans
 !ans = ans +  -1.d0/2.d0*func(r+2.d0*dr)
 !dfunc = ans/dr
 if(isnan(dfunc))CALL XERMSG('k3sqrt','dfunc','dfunc is nan.',-94,0)
+endfunction
+
+function dcfunc(func,r,spiral)
+USE STELLARDISK_MODEL
+!
+! Forward differential
+!
+IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,INTENT(IN)     ::r
+DOUBLE PRECISION                ::dr
+DOUBLE PRECISION,PARAMETER      ::coe(3)=(/-1.5d0,2.d0,-0.5d0/)
+DOUBLE COMPLEX                  ::dcfunc,ans,funcs(3)
+INTEGER                         ::i
+interface 
+        function func(x,spiral)
+        USE STELLARDISK_MODEL
+        DOUBLE PRECISION        ::func
+        DOUBLE PRECISION        ::x
+        type(typspiral),TARGET                  ::spiral
+        ENDFUNCTION func
+endinterface        
+
+dr = epsilon(r)**0.3*max(r,epsilon(0d0))
+dr = 1d-3
+funcs(1) = func(r,spiral)
+funcs(2) = func(r+dr,spiral)
+funcs(3) = func(r+2.d0*dr,spiral)
+ans = dot_product(funcs,coe)/dr
+dcfunc = ans
+
+!ans = 0.d0
+!ans =        -3.d0/2.d0*func(r)
+!ans = ans +        2.d0*func(r+dr)
+!ans = ans +  -1.d0/2.d0*func(r+2.d0*dr)
+!dfunc = ans/dr
+if(isnan(real(dcfunc)))CALL XERMSG('k3sqrt','dfunc','dfunc is nan.',-94,0)
+endfunction
+
+function d2func(func,r,spiral)
+USE STELLARDISK_MODEL
+!
+! Forward differential
+!
+IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,INTENT(IN)     ::r
+DOUBLE PRECISION                ::dr
+DOUBLE PRECISION,PARAMETER      ::coe(4)=(/2.d0, -5.d0, 4.d0, -1.d0/)
+DOUBLE PRECISION                ::d2func,ans,funcs(4)
+INTEGER                         ::i
+interface 
+        function func(x,spiral)
+        USE STELLARDISK_MODEL
+        DOUBLE PRECISION        ::func
+        DOUBLE PRECISION        ::x
+        type(typspiral),TARGET                  ::spiral
+        ENDFUNCTION func
+endinterface        
+
+dr = epsilon(r)**0.3*max(r,epsilon(r))
+dr = 1d-6
+funcs(1) = func(r,spiral)
+funcs(2) = func(r+dr,spiral)
+funcs(3) = func(r+2.d0*dr,spiral)
+funcs(4) = func(r+3.d0*dr,spiral)
+ans = dot_product(funcs,coe)/dr**2
+d2func = ans
+
+if(isnan(d2func))CALL XERMSG('k3sqrt','dfunc','dfunc is nan.',-94,0)
+endfunction
+
+function cd2func(func,r,spiral)
+USE STELLARDISK_MODEL
+!
+! Forward differential
+!
+IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,INTENT(IN)     ::r
+DOUBLE PRECISION                ::dr
+!DOUBLE PRECISION,PARAMETER      ::coe(4)=(/2.d0, -5.d0, 4.d0, -1.d0/)
+DOUBLE COMPLEX,PARAMETER      ::coe(5)=(/35.d0/12.d0,-26.d0/3.d0,19.d0/2.d0,-14.d0/3.d0,11.d0/12.d0/)
+DOUBLE COMPLEX                  ::cd2func,ans,funcs(5)
+INTEGER                         ::i
+interface 
+        function func(x,spiral)
+        USE STELLARDISK_MODEL
+        DOUBLE COMPLEX          ::func
+        DOUBLE PRECISION        ::x
+        type(typspiral),TARGET                  ::spiral
+        ENDFUNCTION func
+endinterface        
+
+dr = epsilon(r)**0.5*max(r,epsilon(0.d0))
+dr = 1d-3
+funcs(1) = func(r,spiral)
+funcs(2) = func(r+dr,spiral)
+funcs(3) = func(r+2.d0*dr,spiral)
+funcs(4) = func(r+3.d0*dr,spiral)
+funcs(5) = func(r+4.d0*dr,spiral)
+ans = dot_product(dcmplx(coe),funcs)/dr**2
+cd2func = ans
+
+if(isnan(real(cd2func)))CALL XERMSG('k3sqrt','dfunc','dfunc is nan.',-94,0)
 endfunction
  
 SUBROUTINE findu(spiral)
