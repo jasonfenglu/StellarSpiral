@@ -5,7 +5,7 @@ USE RK
 USE io
 USE galaxy,only:gasdensity
 DOUBLE PRECISION        ::ri,rf,dr,r
-DOUBLE COMPLEX          ::h1
+DOUBLE COMPLEX          ::h1,t
 INTEGER                 ::n,i
 type(typgalaxy_para)para1
 type(typspiral)spiral
@@ -16,19 +16,21 @@ type(tst) tt
 DOUBLE COMPLEX          ::Y(2,100),Y1(2)
 DOUBLE PRECISION        ::tmp(2,2)
 CHARACTER(len=225)      ::CH
+DOUBLE PRECISION        ::a,b
+LOGICAL                 ::FLAG
 
-CALL GETCWD(CH)
-CH = TRIM(CH)
-print *,INDEX(CH,'/',.true.)
-CH = TRIM(CH(INDEX(CH,'/',.true.)+1:LEN(CH)))
-print *,CH,LEN(CH)
-print *,TRIM(CH)
-STOP
+!CALL GETCWD(CH)
+!CH = TRIM(CH)
+!print *,INDEX(CH,'/',.true.)
+!CH = TRIM(CH(INDEX(CH,'/',.true.)+1:LEN(CH)))
+!print *,CH,LEN(CH)
+!print *,TRIM(CH)
+!STOP
 
 ri = 0.d0
-rf = 15.d0
+rf = 1.0d1
 !rf = 10.d0
-N  = 500
+N  = 1000
 
 dr = (rf-ri)/dble(n)
 
@@ -47,13 +49,16 @@ dr = (rf-ri)/dble(n)
 !CALL stdpara.printpara
 
 CALL stdpara.readstd
-CALL spiral.init(500,12.d0,stdpara,2)
+CALL spiral.init(50,12.d0,stdpara,2)
 CALL spiral.readw(2)
-CALL FindSpiral(spiral)
-DO i = 0, 1000
-        r = dr*dble(i)
+!CALL FindSpiral(spiral)
+DO i = 1, 1000
+       r = dr*dble(i-1)
        !write(6,*)r,kappa(r,Spiral)*8.d0/pi/g/gasdensity(r,0.d0)
-       write(6,*)spiral.r(i),abs(spiral.h1(i))
+       !write(6,*)r,abs(k3sqrt(r,spiral)),spiral.co
+       t = k3sqrt(r,spiral)
+
+       write(*,'(4(D15.5))')r,real(t),imag(t),abs(t)
 ENDDO
 
 
@@ -108,9 +113,10 @@ CONTAINS
 FUNCTION F(r)
 IMPLICIT NONE
 DOUBLE PRECISION                ::r
-DOUBLE COMPLEX                  ::F
-F = (1.d0,0.d0)
+DOUBLE PRECISION                ::F
+F = sin(r)
 ENDFUNCTION
+
 Function F2(r) result(ans)
 USE NUM
         IMPLICIT NONE
@@ -135,7 +141,7 @@ FUNCTION F3(r)
 IMPLICIT NONE
 DOUBLE PRECISION                ::r
 DOUBLE COMPLEX                  ::F3
-F3 = (1.d0,0.d0)*r
+F3 = (1.d0,1.d0)*r**2
 ENDFUNCTION
 
 end      

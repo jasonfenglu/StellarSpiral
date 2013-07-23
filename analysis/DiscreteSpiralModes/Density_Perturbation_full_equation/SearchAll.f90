@@ -54,7 +54,11 @@ CASE(4)
 CASE DEFAULT
 ENDSELECT
 
-m = int(domain(2)-domain(1))*20
+IF(domain(2)-domain(1)<20.d0)THEN
+        m = 600
+ELSE
+        m = int(domain(2)-domain(1))*30
+ENDIF
 n = m/10
 if(mod(m,mpi_size).eq.0)then
         chunk = m/mpi_size

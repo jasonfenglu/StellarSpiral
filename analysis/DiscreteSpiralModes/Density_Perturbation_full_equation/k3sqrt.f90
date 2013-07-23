@@ -29,6 +29,7 @@ type,extends(typgalaxy_para)            ::typspiral
        DOUBLE PRECISION                 ::dr              ! deparation btwn two points
        DOUBLE PRECISION                 ::pspd            ! pattern speed
        LOGICAL                          ::ucaled    = .false.
+       LOGICAL                          ::cocaled   = .false.
        LOGICAL                          ::h1caled   = .false.
        LOGICAL                          ::bndu0     = .true.
        LOGICAL                          ::winit     = .false.
@@ -222,21 +223,21 @@ ELSE
 ENDIF
 ENDFUNCTION
 
-function nu(r,spiral)
+FUNCTION nu(r,spiral)
 IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
 DOUBLE COMPLEX                          ::nu   
 DOUBLE PRECISION                        ::r
 DOUBLE PRECISION,PARAMETER              ::m =2.d0
 nu = (spiral.w-m*Omega(r,spiral))/kappa(r,spiral)
-endfunction
+ENDFUNCTION
  
 function k3sqrt(r,spiral)
 USE STELLARDISK_MODEL
 USE NUM
 IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
-DOUBLE COMPLEX            ::k3sqrt,k(5)
+DOUBLE COMPLEX            ::k3sqrt,k(6)
 DOUBLE COMPLEX            ::w
 DOUBLE PRECISION,INTENT(in)::r
 DOUBLE PRECISION          ::rr
@@ -245,6 +246,10 @@ DOUBLE PRECISION          ::Omega_, ToomreQ_, snsd_, sigma_, kappa_
 DOUBLE PRECISION          ::sigma0_,sigma02_,sigma00_,sigma04_
 DOUBLE PRECISION          ::kappa2_,kappa0_,Omega0_,Omega2_,Omega4_
 DOUBLE COMPLEX            ::nu_
+LOGICAL                   ::MASK(6)=.true.!this is for sum of part of k
+
+!!set co
+CALL set_co(spiral)
 
 Omega_   = Omega(r,spiral)
 ToomreQ_ = ToomreQ(r,spiral)
@@ -271,42 +276,37 @@ k(1)     = (dcmplx(kappa_/snsd_))**2*(dcmplx(ToomreQ_)**-2 &
 
 IF(r.le.2.0d-1)THEN
         !!r too small
+        !!k(2) hydro
         k(2) = (-2.d0*sigma02_/sigma00_+4d0*Omega2_/Omega0_) &
              + (2d0*sigma02_**2/sigma00_**2 - 4d0*sigma04_/sigma00_+4d0*(-2d0*Omega2_**2+3d0*Omega0_*Omega4_)/Omega0_**2)*r**2
         k(2) = -2.d0*m*Omega_/(spiral.w-m*Omega_)*k(2)
         k(3) = - dcmplx(0.d0,1.d0)*Sigma_*5d-1/f2(r,spiral)*dcfunc(f2,r,spiral)
 
-        !!k(4)
-        !k(4) = sigma02_**2*w**2*(w-4d0*Omega0_)**2 + 8d0*sigma00_*sigma02_*w*(w-4d0*Omega0_)*(w+Omega0_)*Omega2_ &
-        !     + 4d0*sigma00_*(sigma04_*w**2*(w-4d0*Omega0_)**2+4d0*sigma00_*((4d0*w**2+2d0*w*Omega0_+3d0*Omega0_**2)*Omega2_**2 &
-        !     + w*(w-4d0*Omega0_)*(w + 2d0*Omega0_)*Omega4_))
-        !k(4) = -k(4)/sigma00_**2/w**2/(w-4d0*Omega0_)**2*r**2
-
-        !!
-        !k(4) = -sigma02_**2*w**2*(w-4d0*Omega0_)**2+8d0*sigma00_*sigma02_*w*(w-4d0*Omega0_)*(w+Omega0_)*Omega2_ &
-        !     + 4d0*sigma00_*(sigma04_*w**2*(w-4d0*Omega0_)**2+4d0*sigma00_*((4d0*w**2+2d0*w*Omega0_+3d0*Omega0_**2)*Omega2_**2+ &
-        !     w*(w-4d0*Omega0_)*(w+2d0*Omega0_)*Omega4_))
-        !k(4) = -k(4)/sigma00_**2/w**2/(w-4d0*Omega0_)**2*r**2
         k(4) = sigma02_**2*w**2*(w-4d0*Omega0_)**2 - 8d0*sigma00_*sigma02_*w*(w-4d0*Omega0_)*(w+Omega0_)*Omega2_ &
              + 4d0*sigma00_*(-sigma04_*w**2*(w-4d0*Omega0_)**2-4d0*sigma00_*(4d0*w**2+2d0*w*Omega0_+3d0*Omega0_**2)*Omega2_**2- &
              4d0*sigma00_*w*(w-4d0*Omega0_)*(w+2d0*Omega0_)*Omega4_)
         k(4) = k(4)/sigma00_**2/w**2/(w-4d0*Omega0_)**2*r**2
 
-        !!k(5)
         k(5) = (3d0*Omega2_ + m*nu_*Omega2_)*5d-1/Omega0_ &
              + (-13d0*Omega2_**2-4d0*m*nu_*Omega2_**2+16d0*Omega0_*Omega4_+4d0*m*nu_*Omega0_*Omega4_)*0.25d0/Omega0_**2*r**2
         k(5) = -k(5)*(4d0*m*nu_/(1.d0-nu_**2))
+        !! plasma 
+        k(6) = (-2.d0*sigma02_/sigma00_+4d0*Omega2_/Omega0_) &
+             + (2d0*sigma02_**2/sigma00_**2 - 4d0*sigma04_/sigma00_+4d0*(-2d0*Omega2_**2+3d0*Omega0_*Omega4_)/Omega0_**2)*r**2
+        k(6) =  2.d0*m*Omega_/kappa_*b(r,spiral)*zbar(b(r,spiral)*nu_)*k(6)
 ELSE
+        !!hydro 
         k(2) = - 2.d0*Omega_*m/(spiral.w-m*Omega_)/r*dcmplx(dfunc(f1,r,spiral)/f1(r,spiral))
         k(3) = - dcmplx(0.d0,1.d0)*Sigma_*5d-1/f2(r,spiral)*dcfunc(f2,r,spiral)
         k(4) = + 3.d0/4.d0/r**2  - cd2func(f3,r,spiral)/f3(r,spiral)  
         k(5) = - 4.d0*m*Omega_/kappa_**2*nu_*(m*nu_*dfunc(Omega,r,spiral)+dfunc(kappa,r,spiral))/r/(1.d0-nu_**2)
+        !! plasma 
+        k(6) =  2.d0*Omega_*m/r/kappa_*b(r,spiral)*zbar(b(r,spiral)*nu_)*dcmplx(dfunc(f1,r,spiral)/f1(r,spiral))
 ENDIF
 
-k3sqrt = sum(k(1:5))
-!k3sqrt = k(1)+k(5)
-!write(*,'(4(D15.5))')r,imag(k(4)),real(k(4)),abs(k(4))
-write(*,'(7(D15.5))')r,sum(abs(k)),abs(k)
+
+MASK(2)= .false.
+k3sqrt = sum(k,MASK)
 CALL CheckResult
 CONTAINS
 
@@ -355,6 +355,32 @@ f4 = Omega(r,spiral)
 
 ENDFUNCTION
 
+FUNCTION zbar(z_in)
+IMPLICIT NONE
+DOUBLE COMPLEX                          ::zbar,z_in,z
+DOUBLE PRECISION                        ::a,b
+LOGICAL                                 ::FLAG
+
+z = -z_in
+CALL wofz(real(z),imag(z),a,b,FLAG)
+zbar = -dcmplx(a,b)*dcmplx(0d0,sqrt(pi))
+
+ENDFUNCTION
+
+FUNCTION b(r,spiral)
+IMPLICIT NONE
+type(typspiral)                         ::spiral
+DOUBLE PRECISION                        ::r
+DOUBLE COMPLEX                          ::b,invdnu
+
+IF(r.lt.0.2d0)THEN
+        invdnu = -2d0*Omega0_**2/(3d0*Omega2_*w-2d0*Omega2_*Omega0_) &
+             + Omega0_*((-19d0*w+14d0*Omega0_)*Omega2_**2+16d0*(w-Omega0_)*Omega0_*Omega4_)/Omega2_**2/(3d0*w-2d0*Omega0_)**2*r**2
+             b = kappa_/sqrt(2d0)/spiral.co/snsd_*invdnu
+ELSE
+        b = kappa_*r/sqrt(2d0)/spiral.co/snsd_/cdfunc(nu,r,spiral)
+ENDIF
+ENDFUNCTION
 
 endfunction
 
@@ -1222,6 +1248,42 @@ dfunc = ans
 if(isnan(dfunc))CALL XERMSG('k3sqrt','dfunc','dfunc is nan.',-94,0)
 endfunction
 
+function cdfunc(func,r,spiral)
+USE STELLARDISK_MODEL
+!
+! Forward differential
+!
+IMPLICIT NONE
+type(typspiral),TARGET                  ::spiral
+DOUBLE PRECISION,INTENT(IN)     ::r
+DOUBLE PRECISION                ::dr
+DOUBLE PRECISION,PARAMETER      ::coe(3)=(/-1.5d0,2.d0,-0.5d0/)
+DOUBLE COMPLEX                  ::cdfunc,ans,funcs(3)
+INTEGER                         ::i
+interface 
+        function func(x,spiral)
+        USE STELLARDISK_MODEL
+        DOUBLE COMPLEX          ::func
+        DOUBLE PRECISION        ::x
+        type(typspiral),TARGET                  ::spiral
+        ENDFUNCTION func
+endinterface        
+
+dr = epsilon(r)**0.3*max(r,epsilon(0d0))
+funcs(1) = func(r,spiral)
+funcs(2) = func(r+dr,spiral)
+funcs(3) = func(r+2.d0*dr,spiral)
+ans = dot_product(coe,funcs)/dr
+cdfunc = ans
+
+!ans = 0.d0
+!ans =        -3.d0/2.d0*func(r)
+!ans = ans +        2.d0*func(r+dr)
+!ans = ans +  -1.d0/2.d0*func(r+2.d0*dr)
+!dfunc = ans/dr
+if(isnan(real(cdfunc)))CALL XERMSG('k3sqrt','cdfunc','cdfunc is nan.',-94,0)
+endfunction
+
 function dcfunc(func,r,spiral)
 USE STELLARDISK_MODEL
 !
@@ -1339,6 +1401,7 @@ INTEGER                         ::n,i
 spiral.u = (1.d0,0.d0)*0.d0
 a = spiral.rmin
 b = spiral.rmax
+CALL set_co(spiral)
 if(spiral.bndu0)then
         ui = (/dcmplx(a),dcmplx(0.d0),2.d0*sqrt(-q(0.d0))/)
 else
@@ -1348,7 +1411,6 @@ CALL rk4(a,b,spiral.n,p,q,p,spiral.u,ui)
 spiral.ucaled = .true.
 spiral.r(:) = real(spiral.u(1,:))
 spiral.error = error(spiral) !spiral.fortoone is assigned here
-spiral.co = CO()
 DO i = 1, spiral.n
         spiral.k3(i) = k3sqrt(spiral.r(i),spiral)
 ENDDO
@@ -1369,6 +1431,38 @@ q = k3sqrt(r,spiral)
 !q =  (1)
 !q = dcmplx(1.d0,r**2)
 ENDFUNCTION
+
+FUNCTION CO()
+IMPLICIT NONE
+DOUBLE PRECISION                        ::CO
+DOUBLE PRECISION                        ::B,C,R,RE,AE
+INTEGER                                 ::IFLAG
+
+B = 5.d0
+C = 14.d0
+R = (C-B)/2.d0
+RE = 1d-7
+AE = 1d-7
+
+CALL DFZERO(fco,B,C,R,RE,AE,IFLAG)
+CO = c
+ENDFUNCTION
+
+FUNCTION fco(r)
+IMPLICIT NONE
+DOUBLE PRECISION                ::fco,r
+        fco = Omega(r,spiral)-real(spiral.w)/2.d0
+ENDFUNCTION
+
+ENDSUBROUTINE
+
+SUBROUTINE set_co(spiral)
+type(typspiral),TARGET                  ::spiral
+
+IF(.not.spiral.cocaled)THEN
+        spiral.co = CO()
+ENDIF
+contains
 
 FUNCTION CO()
 IMPLICIT NONE

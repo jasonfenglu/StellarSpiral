@@ -2,9 +2,9 @@ F90=ifort
 MPIF77=mpif77
 FCC=icc
 
-FFLAGS=  -O2 -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -limf  -openmp -module obj -heap-arrays 0 -fpp
+FFLAGS=  -O2 -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -limf  -openmp -module obj -heap-arrays 0 -fpp 
 
-LIB   = -L. -lslatecomp -limf -lpthread -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -liomp5  -L$(HDF5HOME)/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5
+LIB   = -L. -lslatecomp -L. -lacm  -limf -lpthread -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -liomp5  -L$(HDF5HOME)/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5
 INCL  = -I$(HDF5_HOME)/include/
 
 UTILS  = plot.o rk4.o io.o math.o k3sqrt.o galaxy.o
@@ -16,7 +16,7 @@ OUTILS := $(addprefix obj/,$(UTILS))
 
 vpath obj/ .
 
-all:    $(OUTILS) $(WORKINGEXE)
+all:    $(OUTILS) $(WORKINGEXE)  mpi
 
 mpi:
 	$(MPIF77) $(FFLAGS) SearchAll.f90 -c -o obj/SearchAll.o $(LIB) $(INCL)
