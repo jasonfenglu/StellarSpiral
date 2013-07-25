@@ -1459,9 +1459,8 @@ ENDSUBROUTINE
 SUBROUTINE set_co(spiral)
 type(typspiral),TARGET                  ::spiral
 
-IF(.not.spiral.cocaled)THEN
-        spiral.co = CO()
-ENDIF
+spiral.co = CO()
+CALL set_fourtoone(spiral)
 contains
 
 FUNCTION CO()
@@ -1470,8 +1469,8 @@ DOUBLE PRECISION                        ::CO
 DOUBLE PRECISION                        ::B,C,R,RE,AE
 INTEGER                                 ::IFLAG
 
-B = 5.d0
-C = 14.d0
+B = 0.d0
+C = 20.d0
 R = (C-B)/2.d0
 RE = 1d-7
 AE = 1d-7
@@ -1484,6 +1483,36 @@ FUNCTION fco(r)
 IMPLICIT NONE
 DOUBLE PRECISION                ::fco,r
         fco = Omega(r,spiral)-real(spiral.w)/2.d0
+ENDFUNCTION
+
+ENDSUBROUTINE
+
+SUBROUTINE set_fourtoone(spiral)
+USE STELLARDISK_MODEL
+USE math
+IMPLICIT NONE          
+type(typspiral)                         ::spiral
+DOUBLE COMPLEX          ::error
+DOUBLE COMPLEX          ::uu(3)
+DOUBLE PRECISION        ::h=10d-5   ,r
+DOUBLE PRECISION        ::RE,AE,B,C,RR
+INTEGER                 ::l,IFLAG
+
+B = 0.d0
+C = 20.d0
+RR = 8.d0
+RE = 1d-8
+AE = 1d-8
+call DFZERO(four21,B,C,RR,RE,AE,IFLAG)
+r = B
+spiral.fortoone = r
+
+CONTAINS
+
+function four21(r)
+IMPLICIT NONE
+DOUBLE PRECISION                ::four21,r
+four21 = (real(spiral.w)- 2.d0*Omega(r,spiral))/kappa(r,spiral) - 0.5d0
 ENDFUNCTION
 
 ENDSUBROUTINE
@@ -1606,18 +1635,9 @@ IMPLICIT NONE
 type(typspiral)                         ::spiral
 DOUBLE COMPLEX          ::error
 DOUBLE COMPLEX          ::uu(3)
-DOUBLE PRECISION        ::h=10d-5   ,r
-DOUBLE PRECISION        ::RE,AE,B,C,RR
-INTEGER                 ::l,IFLAG
+DOUBLE PRECISION        ::h=2d-1   ,r
 
-B = 6.d0
-C = 20.d0
-RR = 8.d0
-RE = 1d-8
-AE = 1d-8
-call DFZERO(four21,B,C,RR,RE,AE,IFLAG)
-r = B
-spiral.fortoone = r
+r = spiral.fortoone 
 uu(2) = cintplt(spiral.u(2,:),spiral.r,r)
 uu(3) = cintplt(spiral.u(3,:),spiral.r,r)
 error  = -(0.d0,1.d0)*sqrt(k3sqrt(r,spiral))
