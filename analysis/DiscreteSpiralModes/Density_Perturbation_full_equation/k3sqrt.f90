@@ -232,12 +232,13 @@ DOUBLE PRECISION,PARAMETER              ::m =2.d0
 nu = (spiral.w-m*Omega(r,spiral))/kappa(r,spiral)
 ENDFUNCTION
  
-function k3sqrt(r,spiral)
+function k3sqrt(r,spiral,outk)
 USE STELLARDISK_MODEL
 USE NUM
 IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
 DOUBLE COMPLEX            ::k3sqrt,k(6)
+DOUBLE COMPLEX,OPTIONAL   ::outk(6)
 DOUBLE COMPLEX            ::w
 DOUBLE PRECISION,INTENT(in)::r
 DOUBLE PRECISION          ::rr
@@ -247,6 +248,7 @@ DOUBLE PRECISION          ::sigma0_,sigma02_,sigma00_,sigma04_
 DOUBLE PRECISION          ::kappa2_,kappa0_,Omega0_,Omega2_,Omega4_
 DOUBLE COMPLEX            ::nu_
 LOGICAL                   ::MASK(6)=.true.!this is for sum of part of k
+INTEGER                   ::I
 
 !!set co
 CALL set_co(spiral)
@@ -304,9 +306,11 @@ ELSE
         k(6) =  2.d0*Omega_*m/r/kappa_*b(r,spiral)*zbar(b(r,spiral)*nu_)*dcmplx(dfunc(f1,r,spiral)/f1(r,spiral))
 ENDIF
 
+IF(PRESENT(outk))outk = k
 
 MASK(2)= .false.
 k3sqrt = sum(k,MASK)
+!write(*,'(7(D15.5))')r,real(k3sqrt),real(k(1)),(real(k(i)),I = 3,6)
 CALL CheckResult
 CONTAINS
 
