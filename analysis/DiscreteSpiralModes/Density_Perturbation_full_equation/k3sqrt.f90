@@ -159,6 +159,7 @@ this.n    = 2*n
 this.para = para.para
 this.inited = .true.
 this.dr   = (this.rmax - this.rmin)/dble(this.n)
+this.co   = -100.d0
 ENDSUBROUTINE
 
 SUBROUTINE spiral_final(this)
@@ -279,9 +280,9 @@ k(1)     = (dcmplx(kappa_/snsd_))**2*(dcmplx(ToomreQ_)**-2 &
 IF(r.le.2.0d-1)THEN
         !!r too small
         !!k(2) hydro
-        k(2) = (-2.d0*sigma02_/sigma00_+4d0*Omega2_/Omega0_) &
-             + (2d0*sigma02_**2/sigma00_**2 - 4d0*sigma04_/sigma00_+4d0*(-2d0*Omega2_**2+3d0*Omega0_*Omega4_)/Omega0_**2)*r**2
-        k(2) = -2.d0*m*Omega_/(spiral.w-m*Omega_)*k(2)
+        !k(2) = (-2.d0*sigma02_/sigma00_+4d0*Omega2_/Omega0_) &
+        !     + (2d0*sigma02_**2/sigma00_**2 - 4d0*sigma04_/sigma00_+4d0*(-2d0*Omega2_**2+3d0*Omega0_*Omega4_)/Omega0_**2)*r**2
+        !k(2) = -2.d0*m*Omega_/(spiral.w-m*Omega_)*k(2)
         k(3) = - dcmplx(0.d0,1.d0)*Sigma_*5d-1/f2(r,spiral)*dcfunc(f2,r,spiral)
 
         k(4) = sigma02_**2*w**2*(w-4d0*Omega0_)**2 - 8d0*sigma00_*sigma02_*w*(w-4d0*Omega0_)*(w+Omega0_)*Omega2_ &
@@ -298,7 +299,7 @@ IF(r.le.2.0d-1)THEN
         k(6) =  2.d0*m*Omega_/kappa_*b(r,spiral)*zbar(b(r,spiral)*nu_)*k(6)
 ELSE
         !!hydro 
-        k(2) = - 2.d0*Omega_*m/(spiral.w-m*Omega_)/r*dcmplx(dfunc(f1,r,spiral)/f1(r,spiral))
+        !k(2) = - 2.d0*Omega_*m/(spiral.w-m*Omega_)/r*dcmplx(dfunc(f1,r,spiral)/f1(r,spiral))
         k(3) = - dcmplx(0.d0,1.d0)*Sigma_*5d-1/f2(r,spiral)*dcfunc(f2,r,spiral)
         k(4) = + 3.d0/4.d0/r**2  - cd2func(f3,r,spiral)/f3(r,spiral)  
         k(5) = - 4.d0*m*Omega_/kappa_**2*nu_*(m*nu_*dfunc(Omega,r,spiral)+dfunc(kappa,r,spiral))/r/(1.d0-nu_**2)
@@ -1463,8 +1464,10 @@ ENDSUBROUTINE
 SUBROUTINE set_co(spiral)
 type(typspiral),TARGET                  ::spiral
 
-spiral.co = CO()
-CALL set_fourtoone(spiral)
+IF(spiral.co<0.d0)THEN
+        spiral.co = CO()
+        CALL set_fourtoone(spiral)
+ENDIF
 contains
 
 FUNCTION CO()
