@@ -734,8 +734,7 @@ M2 = para(14)
 x1 = sqrt(1.d0+(r/a1)**2)
 x2 = sqrt(1.d0+(r/a2)**2)
 
-VLauDisk = (M1*GravConst/a1**3*H(x1))
-VLauDisk = VLauDisk - (M2*GravConst/a2**3*H(x2))
+VLauDisk = (M1*GravConst/a1**3*H(x1)) - (M2*GravConst/a2**3*H(x2))
 VLauDisk = sqrt(16.d0/105.d0*VLauDisk)
 VLauDisk = VLauDisk*r
 ENDFUNCTION
@@ -743,13 +742,25 @@ ENDFUNCTION
 FUNCTION H(x)
 IMPLICIT NONE
 DOUBLE PRECISION                ::H,x
+DOUBLE PRECISION,PARAMETER      ::C(5) = (/59.0625d0,26.25d0,16.875d0,11.25d0,6.5625d0/)
+DOUBLE PRECISION                ::xs(5),xx
+INTEGER                         ::i
 
-H = 0.d0
-H = 59.0625/x**11 + H
-H = 26.25  /x**9  + H
-H = 16.875 /x**7  + H
-H = 11.25  /x**5  + H
-H = 6.5625 /x**3  + H
+xx    = x**-2
+xs(1) = x**-3
+
+DO i = 2, 5
+        xs(i) = xs(i-1)*xx
+ENDDO
+
+H = dot_product(C,xs)
+
+!H = 0.d0
+!H = 59.0625d0/x**11 + H
+!H = 26.25d0  /x**9  + H
+!H = 16.875d0 /x**7  + H
+!H = 11.25d0  /x**5  + H
+!H = 6.5625d0 /x**3  + H
 
 ENDFUNCTION
 
