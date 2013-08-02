@@ -5,9 +5,9 @@
 #PBS -e searchall.mpi.err
 #PBS -o searchall.mpi.log
 ###### Queue name ######
-#PBS -q long
+#PBS -q medium
 ###### Number of nodes and cores(ppn), time(walltime) and memory size(mem) ######
-#PBS -l nodes=12:ppn=4:bc
+#PBS -l nodes=4:ppn=12:dl
 ###### Sends mail to yourself when the job begins and ends ######
 #PBS -m be
 ###### Specific the shell types ######
