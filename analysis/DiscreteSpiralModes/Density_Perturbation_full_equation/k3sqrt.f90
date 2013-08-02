@@ -208,20 +208,15 @@ para=>spiral.para
 Qod = para(8)
 q   = para(9)
 rq  = para(10)
-!IF(r<8.d0)THEN
-!        f = 1.d0
-!ELSE
-!        f = 1.d0 + (r-8.d0)**2/5.d0
-!ENDIF
-!ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2) + 1.2d0*dexp(-r**2/0.8**2)) &
-!        * f
 
-IF(r<rq)THEN
-        ToomreQ = Cos(r*pi/rq)*q+Qod
-        ToomreQ = ToomreQ + 1.0d0*exp(-r**2/0.8d0)
-ELSE
-        ToomreQ = Qod - q
-ENDIF
+ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2) + 1.2d0*dexp(-r**2/0.8**2)) 
+
+!IF(r<rq)THEN
+!        ToomreQ = Cos(r*pi/rq)*q+Qod
+!        ToomreQ = ToomreQ + 1.0d0*exp(-r**2/0.8d0)
+!ELSE
+!        ToomreQ = Qod - q
+!ENDIF
 ENDFUNCTION
 
 FUNCTION nu(r,spiral)
@@ -1464,10 +1459,10 @@ ENDSUBROUTINE
 SUBROUTINE set_co(spiral)
 type(typspiral),TARGET                  ::spiral
 
-IF(spiral.co<0.d0)THEN
+!IF(spiral.co<0.d0)THEN
         spiral.co = CO()
         CALL set_fourtoone(spiral)
-ENDIF
+!ENDIF
 contains
 
 FUNCTION CO()
