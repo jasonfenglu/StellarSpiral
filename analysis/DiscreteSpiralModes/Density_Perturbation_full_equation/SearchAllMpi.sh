@@ -7,7 +7,7 @@
 ###### Queue name ######
 #PBS -q medium
 ###### Number of nodes and cores(ppn), time(walltime) and memory size(mem) ######
-#PBS -l nodes=4:ppn=12:dl
+#PBS -l nodes=6:ppn=12:dl
 ###### Sends mail to yourself when the job begins and ends ######
 #PBS -m be
 ###### Specific the shell types ######
