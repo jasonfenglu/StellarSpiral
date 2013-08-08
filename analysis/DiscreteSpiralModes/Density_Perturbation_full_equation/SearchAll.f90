@@ -54,10 +54,10 @@ CASE(4)
 CASE DEFAULT
 ENDSELECT
 
-IF(domain(2)-domain(1)<20.d0)THEN
-        m = 600
+IF(domain(2)-domain(1)<10.d0)THEN
+        m = 400
 ELSE
-        m = int(domain(2)-domain(1))*30
+        m = int(domain(2)-domain(1))*40
 ENDIF
 n = m/10
 if(mod(m,mpi_size).eq.0)then
@@ -91,7 +91,7 @@ CALL stdpara.readstd
 print *,myid,m,n,chunk
 ALLOCATE(errormpisend(chunk))
 !$OMP PARALLEL SHARED(searchgrid,complete_count,stdpara) FIRSTPRIVATE(spiral)
-CALL spiral.init(100,10.d0,stdpara,1)
+CALL spiral.init(100,15.d0,stdpara,1)
 !$OMP DO 
 !DO j = 1,m*n
 DO j = chunk*myid+1,chunk*(myid+1)
@@ -105,10 +105,10 @@ DO j = chunk*myid+1,chunk*(myid+1)
 !       searchgrid%lerror(j) = abs(spiral.error)
         errormpisend(j-chunk*myid) = abs(spiral.error)
         if(myid.eq.0)then
-        !$OMP CRITICAL
+                !$OMP CRITICAL
                 complete_count = complete_count + 1
-        !$OMP END CRITICAL
-        print *,real(complete_count)/real(chunk)*100.
+                print *,real(complete_count)/real(chunk)*100.
+                !$OMP END CRITICAL
         endif
 ENDDO
 !$OMP END DO

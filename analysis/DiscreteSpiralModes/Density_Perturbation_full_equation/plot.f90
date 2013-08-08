@@ -661,7 +661,7 @@ ENDSUBROUTINE
 
 !       vmax = real(MAXVAL(F(:,:)))
 !       vmin = real(MINVAL(F(:,:)))
-        vmax = 0.5
+        vmax = 1.0
         vmin = 0.
         CALL PALETT(2,CONTRA,Bright)
         CALL PGBBUF

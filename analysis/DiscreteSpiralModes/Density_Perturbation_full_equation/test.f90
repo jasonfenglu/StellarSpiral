@@ -18,6 +18,7 @@ DOUBLE PRECISION        ::tmp(2,2)
 CHARACTER(len=225)      ::CH
 DOUBLE PRECISION        ::a,b
 LOGICAL                 ::FLAG
+DOUBLE COMPLEX          ::outk(6)
 
 !CALL GETCWD(CH)
 !CH = TRIM(CH)
@@ -28,9 +29,9 @@ LOGICAL                 ::FLAG
 !STOP
 
 ri = 0.d0
-rf = 1.0d1
+rf = 1.3d1
 !rf = 10.d0
-N  = 1000
+N  = 100
 
 dr = (rf-ri)/dble(n)
 
@@ -49,16 +50,20 @@ dr = (rf-ri)/dble(n)
 !CALL stdpara.printpara
 
 CALL stdpara.readstd
-CALL spiral.init(50,12.d0,stdpara,2)
+CALL spiral.init(100,15.d0,stdpara,2)
 CALL spiral.readw(2)
-!CALL FindSpiral(spiral)
-DO i = 1, 1000
-       r = dr*dble(i-1)
+CALL FindSpiral(spiral)
+!CALL spiral.free
+!print *,real(spiral.u)
+DO i = 1, 100
+        r = dr*dble(i-1)
        !write(6,*)r,kappa(r,Spiral)*8.d0/pi/g/gasdensity(r,0.d0)
        !write(6,*)r,abs(k3sqrt(r,spiral)),spiral.co
-       t = k3sqrt(r,spiral)
-
-       write(*,'(4(D15.5))')r,real(t),imag(t),abs(t)
+       !t = k3sqrt(r,spiral,outk)
+       !print *,r,snsd(r,spiral),ToomreQ(r,spiral)
+       !write(*,'(4(D15.5))')r,real(t),imag(t),abs(t)
+!      print *,real(spiral.u(1,i)),real(spiral.h1(i)),imag(spiral.h1(i))
+        print *,r,snsd(r,spiral)
 ENDDO
 
 
@@ -109,6 +114,7 @@ ENDDO
 !
 !stop
 CONTAINS
+
 
 FUNCTION F(r)
 IMPLICIT NONE

@@ -1,4 +1,4 @@
-F90=ifort
+F90=mpif77
 MPIF77=mpif77
 FCC=icc
 
@@ -10,7 +10,7 @@ INCL  = -I$(HDF5_HOME)/include/
 UTILS  = plot.o rk4.o io.o math.o k3sqrt.o galaxy.o
 EXE    = test.exe FindOne.exe  2Density.exe Density.exe Force.exe Kendall.exe Corotation.exe Rot.exe RelativeForce.exe StellarGas.exe GasDensity.exe Ecg.exe Follow.exe Shift.exe
 MPIEXE = SearchAll.exe
-WORKINGEXE = test.exe FindOne.exe Density.exe
+WORKINGEXE = test.exe FindOne.exe Density.exe Corotation.exe k.exe k31d.exe Kendall.exe 2Density.exe
 
 OUTILS := $(addprefix obj/,$(UTILS))
 
