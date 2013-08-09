@@ -331,7 +331,7 @@ ENDFUNCTION
 
 FUNCTION f2(r,spiral)
 type(typspiral)                         ::spiral
-DOUBLE PRECISION        ::f2
+DOUBLE COMPLEX          ::f2
 DOUBLE PRECISION        ::r
 
 f2 = ToomreQ(r,spiral)**2*(1.d0-nu(r,spiral)**2)
@@ -1311,7 +1311,7 @@ INTEGER                         ::i
 interface 
         function func(x,spiral)
         USE STELLARDISK_MODEL
-        DOUBLE PRECISION        ::func
+        DOUBLE COMPLEX          ::func
         DOUBLE PRECISION        ::x
         type(typspiral),TARGET                  ::spiral
         ENDFUNCTION func

@@ -7,6 +7,7 @@ INTEGER                 ::n,i,j
 type(typgalaxy_para)    ::para1
 type(typspiral)         ::spiral
 DOUBLE COMPLEX          ::outk(6)
+DOUBLE COMPLEX          ::t
 !LOGICAL                 ::FLAG=.true.
 
 
