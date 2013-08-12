@@ -31,7 +31,7 @@ type,extends(typgalaxy_para)            ::typspiral
        LOGICAL                          ::ucaled    = .false.
        LOGICAL                          ::cocaled   = .false.
        LOGICAL                          ::h1caled   = .false.
-       LOGICAL                          ::bndu0     = .true.
+       LOGICAL                          ::bndu0     = .false.
        LOGICAL                          ::winit     = .false.
        CONTAINS
        PROCEDURE,PASS                   ::init          =>spiral_init
