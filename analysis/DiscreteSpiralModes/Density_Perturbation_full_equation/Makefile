@@ -1,16 +1,16 @@
-F90=mpif77
-MPIF77=mpif77
-FCC=icc
+F90	= ifort
+MPIF77	= mpif77
+FCC	= icc
 
-FFLAGS=  -O2 -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -limf  -openmp -module obj -heap-arrays 0 -fpp 
+FFLAGS	= -O2 -fp-model strict  -prec-div -prec-sqrt -fp-stack-check -limf  -openmp -module obj -heap-arrays 0 -fpp 
 
-LIB   = -L. -lslatecomp -L. -lacm  -limf -lpthread -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -liomp5  -L$(HDF5HOME)/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5
-INCL  = -I$(HDF5_HOME)/include/
+LIB	= -L. -lslatecomp -L. -lacm  -limf -lpthread -L$(PGPLOT_HOME) -lpgplot -lX11 -lpng -liomp5  -L$(HDF5HOME)/lib -lhdf5_fortran -lhdf5hl_fortran -lhdf5_hl -lhdf5
+INCL  	= -I$(HDF5_HOME)/include/
 
-UTILS  = plot.o rk4.o io.o math.o k3sqrt.o galaxy.o
-EXE    = test.exe FindOne.exe  2Density.exe Density.exe Force.exe Kendall.exe Corotation.exe Rot.exe RelativeForce.exe StellarGas.exe GasDensity.exe Ecg.exe Follow.exe Shift.exe
-MPIEXE = SearchAll.exe
-WORKINGEXE = test.exe FindOne.exe Density.exe Corotation.exe k.exe k31d.exe Kendall.exe 2Density.exe
+UTILS  	= plot.o rk4.o io.o math.o k3sqrt.o galaxy.o
+EXE    	= test.exe FindOne.exe  2Density.exe Density.exe Force.exe Kendall.exe Corotation.exe Rot.exe RelativeForce.exe StellarGas.exe GasDensity.exe Ecg.exe Follow.exe Shift.exe
+MPIEXE 	= SearchAll.exe
+WORKINGEXE = $(EXE)
 
 OUTILS := $(addprefix obj/,$(UTILS))
 
