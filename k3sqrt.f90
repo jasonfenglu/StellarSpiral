@@ -209,9 +209,8 @@ Qod = para(8)
 q   = para(9)
 rq  = para(10)
 
-ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2)) + 1.2d0*dexp(-r**2/1.05**2)  &
-         - exp(-(r-10)**2/2.d0**2)*0.07d0
-
+ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2) + 1.2d0*dexp(-r**2/0.9**2))  &
+        - exp(-(r-10)**2/2.d0**2)*0.10d0
 
 !IF(r<rq)THEN
 !        ToomreQ = Cos(r*pi/rq)*q+Qod

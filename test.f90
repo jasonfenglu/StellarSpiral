@@ -31,7 +31,7 @@ DOUBLE COMPLEX          ::outk(6)
 ri = 0.d0
 rf = 1.3d1
 !rf = 10.d0
-N  = 1000
+N  = 100
 
 dr = (rf-ri)/dble(n)
 
@@ -55,18 +55,15 @@ CALL spiral.readw(2)
 CALL FindSpiral(spiral)
 !CALL spiral.free
 !print *,real(spiral.u)
-DO i = 1, 1000
+DO i = 1, 100
         r = dr*dble(i-1)
        !write(6,*)r,kappa(r,Spiral)*8.d0/pi/g/gasdensity(r,0.d0)
        !write(6,*)r,abs(k3sqrt(r,spiral)),spiral.co
-       t = k3sqrt(r,spiral,outk)
-       !write(*,'(7(E20.7))')r,real(outk)
+       !t = k3sqrt(r,spiral,outk)
        !print *,r,snsd(r,spiral),ToomreQ(r,spiral)
        !write(*,'(4(D15.5))')r,real(t),imag(t),abs(t)
 !      print *,real(spiral.u(1,i)),real(spiral.h1(i)),imag(spiral.h1(i))
-       !print *,r,snsd(r,spiral),ToomreQ(r,spiral)
-       !print *,r,sigma0(r,spiral),BulgeSurfaceDensity(r,spiral)
-       print *,r,10349D0*sigma1r(r,spiral)/(sigma0(r,spiral)+BulgeSurfaceDensity(r,spiral))
+        print *,r,snsd(r,spiral)
 ENDDO
 
 
