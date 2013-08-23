@@ -3,8 +3,8 @@ USE STELLARDISK_MODEL
 USE STELLARDISK
 USE RK
 USE io
-USE galaxy,only:gasdensity
-DOUBLE PRECISION        ::ri,rf,dr,r
+!USE galaxy,only:gasdensity
+REAL(REAL128)        ::ri,rf,dr,r
 DOUBLE COMPLEX          ::h1,t
 INTEGER                 ::n,i
 type(typgalaxy_para)para1
@@ -14,11 +14,10 @@ type tst
 endtype
 type(tst) tt
 DOUBLE COMPLEX          ::Y(2,100),Y1(2)
-DOUBLE PRECISION        ::tmp(2,2)
+REAL(REAL128)        ::tmp(2,2)
 CHARACTER(len=225)      ::CH
-DOUBLE PRECISION        ::a,b
+REAL(REAL128)        ::a,b
 LOGICAL                 ::FLAG
-DOUBLE COMPLEX          ::outk(6)
 
 !CALL GETCWD(CH)
 !CH = TRIM(CH)
@@ -29,9 +28,9 @@ DOUBLE COMPLEX          ::outk(6)
 !STOP
 
 ri = 0.d0
-rf = 1.3d1
+rf = 1.0d1
 !rf = 10.d0
-N  = 100
+N  = 1000
 
 dr = (rf-ri)/dble(n)
 
@@ -47,23 +46,18 @@ dr = (rf-ri)/dble(n)
 !write(6,*)'return',checkfileext('123')
 !call printpt
 
-!CALL stdpara.printpara
-
+ 
 CALL stdpara.readstd
-CALL spiral.init(100,15.d0,stdpara,2)
-CALL spiral.readw(2)
-CALL FindSpiral(spiral)
-!CALL spiral.free
-!print *,real(spiral.u)
-DO i = 1, 100
-        r = dr*dble(i-1)
+CALL spiral.init(50,REAL(12,KIND=REAL128),stdpara,2)
+!!CALL spiral.readw(2)
+!CALL FindSpiral(spiral)
+DO i = 1, N
+       r = dr*dble(i-1)
        !write(6,*)r,kappa(r,Spiral)*8.d0/pi/g/gasdensity(r,0.d0)
        !write(6,*)r,abs(k3sqrt(r,spiral)),spiral.co
-       !t = k3sqrt(r,spiral,outk)
-       !print *,r,snsd(r,spiral),ToomreQ(r,spiral)
-       !write(*,'(4(D15.5))')r,real(t),imag(t),abs(t)
-!      print *,real(spiral.u(1,i)),real(spiral.h1(i)),imag(spiral.h1(i))
-        print *,r,snsd(r,spiral)
+       !t = k3sqrt(r,spiral)
+
+       write(*,'(5(D15.5))')r,spiral.Omega(r,'b'),spiral.Omega(r,'h'),spiral.Omega(r,'d'),spiral.Omega(r)
 ENDDO
 
 
@@ -115,21 +109,20 @@ ENDDO
 !stop
 CONTAINS
 
-
 FUNCTION F(r)
 IMPLICIT NONE
-DOUBLE PRECISION                ::r
-DOUBLE PRECISION                ::F
+REAL(REAL128)                ::r
+REAL(REAL128)                ::F
 F = sin(r)
 ENDFUNCTION
 
 Function F2(r) result(ans)
 USE NUM
         IMPLICIT NONE
-        DOUBLE PRECISION,INTENT(IN)     ::r
-        DOUBLE PRECISION                ::a,rr
-        DOUBLE PRECISION                ::ans
-        DOUBLE PRECISION                ::ferr = 1.d-15
+        REAL(REAL128),INTENT(IN)     ::r
+        REAL(REAL128)                ::a,rr
+        REAL(REAL128)                ::ans
+        REAL(REAL128)                ::ferr = 1.d-15
         INTEGER                         ::IERR,K=6000
         a = zerolimit
         rr = r
@@ -145,7 +138,7 @@ ENDFUNCTION
 
 FUNCTION F3(r)
 IMPLICIT NONE
-DOUBLE PRECISION                ::r
+REAL(REAL128)                ::r
 DOUBLE COMPLEX                  ::F3
 F3 = (1.d0,1.d0)*r**2
 ENDFUNCTION
