@@ -101,7 +101,7 @@ DO j = chunk*myid+1,chunk*(myid+1)
         spiral.winit = .true.
 !       ipc = omp_get_thread_num()
 !       print *,'!!!',j,ipc
-        CALL FindSpiral(spiral)
+        CALL FindSpiral(spiral.ptr)
 !       searchgrid%lerror(j) = abs(spiral.error)
         errormpisend(j-chunk*myid) = abs(spiral.error)
         if(myid.eq.0)then

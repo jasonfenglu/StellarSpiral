@@ -1,13 +1,8 @@
 program test
-USE STELLARDISK_MODEL
 USE STELLARDISK
-USE RK
-USE io
-USE galaxy,only:gasdensity
 DOUBLE PRECISION        ::ri,rf,dr,r
 DOUBLE COMPLEX          ::h1,t
 INTEGER                 ::n,i
-type(typgalaxy_para)para1
 type(typspiral)spiral
 type tst
      integer,allocatable::dat(:)
@@ -52,19 +47,19 @@ dr = (rf-ri)/dble(n)
 CALL stdpara.readstd
 CALL spiral.init(100,15.d0,stdpara,2)
 CALL spiral.readw(2)
-CALL FindSpiral(spiral)
+CALL FindSpiral(spiral.ptr)
 !CALL spiral.free
 !print *,real(spiral.u)
-DO i = 1, 100
-        r = dr*dble(i-1)
-       !write(6,*)r,kappa(r,Spiral)*8.d0/pi/g/gasdensity(r,0.d0)
-       !write(6,*)r,abs(k3sqrt(r,spiral)),spiral.co
-       !t = k3sqrt(r,spiral,outk)
-       !print *,r,snsd(r,spiral),ToomreQ(r,spiral)
-       !write(*,'(4(D15.5))')r,real(t),imag(t),abs(t)
-!      print *,real(spiral.u(1,i)),real(spiral.h1(i)),imag(spiral.h1(i))
-        print *,r,snsd(r,spiral)
-ENDDO
+!DO i = 1, 100
+!        r = dr*dble(i-1)
+!       !write(6,*)r,kappa(r,Spiral)*8.d0/pi/g/gasdensity(r,0.d0)
+!       !write(6,*)r,abs(k3sqrt(r,spiral)),spiral.co
+!       t = k3sqrt(r,spiral.ptr,outk)
+!       !print *,r,snsd(r,spiral),ToomreQ(r,spiral)
+!       !write(*,'(4(D15.5))')r,real(t),imag(t),abs(t)
+!!      print *,real(spiral.u(1,i)),real(spiral.h1(i)),imag(spiral.h1(i))
+!        write(6,'(7(D15.5))')r,kappa(r,spiral.ptr)
+!ENDDO
 
 
 !CALL stdpara.readstd
@@ -116,38 +111,38 @@ ENDDO
 CONTAINS
 
 
-FUNCTION F(r)
-IMPLICIT NONE
-DOUBLE PRECISION                ::r
-DOUBLE PRECISION                ::F
-F = sin(r)
-ENDFUNCTION
-
-Function F2(r) result(ans)
-USE NUM
-        IMPLICIT NONE
-        DOUBLE PRECISION,INTENT(IN)     ::r
-        DOUBLE PRECISION                ::a,rr
-        DOUBLE PRECISION                ::ans
-        DOUBLE PRECISION                ::ferr = 1.d-15
-        INTEGER                         ::IERR,K=6000
-        a = zerolimit
-        rr = r
-        IERR = 0
-        if(rr.eq.0.d0)then
-                ans = 0.d0
-        else
-                CALL DGAUS8(F,a,rr,fERR,ans,IERR)
-!               CALL DQNC79(F,a,rr,fERR,ans,IERR,K)
-        endif
-
-ENDFUNCTION 
-
-FUNCTION F3(r)
-IMPLICIT NONE
-DOUBLE PRECISION                ::r
-DOUBLE COMPLEX                  ::F3
-F3 = (1.d0,1.d0)*r**2
-ENDFUNCTION
+!FUNCTION F(r)
+!IMPLICIT NONE
+!DOUBLE PRECISION                ::r
+!DOUBLE PRECISION                ::F
+!F = sin(r)
+!ENDFUNCTION
+!
+!Function F2(r) result(ans)
+!USE NUM
+!        IMPLICIT NONE
+!        DOUBLE PRECISION,INTENT(IN)     ::r
+!        DOUBLE PRECISION                ::a,rr
+!        DOUBLE PRECISION                ::ans
+!        DOUBLE PRECISION                ::ferr = 1.d-15
+!        INTEGER                         ::IERR,K=6000
+!        a = zerolimit
+!        rr = r
+!        IERR = 0
+!        if(rr.eq.0.d0)then
+!                ans = 0.d0
+!        else
+!                CALL DGAUS8(F,a,rr,fERR,ans,IERR)
+!!               CALL DQNC79(F,a,rr,fERR,ans,IERR,K)
+!        endif
+!
+!ENDFUNCTION 
+!
+!FUNCTION F3(r)
+!IMPLICIT NONE
+!DOUBLE PRECISION                ::r
+!DOUBLE COMPLEX                  ::F3
+!F3 = (1.d0,1.d0)*r**2
+!ENDFUNCTION
 
 end      

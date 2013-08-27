@@ -1,4 +1,5 @@
 MODULE MATH
+USE ISO_C_BINDING
 IMPLICIT NONE
 TYPE    typintplt2
         DOUBLE PRECISION,ALLOCATABLE    ::dat(:,:)
@@ -13,8 +14,17 @@ TYPE    typintplt2
 ENDTYPE
 !!interpolation 1-d
 INTERFACE intplt1
-        MODULE PROCEDURE intplt
+        MODULE PROCEDURE rintplt
         MODULE PROCEDURE cintplt
+ENDINTERFACE
+!!Numerical Differential
+INTERFACE dfunc
+        MODULE PROCEDURE dfunc
+        MODULE PROCEDURE dcfunc
+ENDINTERFACE
+INTERFACE d2func
+        MODULE PROCEDURE d2func
+        MODULE PROCEDURE d2cfunc
 ENDINTERFACE
 CONTAINS
 
@@ -87,10 +97,10 @@ this.maxx = maxval(this.x)
 this.maxy = maxval(this.y)
 ENDSUBROUTINE
 
-FUNCTION intplt(dat,rs,r)
+FUNCTION rintplt(dat,rs,r)
 IMPLICIT NONE
 DOUBLE PRECISION,INTENT(IN)     ::dat(:),rs(:)
-DOUBLE PRECISION                ::intplt
+DOUBLE PRECISION                ::rintplt
 DOUBLE PRECISION,INTENT(IN)     ::r
 DOUBLE PRECISION                ::X(4),Y(4),C(4)
 INTEGER,PARAMETER               ::N = 4
@@ -122,7 +132,7 @@ ENDIF
 CALL DPLINT(N,X,Y,C)
 XX = r
 CALL DPOLVL (NDER, XX, YFIT, YP, N, X, C, WORK, IERR)
-intplt = YFIT
+rintplt = YFIT
         
 ENDFUNCTION
 
@@ -134,9 +144,158 @@ DOUBLE PRECISION,INTENT(IN)     ::r
 DOUBLE COMPLEX                  ::cintplt
 
 cintplt = dcmplx( &
-        intplt(real(dat),rs,r), &
-        intplt(imag(dat),rs,r))
+        rintplt(real(dat),rs,r), &
+        rintplt(imag(dat),rs,r))
         
 ENDFUNCTION
+
+FUNCTION dfunc(func,r,datptr,epsi)
+USE ISO_C_BINDING
+!
+! Forward differential
+!
+IMPLICIT NONE
+TYPE(c_ptr)                         ::datptr
+DOUBLE PRECISION,INTENT(IN)         ::r
+DOUBLE PRECISION                    ::dr
+DOUBLE PRECISION,PARAMETER          ::coe(3)=(/-1.5d0,2.d0,-0.5d0/)
+DOUBLE PRECISION                    ::dfunc,ans,funcs(3)
+DOUBLE PRECISION,OPTIONAL           ::epsi
+INTEGER                             ::i
+INTERFACE 
+        FUNCTION func(x,dat)
+        USE ISO_C_BINDING
+        DOUBLE PRECISION            ::func
+        DOUBLE PRECISION            ::x
+        TYPE(c_ptr)                 ::dat
+        ENDFUNCTION func
+ENDINTERFACE        
+
+IF(PRESENT(epsi))THEN
+        dr = epsi
+ELSE
+        dr = epsilon(r)**0.3*max(r,epsilon(0d0))
+ENDIF
+funcs(1) = func(r,datptr)
+funcs(2) = func(r+dr,datptr)
+funcs(3) = func(r+2.d0*dr,datptr)
+ans = dot_product(funcs,coe)/dr
+dfunc = ans
+
+if(isnan(dfunc))CALL XERMSG('k3sqrt','dfunc','dfunc is nan.',-94,0)
+endfunction
+
+FUNCTION dcfunc(func,r,datptr,epsi)
+!
+! Forward differential
+!
+IMPLICIT NONE
+TYPE(c_ptr)                         ::datptr
+DOUBLE PRECISION,INTENT(IN)         ::r
+DOUBLE PRECISION                    ::dr
+DOUBLE PRECISION,PARAMETER          ::coe(3)=(/-1.5d0,2.d0,-0.5d0/)
+DOUBLE COMPLEX                      ::dcfunc,ans,funcs(3)
+DOUBLE PRECISION,OPTIONAL           ::epsi
+INTEGER                             ::i
+INTERFACE 
+        FUNCTION func(x,dat)
+        USE ISO_C_BINDING
+        DOUBLE COMPLEX              ::func
+        DOUBLE PRECISION            ::x
+        TYPE(c_ptr)                 ::dat
+        ENDFUNCTION func
+ENDINTERFACE        
+
+IF(PRESENT(epsi))THEN
+        dr = epsi
+ELSE
+        dr = epsilon(r)**0.3*max(r,epsilon(0d0))
+ENDIF
+funcs(1) = func(r,datptr)
+funcs(2) = func(r+dr,datptr)
+funcs(3) = func(r+2.d0*dr,datptr)
+ans = dot_product(funcs,coe)/dr
+dcfunc = ans
+
+if(isnan(real(dcfunc)))CALL XERMSG('k3sqrt','dcfunc','real(dcfunc) is nan.',-94,0)
+if(isnan(imag(dcfunc)))CALL XERMSG('k3sqrt','dcfunc','imag(dcfunc) is nan.',-94,0)
+ENDFUNCTION
+
+FUNCTION d2func(func,r,datptr,epsi)
+USE ISO_C_BINDING
+!
+! Forward differential
+!
+IMPLICIT NONE
+TYPE(c_ptr)                         ::datptr
+DOUBLE PRECISION,INTENT(IN)         ::r
+DOUBLE PRECISION                    ::dr
+DOUBLE PRECISION,PARAMETER          ::coe(4)=(/2.d0, -5.d0, 4.d0, -1.d0/)
+DOUBLE PRECISION                    ::d2func,ans,funcs(4)
+DOUBLE PRECISION,OPTIONAL           ::epsi
+INTEGER                             ::i
+INTERFACE 
+        FUNCTION func(x,datptr)
+        USE ISO_C_BINDING
+        DOUBLE PRECISION            ::func
+        DOUBLE PRECISION            ::x
+        TYPE(c_ptr)                 ::datptr
+        ENDFUNCTION func
+ENDINTERFACE        
+
+IF(PRESENT(epsi))THEN
+        dr = epsi
+ELSE
+        dr = epsilon(r)**0.3*max(r,epsilon(0d0))
+ENDIF
+
+funcs(1) = func(r,datptr)
+funcs(2) = func(r+dr,datptr)
+funcs(3) = func(r+2.d0*dr,datptr)
+funcs(4) = func(r+3.d0*dr,datptr)
+ans = dot_product(funcs,coe)/dr**2
+d2func = ans
+
+if(isnan(d2func))CALL XERMSG('k3sqrt','dfunc','dfunc is nan.',-94,0)
+endfunction
+
+FUNCTION d2cfunc(func,r,datptr,epsi)
+USE ISO_C_BINDING
+!
+! Forward differential
+!
+IMPLICIT NONE
+TYPE(c_ptr)                         ::datptr
+DOUBLE PRECISION,INTENT(IN)         ::r
+DOUBLE PRECISION                    ::dr
+DOUBLE PRECISION,PARAMETER          ::coe(4)=(/2.d0, -5.d0, 4.d0, -1.d0/)
+DOUBLE COMPLEX                      ::d2cfunc,ans,funcs(4)
+DOUBLE PRECISION,OPTIONAL           ::epsi
+INTEGER                             ::i
+INTERFACE 
+        FUNCTION func(x,datptr)
+        USE ISO_C_BINDING
+        DOUBLE COMPLEX              ::func
+        DOUBLE PRECISION            ::x
+        TYPE(c_ptr)                 ::datptr
+        ENDFUNCTION func
+ENDINTERFACE        
+
+IF(PRESENT(epsi))THEN
+        dr = epsi
+ELSE
+        dr = epsilon(r)**0.3*max(r,epsilon(0d0))
+ENDIF
+
+funcs(1) = func(r,datptr)
+funcs(2) = func(r+dr,datptr)
+funcs(3) = func(r+2.d0*dr,datptr)
+funcs(4) = func(r+3.d0*dr,datptr)
+ans = dot_product(funcs,coe)/dr**2
+d2cfunc = ans
+
+if(isnan(real(d2cfunc)))CALL XERMSG('k3sqrt','d2cfunc','real(d2cfunc) is nan.',-94,0)
+if(isnan(imag(d2cfunc)))CALL XERMSG('k3sqrt','d2cfunc','imag(d2cfunc) is nan.',-94,0)
+endfunction
 
 ENDMODULE 

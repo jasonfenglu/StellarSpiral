@@ -90,7 +90,7 @@ CALL spiral.init(500,12.d0,stdpara,1)
 !$OMP DO 
 DO j = 1,n**2
         CALL spiral.setw(dcmplx(searchgrid.lcoord(j,1),searchgrid.lcoord(j,2)),2)
-        CALL FindSpiral(spiral)
+        CALL FindSpiral(spiral.ptr)
         searchgrid.lerror(j) = abs(spiral.error)
 ENDDO
 !$OMP END DO 
