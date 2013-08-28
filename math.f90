@@ -155,13 +155,14 @@ USE ISO_C_BINDING
 ! Forward differential
 !
 IMPLICIT NONE
-TYPE(c_ptr)                         ::datptr
+CHARACTER(len=20)                   ::ch
 DOUBLE PRECISION,INTENT(IN)         ::r
 DOUBLE PRECISION                    ::dr
 DOUBLE PRECISION,PARAMETER          ::coe(3)=(/-1.5d0,2.d0,-0.5d0/)
 DOUBLE PRECISION                    ::dfunc,ans,funcs(3)
 DOUBLE PRECISION,OPTIONAL           ::epsi
 INTEGER                             ::i
+TYPE(c_ptr)                         ::datptr
 INTERFACE 
         FUNCTION func(x,dat)
         USE ISO_C_BINDING
@@ -175,14 +176,17 @@ IF(PRESENT(epsi))THEN
         dr = epsi
 ELSE
         dr = epsilon(r)**0.3*max(r,epsilon(0d0))
+        dr = epsilon(r)**0.5*2d0
 ENDIF
 funcs(1) = func(r,datptr)
 funcs(2) = func(r+dr,datptr)
 funcs(3) = func(r+2.d0*dr,datptr)
 ans = dot_product(funcs,coe)/dr
 dfunc = ans
-
-if(isnan(dfunc))CALL XERMSG('k3sqrt','dfunc','dfunc is nan.',-94,0)
+IF(isnan(dfunc))THEN
+        write(CH,'(D15.3)')dr
+        CALL XERMSG('k3sqrt','dfunc','dfunc is nan. dr='//CH,-94,0)
+ENDIF
 endfunction
 
 FUNCTION dcfunc(func,r,datptr,epsi)
@@ -209,7 +213,7 @@ ENDINTERFACE
 IF(PRESENT(epsi))THEN
         dr = epsi
 ELSE
-        dr = epsilon(r)**0.3*max(r,epsilon(0d0))
+        dr = epsilon(r)**0.3*max(r,epsilon(5d0))
 ENDIF
 funcs(1) = func(r,datptr)
 funcs(2) = func(r+dr,datptr)

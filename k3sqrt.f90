@@ -179,14 +179,6 @@ IF(ALLOCATED(this.r))DEALLOCATE(this.r)
 IF(ALLOCATED(this.k3))DEALLOCATE(this.k3)
 ENDSUBROUTINE
 
-FUNCTION cPtrToSpiral(spiralcptr) RESULT(spiralptr)
-TYPE(C_PTR)                             ::spiralcptr
-TYPE(typspiral),POINTER                 ::spiralptr
-
-CALL c_f_pointer(spiralcptr,spiralptr)
-
-ENDFUNCTION
-
 ENDMODULE
 
 MODULE ModOmega
@@ -195,6 +187,9 @@ USE STELLARDISK_MODEL
 USE CONSTANTS
 PRIVATE
 PUBLIC::Omega, OmegaCoefficent, kappaCoefficent
+INTERFACE Omega
+        MODULE PROCEDURE Omega
+ENDINTERFACE
 CONTAINS
 
 FUNCTION Omega(r,spiralptr)
@@ -211,11 +206,10 @@ DOUBLE COMPLEX            ::VDisk
 DOUBLE PRECISION          ::a1,a2,M1,M2
 !spiral
 TYPE(C_PTR)                             ::spiralptr
-TYPE(typspiral),TARGET                  ::spiral
+TYPE(typspiral),POINTER                 ::spiral
 DOUBLE PRECISION,POINTER                ::para(:)=>null()
 
-spiral = cPtrToSpiral(spiralptr)
-
+CALL c_f_pointer(spiralptr,spiral)
 para=>spiral.para
 
 !Halo
@@ -231,13 +225,12 @@ M1 = para(13)
 M2 = para(14)
 
 !!Limit case when r->0:
-if(r.lt.zerolimit)then
-        Omega = Omega0(spiralptr)      &
-              + Omega2(spiralptr)*r**2 &
-              + Omega4(spiralptr)*r**4  
-        return
-endif
-
+IF(r.lt.zerolimit)THEN
+        Omega = Omega0(spiralptr)       
+!             + Omega2(spiralptr)*r**2 &
+!             + Omega4(spiralptr)*r**4  
+        RETURN
+ENDIF
 
 !Halo
 Lh   = para(1)
@@ -334,10 +327,10 @@ FUNCTION OmegaCoefficent(spiralptr,n)
 IMPLICIT NONE
 DOUBLE PRECISION                        ::OmegaCoefficent
 TYPE(C_PTR)                             ::spiralptr
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 INTEGER,INTENT(IN)                      ::N
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 SELECT CASE(n)
         CASE(0)
                 OmegaCoefficent = Omega0(spiralptr)
@@ -359,12 +352,11 @@ DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
 DOUBLE COMPLEX            ::VDisk
 DOUBLE PRECISION          ::a1,a2,M1,M2
 !spiral
-TYPE(typspiral),TARGET                  ::spiral
+TYPE(typspiral),POINTER                 ::spiral
 DOUBLE PRECISION,POINTER                ::para(:)=>null()
 TYPE(C_PTR)                             ::spiralptr
 
-spiral  = cPtrToSpiral(spiralptr)
-
+CALL c_f_pointer(spiralptr,spiral)
 para=>spiral.para
 !Halo
 Lh   = para(1)
@@ -394,12 +386,12 @@ DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
 DOUBLE COMPLEX            ::VDisk
 DOUBLE PRECISION          ::a1,a2,M1,M2
 !spiral
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 DOUBLE PRECISION,POINTER                ::para(:)=>null()
 DOUBLE PRECISION                        ::tmp(3)
 TYPE(C_PTR)                             ::spiralptr
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 para=>spiral.para
 
 !Halo
@@ -445,11 +437,11 @@ DOUBLE PRECISION          ::rb,Mb,gBulge,VBulge
 DOUBLE COMPLEX            ::VDisk
 DOUBLE PRECISION          ::a1,a2,M1,M2
 !spiral
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 DOUBLE PRECISION,POINTER                ::para(:)=>null()
 DOUBLE PRECISION                        ::tmp(4)
 TYPE(C_PTR)                             ::spiralptr
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 
 para=>spiral.para
 
@@ -532,7 +524,7 @@ CONTAINS
 FUNCTION LauDiskSigma0(r,spiralptr)
 IMPLICIT NONE
 TYPE(C_PTR)                             ::spiralptr
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 DOUBLE PRECISION                ::LauDiskSigma0
 DOUBLE PRECISION                ::r
 !Lau Disk
@@ -540,7 +532,7 @@ DOUBLE PRECISION                ::x1,x2
 DOUBLE PRECISION                ::a1,a2,M1,M2
 DOUBLE PRECISION,POINTER                ::para(:)
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 para=>spiral.para
 a1 = para(11)
 a2 = para(12)
@@ -584,13 +576,14 @@ ENDFUNCTION
 FUNCTION LauDiskSigma02(spiralptr)
 !!coeficient of r**2 in disk density
 IMPLICIT NONE
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 TYPE(C_PTR)                             ::spiralptr
 DOUBLE PRECISION                        ::LauDiskSigma02
 !Lau Disk
 DOUBLE PRECISION                        ::a1,a2,M1,M2
 DOUBLE PRECISION,POINTER                ::para(:)
-spiral  = cPtrToSpiral(spiralptr)
+
+CALL c_f_pointer(spiralptr,spiral)
 para=>spiral.para
 a1 = para(11)
 a2 = para(12)
@@ -604,14 +597,14 @@ ENDFUNCTION
 FUNCTION LauDiskSigma04(spiralptr)
 !!coeficient of r**2 in disk density
 IMPLICIT NONE
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 TYPE(C_PTR)                             ::spiralptr
 DOUBLE PRECISION                        ::LauDiskSigma04
 !Lau Disk
 DOUBLE PRECISION                        ::a1,a2,M1,M2
 DOUBLE PRECISION,POINTER                ::para(:)
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 para=>spiral.para
 a1 = para(11)
 a2 = para(12)
@@ -623,14 +616,14 @@ ENDFUNCTION
 
 FUNCTION BulgeSurfaceDensityA(r,Spiralptr)
 DOUBLE PRECISION                        ::BulgeSurfaceDensityA
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 TYPE(C_PTR)                             ::spiralptr
 DOUBLE PRECISION,INTENT(IN)             ::r
 DOUBLE PRECISION,POINTER                ::para(:)
 DOUBLE PRECISION                        ::Mb,rb !bulge parameters
 DOUBLE PRECISION                        ::rr
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 para=>spiral.para
 
 Mb    = para(3)
@@ -641,7 +634,7 @@ ENDFUNCTION
 FUNCTION BulgeSurfaceDensity(r,Spiralptr)
 DOUBLE PRECISION                        ::BulgeSurfaceDensity
 DOUBLE PRECISION,INTENT(IN)             ::r
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 TYPE(C_PTR)                             ::spiralptr
 DOUBLE PRECISION,POINTER                ::para(:)
 DOUBLE PRECISION                        ::BOUND,EPSREL,EPSABS
@@ -653,7 +646,7 @@ INTEGER,ALLOCATABLE                     ::IWORK(:)
 DOUBLE PRECISION                        ::Mb,rb !bulge parameters
 DOUBLE PRECISION                        ::rr
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 para=>spiral.para
 
 rr = r
@@ -695,9 +688,9 @@ CONTAINS
 SUBROUTINE FindSpiral(spiralptr)
 IMPLICIT NONE
 TYPE(C_PTR)                             ::spiralptr
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 if(.not.spiral.inited)then
         write(0,*)'spiral object not initialized, stop. init flag:',spiral.inited
         stop
@@ -715,11 +708,11 @@ ENDSUBROUTINE
 FUNCTION ToomreQ(r,spiralptr)
 DOUBLE PRECISION                        ::Q,r,Qod,ToomreQ,rq
 TYPE(C_PTR)                             ::spiralptr
-TYPE(typspiral),TARGET                  ::spiral
+TYPE(typspiral),POINTER                 ::spiral
 DOUBLE PRECISION,POINTER                ::para(:)
 DOUBLE PRECISION                        ::f
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 para=>spiral.para
 Qod = para(8)
 q   = para(9)
@@ -732,41 +725,43 @@ ENDFUNCTION
 
 FUNCTION kappa(r,spiralptr)
 IMPLICIT NONE
+CHARACTER(len=15)                       ::CH
 TYPE(C_PTR)                             ::spiralptr
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 DOUBLE PRECISION  kappa
 DOUBLE PRECISION,INTENT(IN)             ::r
-DOUBLE PRECISION  dr
-DOUBLE PRECISION  dOmega
+DOUBLE PRECISION                        ::dOmega_
 
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 
-kappa = sqrt(4.d0*Omega(r,spiralptr)**2*(1.d0+r/(2.d0*Omega(r,spiralptr))*dfunc(Omega,r,spiralptr)))
+dOmega_ = dfunc(Omega,r,spiralptr)
+
+kappa = sqrt(4.d0*Omega(r,spiralptr)**2*(1.d0+r/(2.d0*Omega(r,spiralptr))*dOmega_))
 if(isnan(kappa))then
         print *,'kappa exception catched'
         print *,'r,Omega,dfunc(Omega,r):'
-        print *,r,Omega(r,spiralptr),dfunc(Omega,r,spiralptr)
-        CALL XERMSG('k3sqrt','kappa','kappa is nan.',-97,2)
+        print *,r,Omega(r,spiralptr),dOmega_
+        write(CH,'(D15.3)')r
+        CALL XERMSG('k3sqrt','kappa','kappa is nan. r='//CH,-97,2)
 endif       
 ENDFUNCTION
 
 FUNCTION nu(r,spiralptr)
 IMPLICIT NONE
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 TYPE(C_PTR)                             ::spiralptr
 DOUBLE COMPLEX                          ::nu   
 DOUBLE PRECISION                        ::r
 DOUBLE PRECISION,PARAMETER              ::m =2.d0
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 nu = (spiral.w-cmplx(m*Omega(r,spiralptr)))/cmplx(kappa(r,spiralptr))
 ENDFUNCTION
 
 FUNCTION snsd(r,spiralptr)
 IMPLICIT NONE
 TYPE(C_PTR)                             ::spiralptr
-type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION                        ::r,snsd
 snsd = ToomreQ(r,spiralptr)*pi*GravConst*sigma0(r,spiralptr)/kappa(r,spiralptr)
 ENDFUNCTION
@@ -776,7 +771,7 @@ USE STELLARDISK_MODEL
 USE math
 !This is to find density perturbation by solve the k3sqr ODE
 IMPLICIT NONE
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 TYPE(C_PTR)                             ::spiralptr
 DOUBLE COMPLEX                  ::uu,hh1
 DOUBLE PRECISION                ::sigma1
@@ -784,7 +779,7 @@ DOUBLE PRECISION,INTENT(IN)     ::r
 DOUBLE PRECISION                ::rad,th
 INTEGER                         ::i,j,k,l,n
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 !interploting u at non-grid point r
 n = spiral.n
 
@@ -801,22 +796,21 @@ FUNCTION Sigma(r,spiralptr) RESULT(ans)
 USE STELLARDISK_MODEL
 !This is NOT related to density
 IMPLICIT NONE
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 TYPE(C_PTR)                             ::spiralptr
 DOUBLE PRECISION                ::ans
 DOUBLE PRECISION,INTENT(IN)     ::r
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 ans = 2.d0*pi*GravConst*sigma0(r,spiralptr)/snsd(r,spiralptr)**2
 ENDFUNCTION
 
 SUBROUTINE set_co(spiralptr)
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 TYPE(C_PTR)                             ::spiralptr
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 spiral.co = CO()
 CALL set_fourtoone(spiralptr)
-print *,'set',spiral.co
 contains
 
 FUNCTION CO()
@@ -848,14 +842,14 @@ USE STELLARDISK_MODEL
 USE math
 IMPLICIT NONE          
 TYPE(C_PTR)                             ::spiralptr
-type(typspiral)                         ::spiral
+type(typspiral),POINTER                 ::spiral
 DOUBLE COMPLEX          ::error
 DOUBLE COMPLEX          ::uu(3)
 DOUBLE PRECISION        ::h=10d-5   ,r
 DOUBLE PRECISION        ::RE,AE,B,C,RR
 INTEGER                 ::l,IFLAG
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 B = 0.d0
 C = 20.d0
 RR = 8.d0
@@ -923,7 +917,7 @@ FUNCTION k3sqrt(r,spiralptr,outk)
 USE STELLARDISK_MODEL
 USE CONSTANTS
 IMPLICIT NONE
-type(typspiral),TARGET                  ::spiral
+type(typspiral),POINTER                 ::spiral
 TYPE(C_PTR),INTENT(IN)                  ::spiralptr
 DOUBLE COMPLEX            ::k3sqrt,k(6)
 DOUBLE COMPLEX,OPTIONAL   ::outk(6)
@@ -939,7 +933,8 @@ DOUBLE COMPLEX            ::nu_
 LOGICAL                   ::MASK(6)=.true.!this is for sum of part of k
 INTEGER                   ::I
 
-spiral  = cPtrToSpiral(spiralptr)
+
+CALL c_f_pointer(spiralptr,spiral)
 !!set co
 !CALL set_co(spiralptr)
 
@@ -1010,7 +1005,11 @@ CHARACTER(len=72)                       ::errormsg
 write(errormsg,"(E10.3)")r
 errormsg = trim(errormsg)
 errormsg = 'k3sqrt nan.@r = '//errormsg
-if(isnan(real(k3sqrt)))CALL XERMSG('k3sqrt','k3sqrt',errormsg,-98,2)
+if(isnan(real(k3sqrt)))THEN
+        write(0,*)'k:'
+        write(0,'(6(D15.3))')real(k)
+        CALL XERMSG('k3sqrt','k3sqrt',errormsg,-98,2)
+ENDIF
 ENDSUBROUTINE
 
 FUNCTION f1(r,spiralptr)
@@ -1407,27 +1406,23 @@ ENDFUNCTION
 !ENDFUNCTION
 !
 !ENDFUNCTION
-!
-!
-!
-!
-! 
+
+
 SUBROUTINE findu(spiralptr)
 USE RK,only:rk4
 USE STELLARDISK_MODEL
 IMPLICIT NONE
-TYPE(typspiral),TARGET                  ::spiral
+TYPE(typspiral),POINTER                 ::spiral
 TYPE(C_PTR)                             ::spiralptr
 DOUBLE COMPLEX                  ::ui(3)
 DOUBLE PRECISION                ::a,b
 INTEGER                         ::n,i
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 spiral.u = (1.d0,0.d0)*0.d0
 a = spiral.rmin
 b = spiral.rmax
 CALL set_co(spiral.ptr)
-print *,'!!!',spiral.co
 if(spiral.bndu0)then
         ui = (/dcmplx(a),dcmplx(0.d0),2.d0*sqrt(-q(0.d0))/)
 else
@@ -1436,7 +1431,6 @@ endif
 CALL rk4(a,b,spiral.n,p,q,p,spiral.u,ui)
 spiral.ucaled = .true.
 spiral.r(:) = real(spiral.u(1,:))
-print *,'heeeeeeeeeeere'
 spiral.error = error(spiralptr) !spiral.fortoone is assigned here
 DO i = 1, spiral.n
         spiral.k3(i) = k3sqrt(spiral.r(i),spiralptr)
@@ -1545,13 +1539,13 @@ USE STELLARDISK_MODEL
 USE math
 IMPLICIT NONE          
 TYPE(C_PTR)                             ::spiralptr
-type(typspiral)                         ::spiral
+TYPE(typspiral),POINTER                 ::spiral
 DOUBLE COMPLEX          ::error
 DOUBLE COMPLEX          ::uu(3)
 DOUBLE PRECISION        ::h=2d-1   ,r
 
 
-spiral  = cPtrToSpiral(spiralptr)
+CALL c_f_pointer(spiralptr,spiral)
 r = spiral.fortoone 
 
 uu(2) = cintplt(spiral.u(2,:),spiral.r,r)
