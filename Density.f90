@@ -82,8 +82,7 @@ ENDMODULE
 
 PROGRAM density1
 USE PLOTTING
-USE STELLARDISK_MODEL
-USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1
+USE STELLARDISK,pi_n=>pi
 USE projections,only:argaline
 USE io
 USE argument
@@ -100,7 +99,9 @@ CALL readarg
 CALL stdpara.readstd
 CALL spiral.init(500,12.d0,stdpara,2)
 CALL spiral.readw(2)
-CALL FindSpiral(spiral)
+CALL FindSpiral(spiral.ptr)
+print *,spiral.u
+stop
 dx = domain/dble(n)*2.d0
 dy = domain/dble(n)*2.d0
 
@@ -126,7 +127,7 @@ DO j = 1, n
         r  = sqrt(pi(1)**2+pi(2)**2)
         th = atan2(pi(2),pi(1))
         IF(r.lt.spiral.fortoone)then
-                d  = sigma1(r,th,spiral)
+                d  = sigma1(r,th,spiral.ptr)
         ELSE    
                 d  = 0.d0
         ENDIF
@@ -328,12 +329,12 @@ CONTAINS
 FUNCTION F(r)
 IMPLICIT NONE
 DOUBLE PRECISION                ::r,F
-F = k3sqrt(r,spiral)
+F = k3sqrt(r,spiral.ptr)
 ENDFUNCTION
 FUNCTION g(r)
 IMPLICIT NONE
 DOUBLE PRECISION                ::r,G
-g = REAL(sqrt(k3sqrt(r,spiral)))
+g = REAL(sqrt(k3sqrt(r,spiral.ptr)))
 ENDFUNCTION
 ENDSUBROUTINE
 

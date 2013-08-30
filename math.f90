@@ -175,7 +175,6 @@ ENDINTERFACE
 IF(PRESENT(epsi))THEN
         dr = epsi
 ELSE
-        dr = epsilon(r)**0.3*max(r,epsilon(0d0))
         dr = epsilon(r)**0.5*2d0
 ENDIF
 funcs(1) = func(r,datptr)
@@ -213,7 +212,8 @@ ENDINTERFACE
 IF(PRESENT(epsi))THEN
         dr = epsi
 ELSE
-        dr = epsilon(r)**0.3*max(r,epsilon(5d0))
+        dr = epsilon(r)**0.5*2d0
+        dr = epsilon(r)**0.3*max(r,epsilon(0d0))
 ENDIF
 funcs(1) = func(r,datptr)
 funcs(2) = func(r+dr,datptr)
@@ -250,7 +250,8 @@ ENDINTERFACE
 IF(PRESENT(epsi))THEN
         dr = epsi
 ELSE
-        dr = epsilon(r)**0.3*max(r,epsilon(0d0))
+        dr = epsilon(r)**0.5*2d0
+dr = epsilon(r)**0.3*max(r,epsilon(0d0))
 ENDIF
 
 funcs(1) = func(r,datptr)
@@ -288,6 +289,7 @@ ENDINTERFACE
 IF(PRESENT(epsi))THEN
         dr = epsi
 ELSE
+        dr = epsilon(r)**0.5*2d0
         dr = epsilon(r)**0.3*max(r,epsilon(0d0))
 ENDIF
 

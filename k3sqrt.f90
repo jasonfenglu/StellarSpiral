@@ -702,7 +702,7 @@ endif
 !find EigenFunction
 CALL findu(spiralptr)
 !find h1
-!CALL findh1(spiral)
+CALL findh1(spiralptr)
 ENDSUBROUTINE
  
 FUNCTION ToomreQ(r,spiralptr)
@@ -936,7 +936,7 @@ INTEGER                   ::I
 
 CALL c_f_pointer(spiralptr,spiral)
 !!set co
-!CALL set_co(spiralptr)
+CALL set_co(spiralptr)
 
 Omega_   = Omega(r,spiralptr)
 ToomreQ_ = ToomreQ(r,spiralptr)
@@ -958,38 +958,51 @@ sigma04_ = DiskDensityCoefficient(spiralptr,4)
 k(:)     = 0.d0
 k3sqrt   = 0.d0
 
+!!k1
 k(1)     = (dcmplx(kappa_/snsd_))**2*(dcmplx(ToomreQ_)**-2 &
            - 1.d0 + nu_**2 + 0.25d0*curF(r,spiralptr)**2*ToomreQ_**2)
 
-IF(r.le.2.0d-1)THEN
-        !!r too small
-        !!k(2) hydro
+!!k2
+IF(r.le.4.0d-1)THEN
         k(2) = (-2.d0*sigma02_/sigma00_+4d0*Omega2_/Omega0_) &
              + (2d0*sigma02_**2/sigma00_**2 - 4d0*sigma04_/sigma00_+4d0*(-2d0*Omega2_**2+3d0*Omega0_*Omega4_)/Omega0_**2)*r**2
         k(2) = -2.d0*m*Omega_/(spiral.w-m*Omega_)*k(2)
-        k(3) = - dcmplx(0.d0,1.d0)*Sigma_*5d-1/f2(r,spiralptr)*dfunc(f2,r,spiralptr)
+ELSE
+        k(2) = - 2.d0*Omega_*m/(spiral.w-m*Omega_)/r*dcmplx(dfunc(f1,r,spiralptr,1D-3)/f1(r,spiralptr))
 
+ENDIF
+
+!!k3
+k(3) = - dcmplx(0.d0,1.d0)*Sigma_*5d-1/f2(r,spiralptr)*dfunc(f2,r,spiralptr,1D-3)
+
+!!k4
+IF(r.le.4.0d-1)THEN
         k(4) = sigma02_**2*w**2*(w-4d0*Omega0_)**2 - 8d0*sigma00_*sigma02_*w*(w-4d0*Omega0_)*(w+Omega0_)*Omega2_ &
              + 4d0*sigma00_*(-sigma04_*w**2*(w-4d0*Omega0_)**2-4d0*sigma00_*(4d0*w**2+2d0*w*Omega0_+3d0*Omega0_**2)*Omega2_**2- &
              4d0*sigma00_*w*(w-4d0*Omega0_)*(w+2d0*Omega0_)*Omega4_)
         k(4) = k(4)/sigma00_**2/w**2/(w-4d0*Omega0_)**2*r**2
+ELSE
+        k(4) = + 3.d0/4.d0/r**2  - d2func(f3,r,spiralptr,2D-2)/f3(r,spiralptr)  
+ENDIF
 
+!!k5
+IF(r.le.2.0d-1)THEN
         k(5) = (3d0*Omega2_ + m*nu_*Omega2_)*5d-1/Omega0_ &
              + (-13d0*Omega2_**2-4d0*m*nu_*Omega2_**2+16d0*Omega0_*Omega4_+4d0*m*nu_*Omega0_*Omega4_)*0.25d0/Omega0_**2*r**2
         k(5) = -k(5)*(4d0*m*nu_/(1.d0-nu_**2))
-        ! plasma 
+ELSE
+        k(5) = - 4.d0*m*Omega_/kappa_**2*nu_*(m*nu_*dfunc(Omega,r,spiralptr)+dfunc(kappa,r,spiralptr,1d-2))/r/(1.d0-nu_**2)
+ENDIF
+
+!!k6 plasma
+IF(r.le.5.0d-1)THEN
         k(6) = (-2.d0*sigma02_/sigma00_+4d0*Omega2_/Omega0_) &
              + (2d0*sigma02_**2/sigma00_**2 - 4d0*sigma04_/sigma00_+4d0*(-2d0*Omega2_**2+3d0*Omega0_*Omega4_)/Omega0_**2)*r**2
         k(6) =  2.d0*m*Omega_/kappa_*b(r,spiralptr)*zbar(b(r,spiralptr)*nu_)*k(6)
 ELSE
-        !hydro 
-        k(2) = - 2.d0*Omega_*m/(spiral.w-m*Omega_)/r*dcmplx(dfunc(f1,r,spiralptr)/f1(r,spiralptr))
-        k(3) = - dcmplx(0.d0,1.d0)*Sigma_*5d-1/f2(r,spiralptr)*dfunc(f2,r,spiralptr)
-        k(4) = + 3.d0/4.d0/r**2  - d2func(f3,r,spiralptr,1D-2)/f3(r,spiralptr)  
-        k(5) = - 4.d0*m*Omega_/kappa_**2*nu_*(m*nu_*dfunc(Omega,r,spiralptr)+dfunc(kappa,r,spiralptr,1d-2))/r/(1.d0-nu_**2)
-        ! plasma 
-        k(6) =  2.d0*Omega_*m/r/kappa_*b(r,spiralptr)*zbar(b(r,spiralptr)*nu_)*dcmplx(dfunc(f1,r,spiralptr)/f1(r,spiralptr))
+        k(6) =  2.d0*Omega_*m/r/kappa_*b(r,spiralptr)*zbar(b(r,spiralptr)*nu_)*cmplx(dfunc(f1,r,spiralptr,1D-3)/f1(r,spiralptr))
 ENDIF
+
 
 IF(PRESENT(outk))outk = k
 
@@ -1006,6 +1019,7 @@ write(errormsg,"(E10.3)")r
 errormsg = trim(errormsg)
 errormsg = 'k3sqrt nan.@r = '//errormsg
 if(isnan(real(k3sqrt)))THEN
+        write(0,*)'r = ',r
         write(0,*)'k:'
         write(0,'(6(D15.3))')real(k)
         CALL XERMSG('k3sqrt','k3sqrt',errormsg,-98,2)
@@ -1026,7 +1040,7 @@ TYPE(C_PTR)                             ::spiralptr
 DOUBLE COMPLEX          ::f2
 DOUBLE PRECISION        ::r
 
-f2 = cmplx(ToomreQ(r,spiralptr)**2)*(cmplx(1.d0)-nu(r,spiralptr)**2)
+f2 = cmplx(ToomreQ(r,spiralptr)**2)*(cmplx(1.d0,0d0)-nu(r,spiralptr)**2)
 
 ENDFUNCTION
 
@@ -1035,7 +1049,7 @@ TYPE(C_PTR)                             ::spiralptr
 DOUBLE COMPLEX          ::f3
 DOUBLE PRECISION        ::r,xr,xi
 
-f3 = sqrt(cmplx(sigma0(r,spiralptr)/r/kappa(r,spiralptr)**2)/(dcmplx(1.d0)-nu(r,spiralptr)**2))
+f3 = sqrt(cmplx(sigma0(r,spiralptr)/r/kappa(r,spiralptr)**2)/(dcmplx(1.d0,0d0)-nu(r,spiralptr)**2))
 
 ENDFUNCTION
 
@@ -1066,13 +1080,14 @@ TYPE(C_PTR)                             ::spiralptr
 DOUBLE PRECISION                        ::r
 DOUBLE COMPLEX                          ::b,invdnu
 
-IF(r.lt.0.2d0)THEN
+IF(r.lt.0.5d0)THEN
         invdnu = -2d0*Omega0_**2/(3d0*Omega2_*w-2d0*Omega2_*Omega0_) &
              + Omega0_*((-19d0*w+14d0*Omega0_)*Omega2_**2+16d0*(w-Omega0_)*Omega0_*Omega4_)/Omega2_**2/(3d0*w-2d0*Omega0_)**2*r**2
              b = kappa_/sqrt(2d0)/spiral.co/snsd_*invdnu
 ELSE
-        b = kappa_*r/sqrt(2d0)/spiral.co/snsd_/dfunc(nu,r,spiralptr)
+        b = kappa_*r/sqrt(2d0)/spiral.co/snsd_/dfunc(nu,r,spiralptr,1d-2)
 ENDIF
+
 ENDFUNCTION
 
 ENDFUNCTION
@@ -1453,72 +1468,72 @@ ENDFUNCTION
 
 ENDSUBROUTINE
  
+SUBROUTINE findh1(spiralptr)
+IMPLICIT NONE
+type(typspiral),POINTER                 ::spiral
+TYPE(C_PTR)                             ::spiralptr
+DOUBLE COMPLEX                  ::u
+DOUBLE COMPLEX                  ::rad
+DOUBLE PRECISION                ::h,r,expp
+INTEGER                         ::i
+
+CALL c_f_pointer(spiralptr,spiral)
+
+do i = 1, spiral.n
+        r   = spiral.r(i)
+        u   = spiral.u(2,i)
+        rad = sqrt(kappa(r,spiral.ptr)**2*(1.d0-nu(r,spiral.ptr)**2)/sigma0(r,spiral.ptr)/r)
+        spiral.h1(i) = u*rad*exp(-0.5d0*(0.d0,1.d0)*ExpPart(r))
+enddo
+spiral.h1(1) = (0.d0,0.d0)
+
+!CALL refineh1
+spiral.h1caled = .true.
+
+CONTAINS
+
+Function ExpPart(r) result(ans)
+IMPLICIT NONE
+DOUBLE PRECISION,INTENT(IN)     ::r
+DOUBLE PRECISION                ::a,rr
+DOUBLE PRECISION                ::ans
+DOUBLE PRECISION                ::ferr = 1.d-15
+INTEGER                         ::IERR,K=6000
+a = zerolimit
+rr = r
+IERR = 0
+if(rr.eq.0.d0)then
+        ans = 0.d0
+else
+        CALL DGAUS8(F,a,rr,fERR,ans,IERR)
+!       CALL DQNC79(F,a,rr,fERR,ans,IERR,K)
+endif
+
+ENDFUNCTION ExpPart
+
+FUNCTION F(r)
+DOUBLE PRECISION                ::F,r
+F = Sigma(r,spiral.ptr)
+ENDFUNCTION
+
+SUBROUTINE refineh1
+IMPLICIT NONE
+DOUBLE PRECISION,PARAMETER      ::cutoff = 10.76d0
+INTEGER                         ::i,f
+DO i =1, spiral.n
+        if(spiral.r(i).gt.cutoff)then
+                f = i
+                exit
+        endif
+enddo
+
+DO i = f+1, spiral.n
+        spiral.h1(i) = spiral.h1(i)*exp((-spiral.r(i)+cutoff)/1.0d-1)
+enddo
+
+ENDSUBROUTINE refineh1
+ENDSUBROUTINE findh1
  
-!SUBROUTINE findh1(spiral)
-!IMPLICIT NONE
-!type(typspiral)                         ::spiral
-!DOUBLE COMPLEX                  ::u
-!DOUBLE COMPLEX                  ::rad
-!DOUBLE PRECISION                ::h,r,expp
-!INTEGER                         ::i
-!do i = 1, spiral.n
-!        r   = spiral.r(i)
-!        u   = spiral.u(2,i)
-!        rad = sqrt(kappa(r,spiral)**2*(1.d0-nu(r,spiral)**2)/sigma0(r,spiral)/r)
-!        spiral.h1(i) = u*rad*exp(-0.5d0*(0.d0,1.d0)*ExpPart(r))
-!enddo
-!spiral.h1(1) = (0.d0,0.d0)
-!
-!!CALL refineh1
-!spiral.h1caled = .true.
-!
-!CONTAINS
-!
-!Function ExpPart(r) result(ans)
-!USE NUM
-!        IMPLICIT NONE
-!        DOUBLE PRECISION,INTENT(IN)     ::r
-!        DOUBLE PRECISION                ::a,rr
-!        DOUBLE PRECISION                ::ans
-!        DOUBLE PRECISION                ::ferr = 1.d-15
-!        INTEGER                         ::IERR,K=6000
-!        a = zerolimit
-!        rr = r
-!        IERR = 0
-!        if(rr.eq.0.d0)then
-!                ans = 0.d0
-!        else
-!                CALL DGAUS8(F,a,rr,fERR,ans,IERR)
-!!               CALL DQNC79(F,a,rr,fERR,ans,IERR,K)
-!        endif
-!
-!ENDFUNCTION ExpPart
-!
-!FUNCTION F(r)
-!DOUBLE PRECISION                ::F,r
-!F = Sigma(r,spiral)
-!ENDFUNCTION
-!
-!SUBROUTINE refineh1
-!IMPLICIT NONE
-!DOUBLE PRECISION,PARAMETER      ::cutoff = 10.76d0
-!INTEGER                         ::i,f
-!DO i =1, spiral.n
-!        if(spiral.r(i).gt.cutoff)then
-!                f = i
-!                exit
-!        endif
-!enddo
-!
-!DO i = f+1, spiral.n
-!        spiral.h1(i) = spiral.h1(i)*exp((-spiral.r(i)+cutoff)/1.0d-1)
-!enddo
-!
-!ENDSUBROUTINE refineh1
-!ENDSUBROUTINE findh1
-!
-!
-!
 !FUNCTION sigma1r(r,spiral)
 !USE STELLARDISK_MODEL
 !USE math
