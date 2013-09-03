@@ -28,6 +28,7 @@ type,extends(typgalaxy_para)            ::typspiral
        DOUBLE PRECISION                 ::phase     = 0.d0! starting angle for 2D plot
        DOUBLE PRECISION                 ::dr              ! deparation btwn two points
        DOUBLE PRECISION                 ::pspd            ! pattern speed
+       DOUBLE PRECISION                 ::PlasmaTakeOver
        LOGICAL                          ::ucaled    = .false.
        LOGICAL                          ::cocaled   = .false.
        LOGICAL                          ::h1caled   = .false.
@@ -306,7 +307,14 @@ ENDIF
 
 IF(PRESENT(outk))outk = k
 
-MASK(2)= .false.
+IF(r>spiral.PlasmaTakeOver)THEN
+        MASK(2)= .false.
+        MASK(6)= .true.
+ELSE
+        MASK(2)= .true.
+        MASK(6)= .false.
+ENDIF
+
 k3sqrt = sum(k,MASK)
 !write(*,'(7(D15.5))')r,real(k3sqrt),real(k(1)),(real(k(i)),I = 3,6)
 CALL CheckResult
@@ -1415,6 +1423,7 @@ spiral.u = (1.d0,0.d0)*0.d0
 a = spiral.rmin
 b = spiral.rmax
 CALL set_co(spiral)
+CALL FindPlasmaTakeOverPosi(spiral)
 if(spiral.bndu0)then
         ui = (/dcmplx(a),dcmplx(0.d0),2.d0*sqrt(-q(0.d0))/)
 else
@@ -1722,5 +1731,32 @@ Mb    = para(3)
 rb    = para(4)
 BulgeSurfaceDensityA = 2.d0*Mb/(1.d0+r**2/rb**2)**1.5*sqrt(r**2+rb**2)
 ENDFUNCTION
+
+SUBROUTINE FindPlasmaTakeOverPosi(spiral)
+USE STELLARDISK_MODEL
+IMPLICIT NONE          
+type(typspiral)                         ::spiral
+DOUBLE PRECISION                        ::B,C,R,RE,AE
+INTEGER                                 ::IFLAG
+
+B = 2.d0
+C = 6.d0
+R = (C-B)/2.d0
+RE = 1d-7
+AE = 1d-7
+
+CALL DFZERO(f,B,C,R,RE,AE,IFLAG)
+spiral.PlasmaTakeOver = C
+
+CONTAINS 
+FUNCTION f(r)
+DOUBLE PRECISION                        ::f
+DOUBLE PRECISION,INTENT(IN)             ::r
+DOUBLE COMPLEX                          ::outk(6),k
+k = k3sqrt(r,spiral,outk)
+f = (real(outk(2))-real(outk(6)))**2
+ENDFUNCTION
+
+ENDSUBROUTINE
 
 ENDMODULE STELLARDISK
