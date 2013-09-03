@@ -5,7 +5,7 @@ ENDMODULE NUM
 MODULE STELLARDISK_MODEL
 !!Define Types
 type   typgalaxy_para
-       DOUBLE PRECISION                 ::para(14)
+       DOUBLE PRECISION                 ::para(20)
        LOGICAL                          ::inited=.false.
        CONTAINS 
        PROCEDURE                        ::print         =>para_print
@@ -95,10 +95,13 @@ DOUBLE PRECISION                ::rb,Mb,gBulge,VBulge
 DOUBLE PRECISION                ::dM,da,db,VDisk
 !Toomre Q
 DOUBLE PRECISION                ::Q,Qod,rq
+DOUBLE PRECISION                ::Qa1,Qb1,Qc1
+DOUBLE PRECISION                ::Qa2,Qb2,Qc2
 !Lau Disk
 DOUBLE PRECISION                ::a1,a2,M1,M2
 !NAME LIST
-namelist /paralist/ Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2
+namelist /paralist/ &
+Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2,Qa1,Qb1,Qc1,Qa2,Qb2,Qc2
 
 !$OMP CRITICAL
 open(10,file='para.list')
@@ -106,7 +109,7 @@ read(10,nml=paralist)
 close(10)
 !$OMP END CRITICAL
 
-stdpara.para = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2/)
+stdpara.para = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2,Qa1,Qb1,Qc1,Qa2,Qb2,Qc2/)
 stdpara.inited = .true.
 ENDSUBROUTINE
 
@@ -202,6 +205,8 @@ ENDSUBROUTINE
  
 FUNCTION ToomreQ(r,spiral)
 DOUBLE PRECISION                        ::Q,r,Qod,ToomreQ,rq
+DOUBLE PRECISION                        ::Qa1,Qb1,Qc1
+DOUBLE PRECISION                        ::Qa2,Qb2,Qc2
 type(typspiral),TARGET                  ::spiral
 DOUBLE PRECISION,POINTER                ::para(:)
 DOUBLE PRECISION                        ::f
@@ -210,8 +215,19 @@ Qod = para(8)
 q   = para(9)
 rq  = para(10)
 
-ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2)) + 1.2d0*dexp(-r**2/1.05**2)  &
-         - exp(-(r-10)**2/2.d0**2)*0.07d0
+Qa1 = para(15)
+Qb1 = para(16)
+Qc1 = para(17)
+
+Qa2 = para(18)
+Qb2 = para(19)
+Qc2 = para(20)
+
+ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2)) &
+        + Qa1*dexp(-(r-Qb1)**2/Qc1**2)  &
+        + Qa2*dexp(-(r-Qb2)**2/Qc2**2)  
+!ToomreQ = Qod*(1.d0 + q*dexp(-r**2/rq**2)) + 1.2d0*dexp(-r**2/1.05**2)  &
+!         - exp(-(r-10)**2/2.d0**2)*0.07d0
 
 
 !IF(r<rq)THEN
