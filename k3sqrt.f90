@@ -18,8 +18,9 @@ type,extends(typgalaxy_para)            ::typspiral
        DOUBLE COMPLEX,ALLOCATABLE       ::u(:,:) 
        DOUBLE COMPLEX,ALLOCATABLE       ::h1(:)
        DOUBLE COMPLEX,ALLOCATABLE       ::phi1r(:)
-       DOUBLE COMPLEX,ALLOCATABLE       ::k3(:)
+       DOUBLE COMPLEX,ALLOCATABLE       ::k3(:,:)
        DOUBLE PRECISION,ALLOCATABLE     ::r(:)
+       DOUBLE PRECISION,ALLOCATABLE     ::snsd(:),q(:)
        DOUBLE PRECISION                 ::rmax
        DOUBLE PRECISION                 ::rmin
        DOUBLE PRECISION                 ::co              ! position of corotation
@@ -156,7 +157,9 @@ DOUBLE PRECISION                        ::domain
 IF(.NOT.ALLOCATED(this.u))ALLOCATE(this.u(3,2*n))
 IF(.NOT.ALLOCATED(this.h1))ALLOCATE(this.h1(2*n))
 IF(.NOT.ALLOCATED(this.r))ALLOCATE(this.r(2*n))
-IF(.NOT.ALLOCATED(this.k3))ALLOCATE(this.k3(2*n))
+IF(.NOT.ALLOCATED(this.k3))ALLOCATE(this.k3(2*n,7))
+IF(.NOT.ALLOCATED(this.q))ALLOCATE(this.q(2*n))
+IF(.NOT.ALLOCATED(this.snsd))ALLOCATE(this.snsd(2*n))
 this.rmin = 0.d0 
 this.rmax = 1.5d0*domain
 this.n    = 2*n
@@ -166,13 +169,41 @@ this.dr   = (this.rmax - this.rmin)/dble(this.n)
 this.co   = -100.d0
 ENDSUBROUTINE
 
-SUBROUTINE spiral_final(this)
+SUBROUTINE spiral_final(this,opt)
+USE io
 IMPLICIT NONE
+CHARACTER(*),PARAMETER                   ::fnm = 'spiral.h5'
+CHARACTER(*),OPTIONAL                    ::opt
+DOUBLE PRECISION                         ::tmp(1)
 class(typspiral)                         ::this
+
+!!write data to hdf5 file
+IF(present(opt))THEN
+        CALL h5write(this.r,this.n,fnm,'r')
+        CALL h5write(this.r,this.n,fnm,'r')
+        CALL h5write(real(this.u(2,:)),this.n,fnm,'u_r')
+        CALL h5write(imag(this.u(2,:)),this.n,fnm,'u_i')
+        CALL h5write(this.snsd,this.n,fnm,'snsd')
+        CALL h5write(this.q,this.n,fnm,'q')
+        CALL h5write(real(this.k3),this.n,7,fnm,'k')
+        tmp = real(this.w)/2.d0
+        CALL h5write(tmp,1,fnm,'PatternSpeed')
+        tmp = real(this.fortoone)
+        CALL h5write(tmp,1,fnm,'FourToOne')
+        tmp = real(this.co)
+        CALL h5write(tmp,1,fnm,'Corotation')
+        tmp = real(this.PlasmaTakeOver)
+        CALL h5write(tmp,1,fnm,'DispersionChanged')
+ENDIF
+
+
+!!deallocation
 IF(ALLOCATED(this.u))DEALLOCATE(this.u)
 IF(ALLOCATED(this.h1))DEALLOCATE(this.h1)
 IF(ALLOCATED(this.r))DEALLOCATE(this.r)
 IF(ALLOCATED(this.k3))DEALLOCATE(this.k3)
+IF(ALLOCATED(this.q))DEALLOCATE(this.q)
+IF(ALLOCATED(this.snsd))DEALLOCATE(this.snsd)
 ENDSUBROUTINE
 
 ENDMODULE
@@ -1432,7 +1463,9 @@ USE STELLARDISK_MODEL
 IMPLICIT NONE
 type(typspiral),TARGET                  ::spiral
 DOUBLE COMPLEX                  ::ui(3)
+DOUBLE COMPLEX                  ::outk(6),tmp
 DOUBLE PRECISION                ::a,b
+DOUBLE PRECISION                ::r
 INTEGER                         ::n,i
 
 spiral.u = (1.d0,0.d0)*0.d0
@@ -1450,7 +1483,12 @@ spiral.ucaled = .true.
 spiral.r(:) = real(spiral.u(1,:))
 spiral.error = error(spiral) !spiral.fortoone is assigned here
 DO i = 1, spiral.n
-        spiral.k3(i) = k3sqrt(spiral.r(i),spiral)
+        r = spiral.r(i)
+        tmp = k3sqrt(r,spiral,outk)
+        spiral.k3(i,1) = tmp
+        spiral.k3(i,2:7) = outk(:)
+        spiral.q(i) = ToomreQ(r,spiral)
+        spiral.snsd(i) = snsd(r,spiral)
 ENDDO
 contains
 
