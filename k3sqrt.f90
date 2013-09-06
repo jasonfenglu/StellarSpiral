@@ -185,7 +185,8 @@ IF(present(opt))THEN
         CALL h5write(imag(this.u(2,:)),this.n,fnm,'u_i')
         CALL h5write(this.snsd,this.n,fnm,'snsd')
         CALL h5write(this.q,this.n,fnm,'q')
-        CALL h5write(real(this.k3),this.n,7,fnm,'k')
+        CALL h5write(real(this.k3),this.n,7,fnm,'k_r')
+        CALL h5write(imag(this.k3),this.n,7,fnm,'k_i')
         tmp = real(this.w)/2.d0
         CALL h5write(tmp,1,fnm,'PatternSpeed')
         tmp = real(this.fortoone)
