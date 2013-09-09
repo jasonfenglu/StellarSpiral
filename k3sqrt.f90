@@ -20,7 +20,7 @@ type,extends(typgalaxy_para)            ::typspiral
        DOUBLE COMPLEX,ALLOCATABLE       ::phi1r(:)
        DOUBLE COMPLEX,ALLOCATABLE       ::k3(:,:)
        DOUBLE PRECISION,ALLOCATABLE     ::r(:)
-       DOUBLE PRECISION,ALLOCATABLE     ::snsd(:),q(:)
+       DOUBLE PRECISION,ALLOCATABLE     ::snsd(:),q(:),Omega(:),kappa(:,:),j(:)
        DOUBLE PRECISION                 ::rmax
        DOUBLE PRECISION                 ::rmin
        DOUBLE PRECISION                 ::co              ! position of corotation
@@ -160,6 +160,9 @@ IF(.NOT.ALLOCATED(this.r))ALLOCATE(this.r(2*n))
 IF(.NOT.ALLOCATED(this.k3))ALLOCATE(this.k3(2*n,7))
 IF(.NOT.ALLOCATED(this.q))ALLOCATE(this.q(2*n))
 IF(.NOT.ALLOCATED(this.snsd))ALLOCATE(this.snsd(2*n))
+IF(.NOT.ALLOCATED(this.Omega))ALLOCATE(this.Omega(2*n))
+IF(.NOT.ALLOCATED(this.kappa))ALLOCATE(this.kappa(2*n,4))
+IF(.NOT.ALLOCATED(this.j))ALLOCATE(this.j(2*n))
 this.rmin = 0.d0 
 this.rmax = 1.5d0*domain
 this.n    = 2*n
@@ -187,6 +190,9 @@ IF(present(opt))THEN
         CALL h5write(this.q,this.n,fnm,'q')
         CALL h5write(real(this.k3),this.n,7,fnm,'k_r')
         CALL h5write(imag(this.k3),this.n,7,fnm,'k_i')
+        CALL h5write(this.Omega,this.n,fnm,'Omega')
+        CALL h5write(this.j,this.n,fnm,'j')
+        CALL h5write(this.kappa,this.n,4,fnm,'Omega+-kappa')
         tmp = real(this.w)/2.d0
         CALL h5write(tmp,1,fnm,'PatternSpeed')
         tmp = real(this.fortoone)
@@ -1483,6 +1489,8 @@ CALL rk4(a,b,spiral.n,p,q,p,spiral.u,ui)
 spiral.ucaled = .true.
 spiral.r(:) = real(spiral.u(1,:))
 spiral.error = error(spiral) !spiral.fortoone is assigned here
+
+!!fill in saved file
 DO i = 1, spiral.n
         r = spiral.r(i)
         tmp = k3sqrt(r,spiral,outk)
@@ -1490,6 +1498,12 @@ DO i = 1, spiral.n
         spiral.k3(i,7) = tmp
         spiral.q(i) = ToomreQ(r,spiral)
         spiral.snsd(i) = snsd(r,spiral)
+        spiral.Omega(i)= Omega(r,spiral)
+        spiral.kappa(i,1)= spiral.Omega(i) - kappa(r,spiral)*0.5d0
+        spiral.kappa(i,2)= spiral.Omega(i) - kappa(r,spiral)*0.25d0
+        spiral.kappa(i,3)= spiral.Omega(i) + kappa(r,spiral)*0.25d0
+        spiral.kappa(i,4)= spiral.Omega(i) + kappa(r,spiral)*0.5d0
+        spiral.j(i) = curf(r,spiral)
 ENDDO
 contains
 
