@@ -179,6 +179,9 @@ CHARACTER(*),PARAMETER                   ::fnm = 'spiral.h5'
 CHARACTER(*),OPTIONAL                    ::opt
 DOUBLE PRECISION                         ::tmp(1)
 class(typspiral)                         ::this
+!! Creation date
+CHARACTER(LEN=8)                         ::DATE
+CHARACTER(LEN=10)                        ::TIME
 
 !!write data to hdf5 file
 IF(present(opt))THEN
@@ -201,6 +204,8 @@ IF(present(opt))THEN
         CALL h5write(tmp,1,fnm,'Corotation')
         tmp = real(this.PlasmaTakeOver)
         CALL h5write(tmp,1,fnm,'DispersionChanged')
+        CALL DATE_AND_TIME(DATE,TIME)
+        CALL h5write(DATE//','//TIME,fnm,'CreationTime')
 ENDIF
 
 

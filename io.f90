@@ -11,6 +11,7 @@ TYPE(tyfiles),POINTER           ::ptfile
 INTERFACE h5write
         MODULE PROCEDURE w2d
         MODULE PROCEDURE w1d
+        MODULE PROCEDURE wstr
 ENDINTERFACE
 
 INTERFACE h5size
@@ -216,7 +217,7 @@ DOUBLE PRECISION,INTENT(IN)     :: dat(:)        ! input data
 INTEGER(HID_T)                  :: file_id       ! File identifier
 INTEGER(HID_T)                  :: dset_id       ! Dataset identifier
 INTEGER(HID_T)                  :: dspace_id     ! Dataspace identifier
-INTEGER(HSIZE_T)                :: dims(1)     ! Dataset dimensions
+INTEGER(HSIZE_T)                :: dims(1)       ! Dataset dimensions
 INTEGER                         :: rank = 1      ! Dataset rank
 INTEGER                         :: error         ! Error flag
 INTEGER                         :: M             ! Dimension of data
@@ -242,6 +243,51 @@ CALL h5sclose_f(dspace_id, error)
 CALL h5fclose_f(file_id, error)
 CALL h5close_f(error)
 
+ENDSUBROUTINE
+
+SUBROUTINE wstr(str,filename,dsetname)
+CHARACTER(LEN=*)                :: str           ! Input string
+CHARACTER(LEN=*)                :: filename      ! File name
+CHARACTER(LEN=*)                :: dsetname      ! Dataset name
+INTEGER(HID_T)                  :: file_id       ! File identifier
+INTEGER(HID_T)                  :: dset_id       ! Dataset identifier
+INTEGER(HID_T)                  :: type_id       ! Datatype identifier
+INTEGER(HID_T)                  :: dspace_id     ! Dataspace identifier
+INTEGER(SIZE_T)                 :: type_size     ! Length of String
+INTEGER(HSIZE_T), DIMENSION(1)  :: dimstr
+INTEGER                         :: error         ! Error flag
+INTEGER                         :: N             ! Length of string
+
+dimstr(1) = 1
+type_size = len(str)
+
+!!Open h5file
+CALL h5open_f(error)
+IF(checkfileext(filename))THEN     
+        CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
+ELSE
+        CALL h5fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error)
+ENDIF
+
+
+!! Define character data type
+CALL h5tcopy_f (H5T_NATIVE_CHARACTER, type_id, error)
+!! Set data size
+CALL h5tset_size_f (type_id, type_size, error)
+!! Create dataspace
+CALL h5screate_f (H5S_SCALAR_F, dspace_id, error)
+!! Craete dataset
+CALL h5dcreate_f(file_id, dsetname, type_id, dspace_id, &
+                      dset_id, error)
+!! Write data
+CALL h5dwrite_f (dset_id, type_id, str, dimstr, error)
+
+
+CALL h5tclose_f(type_id, error)
+CALL h5dclose_f(dset_id, error)
+CALL h5sclose_f(dspace_id, error)
+CALL h5fclose_f(file_id, error)
+CALL h5close_f(error)
 ENDSUBROUTINE
 
 FUNCTION checkfileext(fname)
