@@ -63,7 +63,8 @@ DO i = 1, 100
        !print *,r,snsd(r,spiral),ToomreQ(r,spiral)
        !write(*,'(4(D15.5))')r,real(t),imag(t),abs(t)
 !      print *,real(spiral.u(1,i)),real(spiral.h1(i)),imag(spiral.h1(i))
-        print *,r,snsd(r,spiral)
+        print &
+        *,r,sigma1r(r,spiral)/(BulgeSurfaceDensityA(r,spiral)+sigma0(r,spiral))
 ENDDO
 
 
