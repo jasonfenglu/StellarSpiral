@@ -1,15 +1,18 @@
 PROGRAM kendall
 USE STELLARDISK_MODEL
 USE STELLARDISK
+USE io
 IMPLICIT NONE
 CHARACTER(len=32)                       ::arg
-CHARACTER(len=40),PARAMETER             ::datfname='data/ReAmpKendall.csv'
+CHARACTER(len=40),PARAMETER             ::datfname1='data/ReAmpKendall.csv'
+CHARACTER(len=40),PARAMETER             ::datfname2='data/ReAmpKendall2.csv'
 type(typspiral)                         ::spiral
-INTEGER,PARAMETER                       ::datlength=207
-DOUBLE PRECISION                        ::dat(datlength,7)
+INTEGER,PARAMETER                       ::datlength=207,datlength2=241
+DOUBLE PRECISION                        ::dat(datlength,7),dat2(datlength2,3)
 DOUBLE PRECISION                        ::Amp
 DOUBLE PRECISION                        ::r,dr = 0.1d0
 DOUBLE PRECISION                        ::bias = 1.d0
+DOUBLE PRECISION                        ::dist = 3.6D6 !3.6Mpc
 INTEGER                                 ::i
 
 if(iargc().ne.0)then
@@ -31,18 +34,25 @@ if(iargc().ne.0)then
 ENDIF
 
 !Read Kendall's data into dat first 4 rows
-open(10,file=datfname,ACTION='READ')
+open(10,file=datfname1,ACTION='READ')
 read(10,*)
 DO i = 1, datlength
         read(10,*)dat(i,1:4)
 ENDDO
 close(10)
+!Calibrate
+dat(:,1) = dat(:,1)/3600D0/180D0*pi*dist*1D-3
 
-!output to check
-!DO i = 1, 207
-!        write(6,'(4(G12.4,3X))')kdat(i,:)
-!ENDDO
 
+!Read Kendall's data into dat first 4 rows
+open(10,file=datfname2,ACTION='READ')
+read(10,*)
+DO i = 1, datlength2
+        read(10,*)dat2(i,1:3)
+ENDDO
+close(10)
+!Calibrate
+dat2(:,1) = dat2(:,1)/3600D0/180D0*pi*dist*1D-3
 CALL stdpara.readstd
 CALL spiral.init(500,12.d0,stdpara,2)
 CALL spiral.readw(2)
@@ -59,12 +69,19 @@ ENDDO
 
 dat(:,6) = bias*dat(:,2)
 
+CALL plot(dat,dat2)
 
-CALL plot(dat)
+CALL h5write(dat(:,1),datlength,'Amp.h5','r')
+CALL h5write(dat(:,2),datlength,'Amp.h5','3.6')
+CALL h5write(dat(:,3),datlength,'Amp.h5','3.6+e')
+CALL h5write(dat2(:,1),datlength2,'Amp2.h5','r')
+CALL h5write(dat2(:,2),datlength2,'Amp2.h5','I')
+CALL h5write(dat2(:,3),datlength2,'Amp2.h5','4.5')
+
 CONTAINS
 
-SUBROUTINE plot(dat)
-DOUBLE PRECISION,INTENT(IN)             ::dat(:,:)
+SUBROUTINE plot(dat,dat2)
+DOUBLE PRECISION,INTENT(IN)             ::dat(:,:),dat2(:,:)
 INTEGER                                 ::PGBEG
 INTEGER                                 ::i,j
 IF (PGBEG(0,'/xs',1,1) .NE. 1) STOP
@@ -117,7 +134,7 @@ ENDFUNCTION
 
 SUBROUTINE output
 CALL PGSVP(0.0,0.95,0.0,0.95)
-CALL PGENV(3.,real(spiral.fortoone),0.,0.4,0,0)
+CALL PGENV(real(dat(1,1)),real(spiral.fortoone),0.,0.4,0,0)
 
 DO i = 2, 6
         CALL PGSCI(i)
@@ -132,6 +149,11 @@ DO i = 2, 6
         !        CALL PGSLS(1)
         !ENDSELECT
         CALL PGLINE(datlength,real(dat(:,1)),real(dat(:,i)))
+        CALL PGSLS(1)
+ENDDO
+DO i = 2,3
+        CALL PGSCI(i+5)
+        CALL PGLINE(datlength2,real(dat2(:,1)),real(dat2(:,i)))
         CALL PGSLS(1)
 ENDDO
 
