@@ -74,9 +74,22 @@ CALL plot(dat,dat2)
 CALL h5write(dat(:,1),datlength,'Amp.h5','r')
 CALL h5write(dat(:,2),datlength,'Amp.h5','3.6')
 CALL h5write(dat(:,3),datlength,'Amp.h5','3.6+e')
+CALL h5write(dat(:,4),datlength,'Amp.h5','3.6-e')
+CALL h5write(dat(:,5),datlength,'Amp.h5','den') 
+CALL h5write(dat2(:,1),datlength2,'Amp2.h5','r')
 CALL h5write(dat2(:,1),datlength2,'Amp2.h5','r')
 CALL h5write(dat2(:,2),datlength2,'Amp2.h5','I')
 CALL h5write(dat2(:,3),datlength2,'Amp2.h5','4.5')
+
+!!plot relative amp is small r
+DO i = 1, 100
+        r = 1d0/20d0*dble(i)
+        dat(i,1) = r
+        dat(i,2) = amp*sigma1r(r,spiral)/(sigma0(r,spiral)+BulgeSurfaceDensity(r,spiral))
+ENDDO
+CALL h5write(dat(:,1),100,'AmpSmallr.h5','r')
+CALL h5write(dat(:,1),100,'AmpSmallr.h5','r')
+CALL h5write(dat(:,2),100,'AmpSmallr.h5','den')
 
 CONTAINS
 
