@@ -10,13 +10,13 @@ INCL  	= -I$(HDF5_HOME)/include/
 UTILS  	= plot.o rk4.o io.o math.o k3sqrt.o #galaxy.o
 EXE    	= test.exe FindOne.exe  2Density.exe Density.exe Force.exe Kendall.exe Corotation.exe Rot.exe RelativeForce.exe StellarGas.exe GasDensity.exe Ecg.exe Follow.exe Shift.exe
 MPIEXE 	= SearchAll.exe
-WORKINGEXE = test.exe FindOne.exe
+WORKINGEXE = test.exe k31d.exe
 
 OUTILS := $(addprefix obj/,$(UTILS))
 
 vpath obj/ .
 
-all:    $(OUTILS) $(WORKINGEXE)  mpi
+all:    $(OUTILS) $(WORKINGEXE) 
 
 mpi:
 	$(MPIF77) $(FFLAGS) SearchAll.f90 -c -o obj/SearchAll.o $(LIB) $(INCL)
