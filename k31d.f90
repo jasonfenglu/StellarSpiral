@@ -1,10 +1,8 @@
 program test
-USE STELLARDISK_MODEL
 USE STELLARDISK
 DOUBLE PRECISION        ::ri,rf,dr,r
 DOUBLE PRECISION,ALLOCAtable ::dat(:,:),rs(:)
 INTEGER                 ::n,i,j
-type(typgalaxy_para)    ::para1
 type(typspiral)         ::spiral
 DOUBLE COMPLEX          ::outk(6)
 DOUBLE COMPLEX          ::t
@@ -13,7 +11,7 @@ DOUBLE COMPLEX          ::t
 
 ri = 0d0
 rf = 15d0
-N  = 1000
+N  = 2000
 
 dr = (rf-ri)/dble(n)
 
@@ -36,7 +34,7 @@ CALL spiral.readw(2)
 !CALL FindSpiral(spiral)
 DO i = 1, N
        r = dr*dble(i-1)
-       t = k3sqrt(r,spiral,outk)
+       t = k3sqrt(r,spiral.ptr,outk)
        dat(1,i) = real(t)
        dat(2,i) = real(outk(1))
        dat(3:6,i) = real(outk(3:6))
@@ -83,6 +81,7 @@ CONTRA = 0.9
 CALL PGENV(0.,12.,-5.,2.,0,0)
 DO i = 1, 6
         CALL PGSCI(i)
+!       CALL PGLINE(N,real(rs),real(dat(i,:)),0)
         CALL PGPT(N,real(rs),real(dat(i,:)),0)
 ENDDO
 

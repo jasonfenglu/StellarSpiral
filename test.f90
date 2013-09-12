@@ -26,7 +26,7 @@ DOUBLE COMPLEX          ::outk(6)
 ri = 0.d0
 rf = 1.3d1
 !rf = 10.d0
-N  = 100
+N  = 10000
 
 dr = (rf-ri)/dble(n)
 
@@ -45,21 +45,26 @@ dr = (rf-ri)/dble(n)
 !CALL stdpara.printpara
 
 CALL stdpara.readstd
-CALL spiral.init(100,15.d0,stdpara,2)
+CALL spiral.init(100,12.d0,stdpara,2)
 CALL spiral.readw(2)
-CALL FindSpiral(spiral.ptr)
+!CALL FindSpiral(spiral.ptr)
 !CALL spiral.free
 !print *,real(spiral.u)
-!DO i = 1, 100
-!        r = dr*dble(i-1)
-!       !write(6,*)r,kappa(r,Spiral)*8.d0/pi/g/gasdensity(r,0.d0)
-!       !write(6,*)r,abs(k3sqrt(r,spiral)),spiral.co
-!       t = k3sqrt(r,spiral.ptr,outk)
-!       !print *,r,snsd(r,spiral),ToomreQ(r,spiral)
-!       !write(*,'(4(D15.5))')r,real(t),imag(t),abs(t)
-!!      print *,real(spiral.u(1,i)),real(spiral.h1(i)),imag(spiral.h1(i))
-!        write(6,'(7(D15.5))')r,kappa(r,spiral.ptr)
-!ENDDO
+!r = Omega(0d0,spiral.ptr)
+!print *,dfunc(Omega,0d0,spiral.ptr),dfunc(Omega,1.d0,spiral.ptr)
+!write(6,'(7(D15.5))')r,dfunc(Omega,r,spiral.ptr)
+DO i = 1, N
+        r = dr*dble(i-1)
+       !write(6,*)r,kappa(r,Spiral)*8.d0/pi/g/gasdensity(r,0.d0)
+       !write(6,*)r,abs(k3sqrt(r,spiral)),spiral.co
+       t = k3sqrt(r,spiral.ptr,outk)
+       !print *,r,snsd(r,spiral),ToomreQ(r,spiral)
+       !write(*,'(4(D15.5))')r,real(t),imag(t),abs(t)
+!      print *,real(spiral.u(1,i)),real(spiral.h1(i)),imag(spiral.h1(i))
+       !write(6,'(7(D15.5))')r,dfunc(Omega,r,spiral.ptr)
+       print *,r,real(outk(6))
+       !print *,r,sigma0(r,spiral.ptr),snsd(r,spiral.ptr)
+ENDDO
 
 
 !CALL stdpara.readstd
@@ -111,12 +116,12 @@ CALL FindSpiral(spiral.ptr)
 CONTAINS
 
 
-!FUNCTION F(r)
-!IMPLICIT NONE
-!DOUBLE PRECISION                ::r
-!DOUBLE PRECISION                ::F
-!F = sin(r)
-!ENDFUNCTION
+FUNCTION F(r)
+IMPLICIT NONE
+DOUBLE PRECISION                ::r
+DOUBLE PRECISION                ::F
+F = sin(r)
+ENDFUNCTION
 !
 !Function F2(r) result(ans)
 !USE NUM
