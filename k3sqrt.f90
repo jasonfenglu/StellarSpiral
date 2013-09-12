@@ -11,7 +11,7 @@ USE ISO_C_BINDING
 PRIVATE
 PUBLIC stdpara,typspiral,cPtrToSpiral
 type   typgalaxy_para
-       DOUBLE PRECISION                 ::para(14)
+       DOUBLE PRECISION                 ::para(20)
        LOGICAL                          ::inited=.false.
        CONTAINS 
        PROCEDURE                        ::print         =>para_print
@@ -24,8 +24,9 @@ type,extends(typgalaxy_para)            ::typspiral
        DOUBLE COMPLEX,ALLOCATABLE       ::u(:,:) 
        DOUBLE COMPLEX,ALLOCATABLE       ::h1(:)
        DOUBLE COMPLEX,ALLOCATABLE       ::phi1r(:)
-       DOUBLE COMPLEX,ALLOCATABLE       ::k3(:)
+       DOUBLE COMPLEX,ALLOCATABLE       ::k3(:,:)
        DOUBLE PRECISION,ALLOCATABLE     ::r(:)
+       DOUBLE PRECISION,ALLOCATABLE     ::snsd(:),q(:),Omega(:),kappa(:,:),j(:)
        DOUBLE PRECISION                 ::rmax
        DOUBLE PRECISION                 ::rmin
        DOUBLE PRECISION                 ::co              ! position of corotation
@@ -34,12 +35,13 @@ type,extends(typgalaxy_para)            ::typspiral
        DOUBLE PRECISION                 ::phase     = 0.d0! starting angle for 2D plot
        DOUBLE PRECISION                 ::dr              ! deparation btwn two points
        DOUBLE PRECISION                 ::pspd            ! pattern speed
+       DOUBLE PRECISION                 ::PlasmaTakeOver
        LOGICAL                          ::ucaled    = .false.
        LOGICAL                          ::cocaled   = .false.
        LOGICAL                          ::h1caled   = .false.
        LOGICAL                          ::bndu0     = .true.
        LOGICAL                          ::winit     = .false.
-       TYPE(c_ptr)                      ::ptr
+       TYPE(c_ptr)                      ::ptr             ! save the c_type pointer of it self
        CONTAINS
        PROCEDURE,PASS                   ::init          =>spiral_init
        PROCEDURE,PASS                   ::free          =>spiral_final
@@ -101,10 +103,13 @@ DOUBLE PRECISION                ::rb,Mb,gBulge,VBulge
 DOUBLE PRECISION                ::dM,da,db,VDisk
 !Toomre Q
 DOUBLE PRECISION                ::Q,Qod,rq
+DOUBLE PRECISION                ::Qa1,Qb1,Qc1
+DOUBLE PRECISION                ::Qa2,Qb2,Qc2
 !Lau Disk
 DOUBLE PRECISION                ::a1,a2,M1,M2
 !NAME LIST
-namelist /paralist/ Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2
+namelist /paralist/ &
+Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2,Qa1,Qb1,Qc1,Qa2,Qb2,Qc2
 
 !$OMP CRITICAL
 open(10,file='para.list')
@@ -112,7 +117,7 @@ read(10,nml=paralist)
 close(10)
 !$OMP END CRITICAL
 
-stdpara.para = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2/)
+stdpara.para = (/Lh,rhoh,Mb,rb,dM,da,db,Qod,q,rq,a1,a2,M1,M2,Qa1,Qb1,Qc1,Qa2,Qb2,Qc2/)
 stdpara.inited = .true.
 ENDSUBROUTINE
 
@@ -159,7 +164,12 @@ DOUBLE PRECISION                        ::domain
 IF(.NOT.ALLOCATED(this.u))ALLOCATE(this.u(3,2*n))
 IF(.NOT.ALLOCATED(this.h1))ALLOCATE(this.h1(2*n))
 IF(.NOT.ALLOCATED(this.r))ALLOCATE(this.r(2*n))
-IF(.NOT.ALLOCATED(this.k3))ALLOCATE(this.k3(2*n))
+IF(.NOT.ALLOCATED(this.k3))ALLOCATE(this.k3(2*n,7))
+IF(.NOT.ALLOCATED(this.q))ALLOCATE(this.q(2*n))
+IF(.NOT.ALLOCATED(this.snsd))ALLOCATE(this.snsd(2*n))
+IF(.NOT.ALLOCATED(this.Omega))ALLOCATE(this.Omega(2*n))
+IF(.NOT.ALLOCATED(this.kappa))ALLOCATE(this.kappa(2*n,4))
+IF(.NOT.ALLOCATED(this.j))ALLOCATE(this.j(2*n))
 this.rmin = 0.d0 
 this.rmax = 1.5d0*domain
 this.n    = 2*n
@@ -170,13 +180,50 @@ this.co   = -100.d0
 this.ptr  = c_loc(this)
 ENDSUBROUTINE
 
-SUBROUTINE spiral_final(this)
+SUBROUTINE spiral_final(this,opt)
+USE io
 IMPLICIT NONE
+CHARACTER(*),PARAMETER                   ::fnm = 'spiral.h5'
+CHARACTER(*),OPTIONAL                    ::opt
+DOUBLE PRECISION                         ::tmp(1)
 class(typspiral)                         ::this
+!! Creation date
+CHARACTER(LEN=8)                         ::DATE
+CHARACTER(LEN=10)                        ::TIME
+
+!!write data to hdf5 file
+IF(present(opt))THEN
+        CALL h5write(this.r,this.n,fnm,'r')
+        CALL h5write(this.r,this.n,fnm,'r')
+        CALL h5write(real(this.u(2,:)),this.n,fnm,'u_r')
+        CALL h5write(imag(this.u(2,:)),this.n,fnm,'u_i')
+        CALL h5write(this.snsd,this.n,fnm,'snsd')
+        CALL h5write(this.q,this.n,fnm,'q')
+        CALL h5write(real(this.k3),this.n,7,fnm,'k_r')
+        CALL h5write(imag(this.k3),this.n,7,fnm,'k_i')
+        CALL h5write(this.Omega,this.n,fnm,'Omega')
+        CALL h5write(this.j,this.n,fnm,'j')
+        CALL h5write(this.kappa,this.n,4,fnm,'Omega+-kappa')
+        tmp = real(this.w)/2.d0
+        CALL h5write(tmp,1,fnm,'PatternSpeed')
+        tmp = real(this.fortoone)
+        CALL h5write(tmp,1,fnm,'FourToOne')
+        tmp = real(this.co)
+        CALL h5write(tmp,1,fnm,'Corotation')
+        tmp = real(this.PlasmaTakeOver)
+        CALL h5write(tmp,1,fnm,'DispersionChanged')
+        CALL DATE_AND_TIME(DATE,TIME)
+        CALL h5write(DATE//','//TIME,fnm,'CreationTime')
+ENDIF
+
+
+!!deallocation
 IF(ALLOCATED(this.u))DEALLOCATE(this.u)
 IF(ALLOCATED(this.h1))DEALLOCATE(this.h1)
 IF(ALLOCATED(this.r))DEALLOCATE(this.r)
 IF(ALLOCATED(this.k3))DEALLOCATE(this.k3)
+IF(ALLOCATED(this.q))DEALLOCATE(this.q)
+IF(ALLOCATED(this.snsd))DEALLOCATE(this.snsd)
 ENDSUBROUTINE
 
 ENDMODULE
@@ -1430,7 +1477,9 @@ IMPLICIT NONE
 TYPE(typspiral),POINTER                 ::spiral
 TYPE(C_PTR)                             ::spiralptr
 DOUBLE COMPLEX                  ::ui(3)
+DOUBLE COMPLEX                  ::outk(6),tmp
 DOUBLE PRECISION                ::a,b
+DOUBLE PRECISION                ::r
 INTEGER                         ::n,i
 
 CALL c_f_pointer(spiralptr,spiral)
@@ -1438,6 +1487,8 @@ spiral.u = (1.d0,0.d0)*0.d0
 a = spiral.rmin
 b = spiral.rmax
 CALL set_co(spiral.ptr)
+!!TODO
+!CALL FindPlasmaTakeOverPosi(spiral.ptr)
 if(spiral.bndu0)then
         ui = (/dcmplx(a),dcmplx(0.d0),2.d0*sqrt(-q(0.d0))/)
 else
@@ -1446,9 +1497,19 @@ endif
 CALL rk4(a,b,spiral.n,p,q,p,spiral.u,ui)
 spiral.ucaled = .true.
 spiral.r(:) = real(spiral.u(1,:))
-spiral.error = error(spiralptr) !spiral.fortoone is assigned here
+
+!!fill in saved file
 DO i = 1, spiral.n
-        spiral.k3(i) = k3sqrt(spiral.r(i),spiralptr)
+        spiral.k3(i,:) = k3sqrt(spiral.r(i),spiralptr)
+        spiral.k3(i,7) = tmp
+        spiral.q(i) = ToomreQ(r,spiralptr)
+        spiral.snsd(i) = snsd(r,spiralptr)
+        spiral.Omega(i)= Omega(r,spiralptr)
+        spiral.kappa(i,1)= spiral.Omega(i) - kappa(r,spiralptr)*0.5d0
+        spiral.kappa(i,2)= spiral.Omega(i) - kappa(r,spiralptr)*0.25d0
+        spiral.kappa(i,3)= spiral.Omega(i) + kappa(r,spiralptr)*0.25d0
+        spiral.kappa(i,4)= spiral.Omega(i) + kappa(r,spiralptr)*0.5d0
+        spiral.j(i) = curf(r,spiralptr)
 ENDDO
 contains
 
@@ -1572,6 +1633,33 @@ error  = error -                           &
 error = uu(3)/uu(2) -error
         
 ENDFUNCTION
+
+SUBROUTINE FindPlasmaTakeOverPosi(spiral)
+USE STELLARDISK_MODEL
+IMPLICIT NONE          
+type(typspiral)                         ::spiral
+DOUBLE PRECISION                        ::B,C,R,RE,AE
+INTEGER                                 ::IFLAG
+
+B = 2.d0
+C = 6.d0
+R = (C-B)/2.d0
+RE = 1d-7
+AE = 1d-7
+
+CALL DFZERO(f,B,C,R,RE,AE,IFLAG)
+spiral.PlasmaTakeOver = C
+
+CONTAINS 
+FUNCTION f(r)
+DOUBLE PRECISION                        ::f
+DOUBLE PRECISION,INTENT(IN)             ::r
+DOUBLE COMPLEX                          ::outk(6),k
+k = k3sqrt(r,spiral.ptr,outk)
+f = (real(outk(2))-real(outk(6)))**2
+ENDFUNCTION
+
+ENDSUBROUTINE
 
 ENDMODULE STELLARDISK
 

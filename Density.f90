@@ -97,7 +97,7 @@ type(typspiral)                 ::spiral
 
 CALL readarg
 CALL stdpara.readstd
-CALL spiral.init(500,12.d0,stdpara,2)
+CALL spiral.init(1000,10.d0,stdpara,2)
 CALL spiral.readw(2)
 CALL FindSpiral(spiral.ptr)
 print *,spiral.u
@@ -165,6 +165,8 @@ CALL h5write(density,N,N,'density.h5','density')
 DEALLOCATE(xcoord)
 DEALLOCATE(ycoord)
 DEALLOCATE(density)
+
+CALL spiral.free('save')
 !!calculate Integrated Phase
 !CALL PhaseIntegrate
 !CALL ENDSTELLARDISK
@@ -299,8 +301,8 @@ IMPLICIT NONE
 !observed angle of line of node 28 degree
  aolin = -28.3d0/180.d0*pi_n
 !aolin = -32.d0/180.d0*pi_n
-!inclination angle is 55 degree ?
-apitc = 55.d0/180.d0*pi_n
+!inclination angle is 57 degree  
+apitc = 57.d0/180.d0*pi_n
 !tuned angle of line of node
 !aline = 30.d0/180.d0*pi_n
 aline =  argaline/180.d0*pi_n
