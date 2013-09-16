@@ -89,7 +89,7 @@ USE io
 USE argument
 IMPLICIT NONE
 INTEGER                         ::i,j,k
-DOUBLE PRECISION                ::domain= 10.d0,dx,dy,r,th,pf(2),pi(2)
+DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th,pf(2),pi(2)
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION                ::limit = 100.d0
 DOUBLE PRECISION                ::d
@@ -187,6 +187,7 @@ INTEGER                                 ::i
 IF(contour)THEN
         ALLOCATE(F2(n,n))
         F2 = 0.d0
+        !!only density > 0
         FORALL(i = 1:n,j = 1:n,F(i,j)>0)
                 F2(i,j) = F(i,j)
         ENDFORALL
@@ -206,7 +207,7 @@ CALL PGENV(-real(domain),real(domain),-real(domain),real(domain),1,0)
 IF(.not.contour)THEN
         CALL meshplot(F,n,domain,zmax)
 ELSE
-        CALL contourplot(F2,n,domain,4)
+        CALL contourplot(F2,n,domain,5)
 ENDIF
 IF(.not.toproject.and.drawcir)THEN
         write(6,*)achar(27)//'[33m Drawing circles',achar(27)//'[0m'
@@ -218,6 +219,8 @@ IF(.not.toproject.and.drawcir)THEN
         CALL PGCIRC(0.,0.,10.636)
         CALL PGCIRC(0.,0.,8.83)
 ENDIF
+CALL PGSCI(0)
+CALL PGLINE(2,(/2.,7./),(/-7.,-7./))
 CALL PGCLOS
 IF (PGBEG(0,'density.png/png',1,1) .NE. 1) STOP
 ENDDO
@@ -298,10 +301,11 @@ SUBROUTINE set_angles
 USE projections
 IMPLICIT NONE
 !observed angle of line of node 28 degree
- aolin = -28.3d0/180.d0*pi_n
+ !aolin = -28.3d0/180.d0*pi_n
+ aolin = -20.0d0/180.d0*pi_n
 !aolin = -32.d0/180.d0*pi_n
-!inclination angle is 57 degree  
-apitc = 57.d0/180.d0*pi_n
+!inclination angle is 55 degree  
+apitc = 55.d0/180.d0*pi_n
 !tuned angle of line of node
 !aline = 30.d0/180.d0*pi_n
 aline =  argaline/180.d0*pi_n
