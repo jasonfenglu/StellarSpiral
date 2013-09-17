@@ -3,7 +3,7 @@ StellarSpiral
 
 The project contains excution files and library files.
 
-#Excution Files:
+## Excution Files:
 	* **Corotation.exe**
 		Plot Omega, Omega+-Kappa graph. 
 		Show corotation,pattern speed and 4-1 resonance.
