@@ -131,7 +131,7 @@ ENDSUBROUTINE
 ENDPROGRAM ECG
 
 SUBROUTINE help
-write(6,'(a)')'Print ECG like plot                              '
+write(6,'(a)')'Show amplitude of some radius.                   '
 write(6,'(a)')'usage:   Ecg.exe -i filename.h5 [-z zmax]        '
 write(6,'(a)')'         Ecg.exe -v                              '
 STOP
