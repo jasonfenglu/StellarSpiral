@@ -87,3 +87,6 @@ Trace the amplitude of both stellar and gaseous spirals.
          -c,                     Plot circles at 3,4 and 5 kpc.
          --output                Output Phase Shift.
 
+## note
+Use Kendal.exe to find the amplitude factor.
+The amp parameter in antares/para.list and the factor should be the same.
