@@ -93,5 +93,15 @@ The amp parameter in antares/para.list and the factor should be the same.
 
 All gaseous disk parameters are in antares/lib/galaxy.f90
 
+## Enviroment
 All the source code are stored at **/arrays/mhda/ccfeng/M81/code** .
+They can be copied directory or using git to clone:
+
+		git clone /hpchome/ccfeng/code/antares_git/
+		git clone git@github.com:jasonfenglu/StellarSpiral.git
+
+Modules used:
+
+		module add torque htop pgplot/5.2_ic11.0
+		module add fftw/2.1.5_ic13.0_lam_7.1.4 HDF/5-1.8.10_ic13.0_lam_7.1.4 lam/7.1.4_ic13.0
 
