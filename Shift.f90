@@ -15,6 +15,7 @@ TYPE(tyH5file),TARGET                   ::gas
 
 TYPE    tyFollower
         DOUBLE PRECISION                ::x,y,r,th,amp
+        INTEGER                         ::NHalfCirc
         CONTAINS
         PROCEDURE,PASS::init            =>new_Follower
 ENDTYPE
@@ -27,17 +28,19 @@ DOUBLE PRECISION                        ::pi = atan(1.d0)*4.d0
 DOUBLE PRECISION                        ::GAC(58,2)
 CONTAINS
 
-SUBROUTINE new_Follower(this,x,y,intplt)
+SUBROUTINE new_Follower(this,x,y,intplt,NHalfCirc)
 IMPLICIT NONE
 CLASS(tyFollower)                       ::this
 TYPE(typintplt2)                        ::intplt
 DOUBLE PRECISION                        ::x,y
+INTEGER                                 ::NHalfCirc
 
 this.x = x
 this.y = y
 this.r = sqrt(this.x**2+this.y**2)
-this.th= atan2(this.y,this.x)
+this.th= atan2(this.y,this.x) - real(NHalfCirc)*pi*2.d0
 this.amp=intplt.find(this.x,this.y)
+this.NHalfCirc = NHalfCirc
 
 ENDSUBROUTINE new_Follower
 
@@ -171,6 +174,10 @@ CALL PGPANL(3,1)
 CALL PlotPhase(N,M,spiral)
 IF(output)CALL OutputPhase(N,M,spiral)
 
+DO i = 1, N
+        write(10,*)Spiral(i,1).th
+ENDDO
+
 !!ending program
 CALL gas.free
 CALL FreeStellar
@@ -226,7 +233,7 @@ INTEGER                         ::i,j
 
 ALLOCATE(StellarDensity(gas.n,gas.n))
 CALL stdpara.readstd
-CALL spiral.init(500,12.d0,stdpara,2)
+CALL spiral.init(1000,12.d0,stdpara,2)
 CALL spiral.readw(2)
 CALL FindSpiral(spiral)
 
@@ -342,11 +349,12 @@ ampf = maxval(Followers(:,i).amp)*1.2
 ri  = minval(Followers(:,i).r)*0.8
 rf  = maxval(Followers(:,i).r)*1.2
 
-IF(zmax_set)ampf = zmax
+!IF(i==1.and.zmax_set)ampf = zmax
 
 CALL PGPANL(2,i)
 !!plot th to amp
-CALL PGSWIN(real(pi),real(-pi),real(ampi),real(ampf))
+!CALL PGSWIN(real(pi),real(-pi),real(ampi),real(ampf))
+CALL PGSWIN(real(thf),real(thi),real(ampi),real(ampf))
 CALL PGSVP(0.1,0.9,0.6,0.9)
 CALL PGBOX('BCTSN',0.0,0,'BCTSN',0.0,0)
 CALL PGSAVE
@@ -374,7 +382,7 @@ CHARACTER(len=225)                    ::CH
 TYPE(tyFollower)                     ::Followers(N,M)
 INTEGER                              ::N,M
 DOUBLE PRECISION                     ::dr,ri,rf,r,dmax,dmin
-INTEGER,PARAMETER                    ::P=500
+INTEGER,PARAMETER                    ::P=100
 DOUBLE PRECISION                     ::dat(P,2)
 INTEGER                              ::i
 ri = max(minval(Followers(:,1).r),minval(Followers(:,2).r))
@@ -425,7 +433,7 @@ REAL                            ::rx,ry
 INTEGER                         ::ierr
 
 ierr = PGCURS(rx,ry,CH)
-CALL Follower.init(dble(rx),dble(ry),intplt)
+CALL Follower.init(dble(rx),dble(ry),intplt,0)
 write(6,'("using : x = ",F5.2,"  y = ",F5.2)')rx,ry
 
 ENDSUBROUTINE
@@ -437,9 +445,9 @@ IMPLICIT NONE
 TYPE(tyFollower),INTENT(IN)     ::Follower
 TYPE(tyFollower),INTENT(OUT)    ::NxFollower
 TYPE(typintplt2)                ::intplt
-DOUBLE PRECISION,PARAMETER      ::r=0.1d0
+DOUBLE PRECISION,PARAMETER      ::r=0.2d0
 DOUBLE PRECISION                ::th,dth,amp
-INTEGER,PARAMETER               ::N = 200
+INTEGER,PARAMETER               ::N = 100
 DOUBLE PRECISION                ::dat(N,2)
 INTEGER                         ::i
 
@@ -452,7 +460,11 @@ DO i = 1, N
         dat(i,2) = amp
 ENDDO
 th = dat(maxloc(dat(:,2),1),1)
-CALL NxFollower.init(Follower.x+r*cos(th),Follower.y+r*sin(th),intplt)
+IF(Follower.x<0.d0.and.Follower.y<0.d0.and.Follower.y+r*sin(th)>0.d0)THEN
+        CALL NxFollower.init(Follower.x+r*cos(th),Follower.y+r*sin(th),intplt,Follower.NHalfCirc+1)
+ELSE
+        CALL NxFollower.init(Follower.x+r*cos(th),Follower.y+r*sin(th),intplt,Follower.NHalfCirc)
+ENDIF
 ENDSUBROUTINE
 
 SUBROUTINE OutputPhase(N,M,Followers)

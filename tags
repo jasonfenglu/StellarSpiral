@@ -111,6 +111,8 @@ N	math.f90	/^INT/;"	k	type:typintplt2
 N	rk4.f90	/^INT/;"	v
 NDER	math.f90	/^INTEGER                         ::NDER /;"	k	type:typintplt2
 NEVAL	k3sqrt.f90	/^INTEGER                   ::NEVAL,/;"	v
+NHalfCirc	Shift.f90	/^        INTEGER                         ::NHalfCirc$/;"	k	type:tyFollower
+NHalfCirc	Shift.f90	/^INTEGER                                 ::NHalfCirc$/;"	k	type:tyFollower
 NUM	k3sqrt.f90	/^MODULE NUM$/;"	m
 NxFollower	Follow.f90	/^TYPE(tyFollower),INTENT(OUT)    ::NxFollower$/;"	k	type:tyFollower
 NxFollower	Shift.f90	/^TYPE(tyFollower),INTENT(OUT)    ::NxFollower$/;"	k	type:tyFollower
