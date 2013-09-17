@@ -115,7 +115,7 @@ ENDSUBROUTINE
 
 SUBROUTINE help
 IMPLICIT NONE
-        write(6,'(a)')'Follow spiral.                       '
+        write(6,'(a)')'Measure amplitute along two spirals.  '
         write(6,'(a)')'usage:   Follow.exe [options] -i Filename.h5'
         write(6,'(a)')'options:                         '
         write(6,'(a)')'         -z, --zmax [scale of z] Specified the scale of z'
