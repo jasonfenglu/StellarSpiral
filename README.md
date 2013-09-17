@@ -87,6 +87,11 @@ Trace the amplitude of both stellar and gaseous spirals.
          -c,                     Plot circles at 3,4 and 5 kpc.
          --output                Output Phase Shift.
 
-## note
+## Antares related
 Use Kendal.exe to find the amplitude factor.
 The amp parameter in antares/para.list and the factor should be the same.
+
+All gaseous disk parameters are in antares/lib/galaxy.f90
+
+All the source code are stored at **/arrays/mhda/ccfeng/M81/code** .
+
