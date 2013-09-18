@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Stellarspiral : " />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Stellarspiral</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/jasonfenglu/StellarSpiral">View on GitHub</a>
+
+          <h1 id="project_title">Stellarspiral</h1>
+          <h2 id="project_tagline"></h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/jasonfenglu/StellarSpiral/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/jasonfenglu/StellarSpiral/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="stellarspiral" class="anchor" href="#stellarspiral"><span class="octicon octicon-link"></span></a>StellarSpiral</h1>
+
+<p>The project contains excution files and library files.</p>
+
+<h2>
+<a name="excution-files" class="anchor" href="#excution-files"><span class="octicon octicon-link"></span></a>Excution Files</h2>
+
+<ul>
+<li><p><strong>Corotation.exe</strong>
+Plot Omega, Omega+-Kappa graph. 
+Show corotation,pattern speed and 4-1 resonance.</p></li>
+<li>
+<p><strong>Density.exe</strong>
+Draw stellar density distribution.</p>
+
+<pre><code>usage:   Density.exe [option]            
+options:                         
+-p, --project [degree]  To project the density.
+-c, --circle            To draw circles.       
+-r, --zauto             Automatic find scale of z
+-z, --zmax [scale of z] Specified the scale of z
+-h, --help              Show this help page     
+</code></pre>
+</li>
+<li>
+<p><strong>Ecg.exe</strong>
+Show amplitude of some radius.</p>
+
+<pre><code>usage:  Ecg.exe -i filename.h5 [-z zmax]
+        Ecg.exe -v
+</code></pre>
+</li>
+<li>
+<p><strong>FindOne.exe</strong>
+Find pattern speed. </p>
+
+<pre><code>usage: FindOne.exe wr wi
+</code></pre>
+</li>
+<li>
+<p><strong>Follow.exe</strong>
+Measure amplitute along two spirals. </p>
+
+<pre><code>usage:   Follow.exe [options] -i Filename.h5
+options:
+ -z, --zmax [scale of z] Specified the scale of z
+ -h, --help              Show this help page
+ -v,                     Version information.
+ -x,                     Number of XWindows.
+ -c,                     Plot circles 3,4,5.
+ -s,                     Plot stellar density.
+ --output                Save found points.
+</code></pre>
+</li>
+<li>
+<p><strong>GasDensity.exe</strong>
+Draw gas density distribution.</p>
+
+<pre><code>usage:   GasDensity.exe [option]
+options:
+ -c, --circle            To draw circles.
+ -i [file name.h5]       Read file.
+ -m [start] [end]        Read files.
+ -p, --project [degree]  To project the density.
+ -r, --zauto             Automatic find scale of z
+ -z, --zmax [scale of z] Specified the scale of z
+ -h, --help              Show this help page
+ -s, --stellar           Draw stellar contour.
+ -q,                     Draw instability.
+ -v,                     Version information.
+ --save                  Save as png file.
+ --cut                   Make a cut at CO.
+</code></pre>
+</li>
+<li>
+<p><strong>Kendall.exe</strong>
+Calculate prefactor of density contrast.</p>
+
+<pre><code>usage:   Kendall.exe [option]
+options:
+ -f, --force             Increase force multiple.
+</code></pre>
+</li>
+<li><p><strong>SearchAll.exe</strong>
+Find initial guess for FindOne.exe
+Using <strong>SearchAllMpi.sh</strong> to submit to dl clusters.</p></li>
+<li>
+<p><strong>Shift.exe</strong>
+Trace the amplitude of both stellar and gaseous spirals.</p>
+
+<pre><code>usage:   Follow.exe [options] -i Filename.h5
+options:
+ -z, --zmax [scale of z] Specified the scale of z
+ -h, --help              Show this help page
+ -v,                     Version information.
+ -x,                     Number of XWindows.
+ -c,                     Plot circles at 3,4 and 5 kpc.
+ --output                Output Phase Shift.
+</code></pre>
+</li>
+</ul><h2>
+<a name="antares-related" class="anchor" href="#antares-related"><span class="octicon octicon-link"></span></a>Antares related</h2>
+
+<p>Use Kendal.exe to find the amplitude factor.
+The amp parameter in antares/para.list and the factor should be the same.</p>
+
+<p>All gaseous disk parameters are in antares/lib/galaxy.f90</p>
+
+<h2>
+<a name="enviroment" class="anchor" href="#enviroment"><span class="octicon octicon-link"></span></a>Enviroment</h2>
+
+<p>All the source code are stored at <strong>/arrays/mhda/ccfeng/M81/code</strong> .
+They can be copied directory or using git to clone:</p>
+
+<pre><code>    git clone /hpchome/ccfeng/code/antares_git/
+    git clone git@github.com:jasonfenglu/StellarSpiral.git
+</code></pre>
+
+<p>Modules used:</p>
+
+<pre><code>    module add torque htop pgplot/5.2_ic11.0
+    module add fftw/2.1.5_ic13.0_lam_7.1.4 HDF/5-1.8.10_ic13.0_lam_7.1.4 lam/7.1.4_ic13.0
+</code></pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Stellarspiral maintained by <a href="https://github.com/jasonfenglu">jasonfenglu</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
