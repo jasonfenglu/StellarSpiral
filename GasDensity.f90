@@ -48,6 +48,7 @@ IMPLICIT  NONE
         LOGICAL                 ::drawq     = .false.
         LOGICAL                 ::save      = .false.
         LOGICAL                 ::cut       = .false.
+        LOGICAL                 ::velocity  = .false.
 CONTAINS
 SUBROUTINE readarg
 USE projections,only:argaline
@@ -76,6 +77,7 @@ if(iargc().ne.0)then
                         write(6,'(a)')'         -v,                     Version information.'
                         write(6,'(a)')'         --save                  Save as png file.   '
                         write(6,'(a)')'         --cut                   Make a cut at CO.   '
+                        write(6,'(a)')'         --velocity              Draw velocity contour.'
                         STOP
                 CASE('--circle','-c')
                         drawcir = .true.
@@ -109,6 +111,8 @@ if(iargc().ne.0)then
                 CASE('-v')
                         write(6,'(a)')'Compiled at: '//__DATE__//' '//__TIME__
                         STOP
+                CASE('--velocity')
+                        velocity = .true.
                 ENDSELECT
         ENDDO
 ENDIF
@@ -122,10 +126,15 @@ USE STELLARDISK,only:FindSpiral,pi_n=>pi,sigma1
 USE projections,only:argaline
 USE io
 USE argument
+USE math
 IMPLICIT NONE
 TYPE gastyp
+        TYPE(typintplt2)            ::Intpl_Den
+        TYPE(typintplt2)            ::Intpl_Mom_x
+        TYPE(typintplt2)            ::Intpl_Mom_y
         CHARACTER(len=32)           ::filename
         DOUBLE PRECISION,ALLOCATABLE::density(:,:)
+        DOUBLE PRECISION,ALLOCATABLE::momentum(:,:,:)
         DOUBLE PRECISION,ALLOCATABLE::x(:)
         DOUBLE PRECISION,ALLOCATABLE::y(:)
         DOUBLE PRECISION            ::dx,dy
@@ -133,7 +142,7 @@ ENDTYPE
 type(gastyp)                    ::gas
 INTEGER                         ::i,j,k,l
 CHARACTER(len=32)               ::arg
-DOUBLE PRECISION                ::domain= 10.d0,dx,dy,r,th,pf(2),pi(2)
+DOUBLE PRECISION                ::domain= 12.d0,dx,dy,r,th,pf(2),pi(2)
 DOUBLE PRECISION,ALLOCATABLE    ::density(:,:,:),xcoord(:),ycoord(:)
 DOUBLE PRECISION,ALLOCATABLE    ::GasDensity(:,:)
 DOUBLE PRECISION                ::limit = 100.d0
@@ -161,7 +170,8 @@ CALL spiral.readw(2)
 CALL FindSpiral(spiral)
 
 !set up grid
-ALLOCATE(density(n,n,3))!1 for stellar, 2 for gas, 3 for q of gas
+ALLOCATE(density(n,n,4))!1 for stellar, 2 for gas, 3 for q of gas,
+                        !4 for approaching velocity 
 ALLOCATE(xcoord(n))
 ALLOCATE(ycoord(n))
 
@@ -280,6 +290,9 @@ DEALLOCATE(density)
 DEALLOCATE(gas.density)
 DEALLOCATE(gas.x)
 DEALLOCATE(gas.y)
+CALL gas.Intpl_Den.free
+CALL gas.Intpl_Mom_x.free
+CALL gas.Intpl_Mom_y.free
 STOP
 
 CONTAINS
@@ -290,14 +303,21 @@ INTEGER                         ::fsize(2)
 
 fsize = h5size2d(gas.filename,'density')
 IF(.not.ALLOCATED(gas.density))ALLOCATE(gas.density(fsize(1),fsize(2)))
+IF(.not.ALLOCATED(gas.momentum))ALLOCATE(gas.momentum(fsize(1),fsize(2),2))
 IF(.not.ALLOCATED(gas.x))ALLOCATE(gas.x(fsize(1)))
 IF(.not.ALLOCATED(gas.y))ALLOCATE(gas.y(fsize(2)))
 
 CALL h5read(gas.density,fsize(1),fsize(2),gas.filename,'density')
+CALL h5read(gas.momentum(:,:,1),fsize(1),fsize(2),gas.filename,'momx')
+CALL h5read(gas.momentum(:,:,2),fsize(1),fsize(2),gas.filename,'momy')
 CALL h5read(gas.x,fsize(1),gas.filename,'x')
 CALL h5read(gas.y,fsize(2),gas.filename,'y')
 gas.dx = gas.x(2)-gas.x(1)
 gas.dy = gas.y(2)-gas.y(1)
+
+CALL gas.Intpl_Den.init(gas.density(:,:),gas.x,gas.y)
+CALL gas.Intpl_Mom_x.init(gas.momentum(:,:,1),gas.x,gas.y)
+CALL gas.Intpl_Mom_y.init(gas.momentum(:,:,2),gas.x,gas.y)
 
 ENDSUBROUTINE
 
@@ -317,6 +337,13 @@ ENDIF
 
 !!plot gas 
 CALL meshplot(density(:,:,2),n,domain,zmax,zmin_in=0.d0)
+!!plot velocity
+IF(velocity.and.toproject)THEN
+        CALL PGSAVE
+        CALL PGSCI(0)
+        CALL contourplot(density(:,:,4),n,domain,20)
+        CALL PGUNSA
+ENDIF
 !!plot circle
 CALL PlotCircle
 
@@ -389,11 +416,13 @@ CALL PGLAB('kpc','kpc','-log(Q)')
 ENDSUBROUTINE
 
 SUBROUTINE FillGasDensity
-USE STELLARDISK, only:kappa,GravConst,pi_n=>pi
+USE STELLARDISK, only:kappa,GravConst,pi_n=>pi,Omega
 USE galaxy, only:gasdensity
 IMPLICIT NONE
+DOUBLE PRECISION, EXTERNAL              ::vprojection
+DOUBLE PRECISION                        ::v(2)
 !!Filling stellar density
-!$OMP PARALLEL SHARED(density,spiral,gas) PRIVATE(j,r,th,pi,pf,d,k,l,intb)
+!$OMP PARALLEL SHARED(density,spiral,gas) PRIVATE(j,r,th,pi,pf,d,k,l,intb,v)
 !$OMP DO 
 DO i = 1, n
 DO j = 1, n
@@ -408,32 +437,19 @@ DO j = 1, n
         !find interpolating grid
         !!if pixel is not in simulation grid
         IF(pi(1)<minval(gas.x).or.pi(1)>maxval(gas.x).or.pi(2)<minval(gas.y).or.pi(2)>maxval(gas.y))then
-                density(i,j,2) = 0.d0
+                density(i,j,:) = 0.d0
         ELSE
-                r = sqrt(pi(1)**2+pi(2)**2)
-                DO k = 1, size(gas.x)
-                        if(gas.x(k)>pi(1))EXIT
-                ENDDO
-                DO l = 1, size(gas.y)
-                        if(gas.y(l)>pi(2))EXIT
-                ENDDO
-                !change k,l to the index for smaller neibor 
-                k = k - 1
-                l = l - 1
-                !remap pi to unit square
-                pi(1) = (pi(1)-gas.x(k))/gas.dx
-                pi(2) = (pi(2)-gas.y(l))/gas.dy
-                intb(1) = gas.density(k,l)
-                intb(2) = gas.density(k+1,l) - intb(1)
-                intb(3) = gas.density(k,l+1) - intb(1)
-                intb(4) = 0.d0
-                intb(4) = -sum(intb(:)) + gas.density(k+1,l+1)
-                density(i,j,2) = intb(1) + intb(2)*pi(1) + intb(3)*pi(2) &
-                               + intb(4)*pi(1)*pi(2)
+                !! gas density
+                density(i,j,2) = gas.Intpl_Den.find(pi(1),pi(2))
+                ! Toomre Q
                 density(i,j,3) = &
                 kappa(r,spiral)*8.d0/pi_n/GravConst/(density(i,j,2))/1d6
                 density(i,j,3) = -log(density(i,j,3))
-                
+
+                ! approaching velocity
+                v(1) = gas.Intpl_Mom_x.find(pi(1),pi(2))/density(i,j,2)-r*Omega(r,spiral)*cos(th)
+                v(2) = gas.Intpl_Mom_y.find(pi(1),pi(2))/density(i,j,2)+r*Omega(r,spiral)*sin(th)
+                density(i,j,4) = vprojection(v)
         ENDIF
         IF(cut)THEN
                 IF(r>spiral.co)THEN
@@ -529,15 +545,43 @@ DO i = 1,4
         p(i,:) = y
 ENDDO
 
-
-
 ENDSUBROUTINE
+
+FUNCTION vprojection(p)
+USE projections
+IMPLICIT NONE
+DOUBLE PRECISION                ::p(2)
+DOUBLE PRECISION                ::vprojection
+!!BLAS
+CHARACTER(1)                    ::TRANS
+DOUBLE PRECISION                ::ALPHA = 1.d0
+DOUBLE PRECISION                ::A(2,2)
+DOUBLE PRECISION                ::X(2),Y(2)
+DOUBLE PRECISION                ::BETA  = 0.d0
+INTEGER                         ::M = 2
+INTEGER                         ::N = 2
+INTEGER                         ::LDA = 2
+INTEGER                         ::INCX = 1
+INTEGER                         ::INCY = 1
+
+CALL set_angles
+
+X = p
+A = R(-aolin)
+TRANS  = 'n'
+CALL DGEMV (TRANS, M, N, ALPHA, A, LDA, X, INCX, BETA, Y, INCY)
+p = y
+!! now velocity have changed to the coordinate of vertical line of node.
+vprojection = p(1)*sin(apitc)
+
+ENDFUNCTION
 
 SUBROUTINE set_angles
 USE projections
 IMPLICIT NONE
 !observed angle of line of node 28 degree
- aolin = -28.3d0/180.d0*pi_n
+ aolin = -20.0d0/180.d0*pi_n
+!aolin = -28.3d0/180.d0*pi_n
 !aolin = -32.d0/180.d0*pi_n
 !inclination angle is 55 degree ?
 apitc = 55.d0/180.d0*pi_n
