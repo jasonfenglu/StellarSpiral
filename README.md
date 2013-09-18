@@ -62,6 +62,8 @@ Draw gas density distribution.
          -v,                     Version information.
          --save                  Save as png file.
          --cut                   Make a cut at CO.
+	 --velocity              Draw velocity contour.
+
 
 
 * **Kendall.exe**
